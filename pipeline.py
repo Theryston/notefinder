@@ -23,29 +23,27 @@ def log_notes(notes: list):
     print(f'🎵 Found {len(notes)} note{"s" if len(notes) != 1 else ""}')
     print(table)
     
-        
-def pipeline(content_path: str, content_type: str):
-    vocals_file_path = content_path;
-
-    if content_type == "youtube":
-        music_file_path = os.path.join(temp_dir, "music")
-        is_downloaded_yt_audio = youtube.download_youtube_audio(content_path, music_file_path)
-        
-        if not is_downloaded_yt_audio:
-            print("Failed to download YouTube audio")
-            return
-        
-        music_file_path = f"{music_file_path}.wav"
-        
-        print(f'Downloaded YouTube audio to {music_file_path}')
-        
-        vocals_file_path = os.path.join(temp_dir, "vocals.wav")
-        vocals_extract_temp_dir = os.path.join(temp_dir, "vocals_extract")
-        audio.extract_vocals(music_file_path, vocals_file_path, vocals_extract_temp_dir)
+def import_yt_vocals(content_path: str):
+    music_file_path = os.path.join(temp_dir, "music")
+    is_downloaded_yt_audio = youtube.download_youtube_audio(content_path, music_file_path)
     
-    print(f'Vocal path {vocals_file_path}')
+    if not is_downloaded_yt_audio:
+        print("Failed to download YouTube audio")
+        return
     
-    detected_notes = detect_notes.detect_notes(vocals_file_path)
+    music_file_path = f"{music_file_path}.wav"
+    
+    print(f'Downloaded YouTube audio to {music_file_path}')
+    
+    vocals_file_path = os.path.join(temp_dir, "vocals.wav")
+    vocals_extract_temp_dir = os.path.join(temp_dir, "vocals_extract")
+    audio.extract_vocals(music_file_path, vocals_file_path, vocals_extract_temp_dir)
+    
+    return vocals_file_path
+def pipeline(content_path: str):
+    print(f'Vocal path {content_path}')
+    
+    detected_notes = detect_notes.detect_notes(content_path)
     
     log_notes(detected_notes)
     

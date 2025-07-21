@@ -10,16 +10,29 @@ app = FastAPI()
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+@app.post("/import_yt_vocals")
+async def import_yt_vocals(request: Request):
+    data = await request.json()
+    content_path = data.get("content_path")
+    vocals_file_path = import_yt_vocals(content_path)
+    if vocals_file_path:
+        import shutil
+        filename = f"vocals_{os.path.basename(vocals_file_path)}"
+        upload_path = os.path.join(UPLOAD_DIR, filename)
+        shutil.copy2(vocals_file_path, upload_path)
+        return JSONResponse(status_code=200, content={"path": upload_path})
+    else:
+        return JSONResponse(status_code=400, content={"error": "Failed to extract vocals"})
+
 @app.post("/pipeline")
 async def run_pipeline(request: Request):
     data = await request.json()
     content_path = data.get("content_path")
-    content_type = data.get("content_type")
     
-    if not content_path or not content_type:
-        return JSONResponse(status_code=400, content={"error": "Missing content_path or content_type"})
+    if not content_path:
+        return JSONResponse(status_code=400, content={"error": "Missing content_path"})
     
-    notes = pipeline(content_path, content_type)
+    notes = pipeline(content_path)
     return JSONResponse(status_code=200, content={"notes": notes})
 
 @app.post("/upload")
