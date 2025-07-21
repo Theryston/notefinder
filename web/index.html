@@ -211,7 +211,6 @@
         loading.classList.remove("hidden");
         result.classList.add("hidden");
         let contentPath = null;
-        let contentType = selectedType;
         if (selectedType === "file") {
           // Upload file
           const formData = new FormData();
@@ -235,17 +234,44 @@
           // Store the uploaded file path for audio playback
           uploadedFilePath = contentPath;
         } else {
-          contentPath = youtubeInput.value.trim();
+          // YouTube processing: first extract vocals
+          try {
+            const ytRes = await fetch("/import_yt_vocals", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ content_path: youtubeInput.value.trim() }),
+            });
+            if (!ytRes.ok) {
+              loading.classList.add("hidden");
+              result.classList.remove("hidden");
+              jsonResult.textContent = JSON.stringify(
+                { error: "Failed to extract YouTube vocals" },
+                null,
+                2
+              );
+              return;
+            }
+            const ytData = await ytRes.json();
+            contentPath = ytData.path;
+            // Store the extracted file path for audio playback
+            uploadedFilePath = contentPath;
+          } catch (err) {
+            loading.classList.add("hidden");
+            result.classList.remove("hidden");
+            jsonResult.textContent = JSON.stringify(
+              { error: "YouTube extraction request failed" },
+              null,
+              2
+            );
+            return;
+          }
         }
         // Call pipeline
         try {
           const res = await fetch("/pipeline", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              content_path: contentPath,
-              content_type: contentType,
-            }),
+            body: JSON.stringify({ content_path: contentPath }),
           });
           const data = await res.json();
           loading.classList.add("hidden");
@@ -258,8 +284,8 @@
           if (data.notes && Array.isArray(data.notes)) {
             notesData = data.notes;
             renderTab(data.notes);
-            // Create audio element if we have a file
-            if (selectedType === "file" && uploadedFilePath) {
+            // Create audio element for both file and YouTube
+            if (uploadedFilePath) {
               createAudioElement();
             }
           }

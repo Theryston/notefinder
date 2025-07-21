@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.responses import JSONResponse
 import uvicorn
-from pipeline import pipeline
+from pipeline import pipeline, import_yt_vocals
 from fastapi.responses import FileResponse
 import os
+import random
 
 app = FastAPI()
 
@@ -11,13 +12,13 @@ UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @app.post("/import_yt_vocals")
-async def import_yt_vocals(request: Request):
+async def api_import_yt_vocals(request: Request):
     data = await request.json()
     content_path = data.get("content_path")
     vocals_file_path = import_yt_vocals(content_path)
     if vocals_file_path:
         import shutil
-        filename = f"vocals_{os.path.basename(vocals_file_path)}"
+        filename = os.path.basename(vocals_file_path)
         upload_path = os.path.join(UPLOAD_DIR, filename)
         shutil.copy2(vocals_file_path, upload_path)
         return JSONResponse(status_code=200, content={"path": upload_path})
@@ -37,7 +38,7 @@ async def run_pipeline(request: Request):
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
-    file_location = os.path.join(UPLOAD_DIR, file.filename)
+    file_location = os.path.join(UPLOAD_DIR, f"{random.randint(1000, 9999)}-{file.filename}")
     with open(file_location, "wb") as f:
         f.write(await file.read())
     return {"path": file_location}

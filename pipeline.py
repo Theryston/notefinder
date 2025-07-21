@@ -4,7 +4,8 @@ import youtube
 import audio
 import detect_notes
 from prettytable import PrettyTable
-import json
+import random
+
 temp_dir = tempfile.mkdtemp('-notefinder-worker')
 
 def log_notes(notes: list):
@@ -35,11 +36,12 @@ def import_yt_vocals(content_path: str):
     
     print(f'Downloaded YouTube audio to {music_file_path}')
     
-    vocals_file_path = os.path.join(temp_dir, "vocals.wav")
+    vocals_file_path = os.path.join(temp_dir, f"{random.randint(1000, 9999)}-vocals.wav")
     vocals_extract_temp_dir = os.path.join(temp_dir, "vocals_extract")
     audio.extract_vocals(music_file_path, vocals_file_path, vocals_extract_temp_dir)
     
     return vocals_file_path
+
 def pipeline(content_path: str):
     print(f'Vocal path {content_path}')
     
