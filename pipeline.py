@@ -23,9 +23,6 @@ def log_notes(notes: list):
     print(f'🎵 Found {len(notes)} note{"s" if len(notes) != 1 else ""}')
     print(table)
     
-def write_json(notes: list):
-    with open("notes.json", "w") as f:
-        json.dump(notes, f)
         
 def pipeline(content_path: str, content_type: str):
     vocals_file_path = content_path;
@@ -51,4 +48,5 @@ def pipeline(content_path: str, content_type: str):
     detected_notes = detect_notes.detect_notes(vocals_file_path)
     
     log_notes(detected_notes)
-    write_json(detected_notes)
+    
+    return detected_notes
