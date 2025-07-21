@@ -7,10 +7,14 @@ def download_youtube_audio(url: str, output_path: str):
         'outtmpl': output_path,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
+            'preferredcodec': 'wav',
+            'preferredquality': '192'
         }],
         'quiet': True,
     }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+    except:
+        return False
+    return True

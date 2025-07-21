@@ -1,1 +1,8 @@
 yt-dlp
+demucs
+pydub
+ffmpeg
+crepe
+tensorflow-cpu
+librosa
+prettytable
