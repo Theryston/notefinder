@@ -117,13 +117,13 @@ def detect_notes(vocals_file_path: str):
 
     raw_notes = group_notes(time, frequency, confidence, confidence_threshold=0.7)
 
-    merged_notes = merge_close_notes(raw_notes, max_gap=0.1)
-    
-    MIN_NOTE_DURATION = 0.1 # 0.1 seconds
+    MIN_NOTE_DURATION = 0.05 # 0.05 seconds
     filtered_notes = [
-        note for note in merged_notes
+        note for note in raw_notes
         if (note['end'] - note['start']) >= MIN_NOTE_DURATION
     ]
+    
+    merged_notes = merge_close_notes(filtered_notes, max_gap=0.2)
 
-    return filtered_notes
+    return merged_notes
 
