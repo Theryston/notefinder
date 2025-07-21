@@ -115,7 +115,7 @@ def detect_notes(vocals_file_path: str):
         verbose=0,
     )
 
-    raw_notes = group_notes(time, frequency, confidence, confidence_threshold=0.7)
+    raw_notes = group_notes(time, frequency, confidence, confidence_threshold=0.85)
 
     MIN_NOTE_DURATION = 0.05 # 0.05 seconds
     filtered_notes = [
