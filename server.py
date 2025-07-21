@@ -33,6 +33,13 @@ async def upload_file(file: UploadFile = File(...)):
 async def web_file():
     return FileResponse("web/index.html")
 
+@app.get('/uploads/{filepath:path}')
+async def serve_uploads(filepath: str):
+    file_path = os.path.join(UPLOAD_DIR, filepath)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return FileResponse(file_path)
+    return JSONResponse(status_code=404, content={"error": "File not found"})
+
 @app.get("/{filepath:path}")
 async def serve_static_files(filepath: str):
     file_path = os.path.join("web", filepath)

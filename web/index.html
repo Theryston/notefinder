@@ -79,9 +79,37 @@
         </div>
         <div id="result" class="hidden w-full mt-6">
           <h3 class="text-lg font-bold mb-2">Result</h3>
+          <div class="flex items-center gap-4 mb-4">
+            <button
+              id="playPauseBtn"
+              class="px-4 py-2 bg-blue-500 text-white rounded font-bold"
+            >
+              Play
+            </button>
+            <label class="flex items-center gap-2 text-sm"
+              >Speed
+              <input
+                id="speedRange"
+                type="range"
+                min="0.5"
+                max="2"
+                step="0.05"
+                value="1"
+                class="ml-2"
+              />
+              <span id="speedValue">1x</span>
+            </label>
+          </div>
+          <div
+            id="tabContainer"
+            class="relative w-full h-64 overflow-x-auto bg-gray-100 rounded border"
+            style="scroll-behavior: smooth"
+          >
+            <div id="tabContent" class="absolute top-0 left-0 h-full"></div>
+          </div>
           <code
             id="jsonResult"
-            class="block bg-gray-100 p-4 rounded text-xs overflow-x-auto"
+            class="block bg-gray-100 p-4 rounded text-xs overflow-x-auto mt-4"
           ></code>
           <button
             id="backBtn"
@@ -220,6 +248,9 @@
           loading.classList.add("hidden");
           result.classList.remove("hidden");
           jsonResult.textContent = JSON.stringify(data, null, 2);
+          if (data.notes && Array.isArray(data.notes)) {
+            renderTab(data.notes);
+          }
         } catch (err) {
           loading.classList.add("hidden");
           result.classList.remove("hidden");
@@ -241,9 +272,117 @@
         youtubeInput.value = "";
         uploadedFile = null;
         setType("file");
+        stopScroll();
       });
       // Default to file type
       setType("file");
+
+      // --- Tab rendering and scroll logic ---
+      // Constants for rendering
+      const PX_PER_SECOND = 50;
+      const PX_PER_OCTAVE = 30;
+      const NOTE_BASE_Y = 200; // px from top for lowest note
+      const NOTE_HEIGHT = 18;
+      const NOTE_COLORS = [
+        "bg-blue-400",
+        "bg-green-400",
+        "bg-yellow-400",
+        "bg-pink-400",
+        "bg-purple-400",
+        "bg-red-400",
+        "bg-teal-400",
+      ];
+      // MIDI note numbers for vertical mapping
+      function noteToMidi(note, octave) {
+        const NOTE_ORDER = [
+          "C",
+          "C#",
+          "D",
+          "D#",
+          "E",
+          "F",
+          "F#",
+          "G",
+          "G#",
+          "A",
+          "A#",
+          "B",
+        ];
+        return NOTE_ORDER.indexOf(note) + 12 * (octave + 1);
+      }
+      function getMinMaxMidi(notes) {
+        let min = Infinity,
+          max = -Infinity;
+        for (const n of notes) {
+          const midi = noteToMidi(n.note, n.octave);
+          if (midi < min) min = midi;
+          if (midi > max) max = midi;
+        }
+        return [min, max];
+      }
+      function renderTab(notes) {
+        const tabContent = document.getElementById("tabContent");
+        tabContent.innerHTML = "";
+        if (!notes.length) return;
+        // Find min/max for scaling
+        const [minMidi, maxMidi] = getMinMaxMidi(notes);
+        const midiRange = maxMidi - minMidi + 1;
+        // Find max end time for total width
+        const maxEnd = Math.max(...notes.map((n) => n.end));
+        tabContent.style.width = maxEnd * PX_PER_SECOND + 100 + "px";
+        tabContent.style.height = midiRange * PX_PER_OCTAVE + 40 + "px";
+        // Render each note as a bar
+        notes.forEach((n, i) => {
+          const midi = noteToMidi(n.note, n.octave);
+          const y = (maxMidi - midi) * PX_PER_OCTAVE + 20;
+          const x = n.start * PX_PER_SECOND;
+          const width = Math.max((n.end - n.start) * PX_PER_SECOND, 8);
+          const color = NOTE_COLORS[i % NOTE_COLORS.length];
+          const bar = document.createElement("div");
+          bar.className = `absolute ${color} rounded shadow text-xs flex items-center justify-center`;
+          bar.style.left = x + "px";
+          bar.style.top = y + "px";
+          bar.style.width = width + "px";
+          bar.style.height = NOTE_HEIGHT + "px";
+          bar.textContent = n.note + n.octave;
+          tabContent.appendChild(bar);
+        });
+      }
+      // --- Play/Pause and Scroll Logic ---
+      let isPlaying = false;
+      let scrollInterval = null;
+      let scrollSpeed = 1; // 1x
+      const playPauseBtn = document.getElementById("playPauseBtn");
+      const speedRange = document.getElementById("speedRange");
+      const speedValue = document.getElementById("speedValue");
+      const tabContainer = document.getElementById("tabContainer");
+      playPauseBtn.addEventListener("click", () => {
+        isPlaying = !isPlaying;
+        playPauseBtn.textContent = isPlaying ? "Pause" : "Play";
+        if (isPlaying) {
+          startScroll();
+        } else {
+          stopScroll();
+        }
+      });
+      speedRange.addEventListener("input", () => {
+        scrollSpeed = parseFloat(speedRange.value);
+        speedValue.textContent = scrollSpeed.toFixed(2) + "x";
+        if (isPlaying) {
+          stopScroll();
+          startScroll();
+        }
+      });
+      function startScroll() {
+        stopScroll();
+        scrollInterval = setInterval(() => {
+          tabContainer.scrollLeft += 2 * scrollSpeed;
+        }, 20);
+      }
+      function stopScroll() {
+        if (scrollInterval) clearInterval(scrollInterval);
+        scrollInterval = null;
+      }
     </script>
   </body>
 </html>
