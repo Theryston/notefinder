@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NoteFinder</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      #tabContainer::-webkit-scrollbar {
+        display: none;
+      }
+    </style>
   </head>
   <body class="bg-white min-h-screen flex items-center justify-center">
     <!-- Step 1 -->
@@ -102,7 +108,11 @@
         <div
           id="tabContainer"
           class="relative w-full overflow-x-auto bg-gray-100 rounded border"
-          style="scroll-behavior: smooth"
+          style="
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          "
         >
           <div id="tabContent" class="absolute top-0 left-0 h-full"></div>
         </div>
@@ -387,12 +397,15 @@
         tabContent.style.width = width + "px";
         // Create progress indicator
         progressIndicator = document.createElement("div");
-        progressIndicator.className = "absolute bg-red-500 opacity-70";
+        progressIndicator.className =
+          "absolute bg-red-500 opacity-70 cursor-pointer hover:opacity-90";
         progressIndicator.style.width = "2px";
         progressIndicator.style.height = "100%";
         progressIndicator.style.top = "0px";
         progressIndicator.style.left = "0px";
         progressIndicator.style.zIndex = "10";
+        // Add draggable functionality
+        setupProgressIndicatorDrag();
         tabContainer.appendChild(progressIndicator);
         // Render each note as a bar
         notes.forEach((n, i) => {
@@ -410,6 +423,94 @@
           bar.textContent = n.note + n.octave;
           tabContent.appendChild(bar);
         });
+      }
+      // --- Progress Indicator Drag Logic ---
+      let isDragging = false;
+      let wasPlayingBeforeDrag = false;
+
+      function setupProgressIndicatorDrag() {
+        progressIndicator.addEventListener("mousedown", startDrag);
+        tabContainer.addEventListener("mousedown", handleContainerClick);
+      }
+
+      function startDrag(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        isDragging = true;
+        wasPlayingBeforeDrag = isPlaying;
+        // Pause audio while dragging
+        if (audioElement && isPlaying) {
+          audioElement.pause();
+        }
+        document.addEventListener("mousemove", onDrag);
+        document.addEventListener("mouseup", stopDrag);
+        progressIndicator.style.cursor = "grabbing";
+      }
+
+      function onDrag(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+
+        const containerRect = tabContainer.getBoundingClientRect();
+        const relativeX =
+          e.clientX - containerRect.left + tabContainer.scrollLeft;
+        const newTime = Math.max(0, relativeX / PX_PER_SECOND);
+
+        // Update audio time
+        if (audioElement) {
+          const maxTime = audioElement.duration || 0;
+          audioElement.currentTime = Math.min(newTime, maxTime);
+        }
+
+        // Update progress indicator position
+        const leftPosition = newTime * PX_PER_SECOND;
+        progressIndicator.style.left = leftPosition + "px";
+
+        // Update scroll position to follow
+        const containerWidth = tabContainer.offsetWidth;
+        const scrollPosition = leftPosition - containerWidth / 2;
+        tabContainer.scrollLeft = Math.max(0, scrollPosition);
+      }
+
+      function stopDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+
+        // Resume playing if it was playing before drag
+        if (audioElement && wasPlayingBeforeDrag) {
+          audioElement.play();
+        }
+
+        document.removeEventListener("mousemove", onDrag);
+        document.removeEventListener("mouseup", stopDrag);
+        progressIndicator.style.cursor = "pointer";
+      }
+
+      function handleContainerClick(e) {
+        if (
+          e.target === tabContainer ||
+          e.target === document.getElementById("tabContent")
+        ) {
+          const containerRect = tabContainer.getBoundingClientRect();
+          const relativeX =
+            e.clientX - containerRect.left + tabContainer.scrollLeft;
+          const newTime = Math.max(0, relativeX / PX_PER_SECOND);
+
+          // Update audio time
+          if (audioElement) {
+            const maxTime = audioElement.duration || 0;
+            audioElement.currentTime = Math.min(newTime, maxTime);
+          }
+
+          // Update progress indicator position
+          const leftPosition = newTime * PX_PER_SECOND;
+          progressIndicator.style.left = leftPosition + "px";
+
+          // Update scroll position to follow
+          const containerWidth = tabContainer.offsetWidth;
+          const scrollPosition = leftPosition - containerWidth / 2;
+          tabContainer.scrollLeft = Math.max(0, scrollPosition);
+        }
       }
       // --- Audio Functions ---
       function createAudioElement() {
@@ -436,7 +537,7 @@
           );
       }
       function updateProgressIndicator() {
-        if (audioElement && progressIndicator) {
+        if (audioElement && progressIndicator && !isDragging) {
           const currentTime = audioElement.currentTime;
           const leftPosition = currentTime * PX_PER_SECOND;
           progressIndicator.style.left = leftPosition + "px";
