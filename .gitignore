@@ -6,3 +6,4 @@ node_modules/
 .next/
 .out/
 .env.local
+prediction_history.json

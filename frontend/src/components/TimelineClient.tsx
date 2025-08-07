@@ -266,7 +266,7 @@ export default function TimelineClient({ id }: { id: string }) {
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-gray-200 p-5 bg-white dark:border-none dark:bg-gray-700">
-        <div className="flex items-start justify-between gap-6">
+        <div className="flex items-start justify-between gap-6 flex-col md:flex-row">
           <div>
             <div className="flex items-center gap-3 text-sm mb-2">
               <span
@@ -290,7 +290,7 @@ export default function TimelineClient({ id }: { id: string }) {
               {prediction.metadata?.display_title || prediction.content_path}
             </h1>
           </div>
-          <div className="w-52 shrink-0 space-y-2">
+          <div className="w-full md:w-52 shrink-0 space-y-2">
             <button
               onClick={handlePlayPause}
               className="w-full px-4 py-2 rounded-full bg-brand-600 text-white hover:bg-brand-700 shadow-sm"
@@ -298,18 +298,17 @@ export default function TimelineClient({ id }: { id: string }) {
               {isPlaying ? "Pause" : "Play"}
             </button>
             <div className="flex items-center gap-2">
-              <label className="text-sm">Velocidade</label>
               <select
                 value={speed}
                 onChange={(e) => setSpeed(Number(e.target.value))}
                 className="flex-1 px-3 py-2 rounded-xl border-none bg-zinc-100 dark:bg-zinc-900"
               >
-                <option value={0.5}>0.5x</option>
-                <option value={0.75}>0.75x</option>
-                <option value={1}>1x</option>
-                <option value={1.25}>1.25x</option>
-                <option value={1.5}>1.5x</option>
-                <option value={2}>2x</option>
+                <option value={0.5}>0.5x velocidade</option>
+                <option value={0.75}>0.75x velocidade</option>
+                <option value={1}>1x velocidade</option>
+                <option value={1.25}>1.25x velocidade</option>
+                <option value={1.5}>1.5x velocidade</option>
+                <option value={2}>2x velocidade</option>
               </select>
             </div>
             <label className="flex items-center gap-2 text-sm">
