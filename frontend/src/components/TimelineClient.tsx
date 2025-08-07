@@ -265,7 +265,7 @@ export default function TimelineClient({ id }: { id: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border p-5 bg-white dark:bg-zinc-900">
+      <div className="rounded-2xl border border-gray-200 p-5 bg-white dark:border-none dark:bg-gray-700">
         <div className="flex items-start justify-between gap-6">
           <div>
             <div className="flex items-center gap-3 text-sm mb-2">
@@ -293,23 +293,24 @@ export default function TimelineClient({ id }: { id: string }) {
           <div className="w-52 shrink-0 space-y-2">
             <button
               onClick={handlePlayPause}
-              className="w-full px-4 py-2 rounded bg-brand-600 text-white"
+              className="w-full px-4 py-2 rounded-full bg-brand-600 text-white hover:bg-brand-700 shadow-sm"
             >
               {isPlaying ? "Pause" : "Play"}
             </button>
             <div className="flex items-center gap-2">
-              <input
-                type="range"
-                min={0.5}
-                max={2}
-                step={0.05}
+              <label className="text-sm">Velocidade</label>
+              <select
                 value={speed}
-                onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                className="w-full"
-              />
-              <span className="text-sm w-10 text-right">
-                {speed.toFixed(2)}x
-              </span>
+                onChange={(e) => setSpeed(Number(e.target.value))}
+                className="flex-1 px-3 py-2 rounded-xl border-none bg-zinc-100 dark:bg-zinc-900"
+              >
+                <option value={0.5}>0.5x</option>
+                <option value={0.75}>0.75x</option>
+                <option value={1}>1x</option>
+                <option value={1.25}>1.25x</option>
+                <option value={1.5}>1.5x</option>
+                <option value={2}>2x</option>
+              </select>
             </div>
             <label className="flex items-center gap-2 text-sm">
               <input
@@ -320,28 +321,32 @@ export default function TimelineClient({ id }: { id: string }) {
                   switchSource(e.target.checked);
                 }}
               />
-              <span>Play vocals only</span>
+              Apenas vozes
             </label>
           </div>
         </div>
       </div>
 
-      <div className="rounded-xl border p-0 overflow-hidden bg-white dark:bg-zinc-900">
+      <div className="rounded-2xl border border-gray-200 bg-white dark:border-none dark:bg-gray-700 overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white/60 dark:border-none dark:bg-black/20">
+          <div className="text-sm text-gray-600 dark:text-gray-300">
+            Linha do tempo
+          </div>
+          <div className="text-xs text-gray-500">
+            Arraste o marcador ou clique para navegar
+          </div>
+        </div>
         <div
           ref={tabContainerRef}
-          id="tabContainer"
-          className="relative w-full overflow-x-auto bg-gray-50 dark:bg-zinc-800"
-          style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-            height: height + 20,
-          }}
+          id="tabContent"
+          className="relative overflow-x-auto whitespace-nowrap select-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          style={{ maxWidth: "100%" }}
         >
-          <div
-            id="tabContent"
-            className="absolute top-0 left-0"
-            style={{ width, height }}
-          >
+          <div className="relative" style={{ width, height }}>
+            <div
+              ref={progressRef}
+              className="absolute top-0 bottom-0 w-0.5 bg-brand-600 cursor-pointer"
+            />
             {prediction.notes.map((n: any, i: number) => {
               const order = [
                 "C",
@@ -383,14 +388,10 @@ export default function TimelineClient({ id }: { id: string }) {
               );
             })}
           </div>
-          <div
-            ref={progressRef}
-            className="absolute top-0 left-0 h-full w-[2px] bg-red-500 opacity-80 cursor-pointer"
-          />
         </div>
       </div>
 
-      <div className="rounded-xl border p-5 bg-white dark:bg-zinc-900 overflow-x-auto">
+      <div className="rounded-xl border border-gray-200 p-5 bg-white dark:border-none dark:bg-gray-700 overflow-x-auto">
         <table className="min-w-full">
           <thead>
             <tr className="text-left text-sm">
@@ -403,7 +404,10 @@ export default function TimelineClient({ id }: { id: string }) {
           </thead>
           <tbody className="text-sm">
             {prediction.notes.map((n: any, i: number) => (
-              <tr key={i} className="border-t">
+              <tr
+                key={i}
+                className="border-t border-gray-200 dark:border-gray-800"
+              >
                 <td className="py-2 pr-3">{n.note}</td>
                 <td className="py-2 pr-3">{n.octave}</td>
                 <td className="py-2 pr-3">{n.start.toFixed(2)}</td>

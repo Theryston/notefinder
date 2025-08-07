@@ -21,8 +21,9 @@ export default function PredictionCard({ p }: { p: Prediction }) {
         Arquivo
       </span>
     );
+
   return (
-    <div className="rounded-xl border p-5 bg-white dark:bg-zinc-900 hover:shadow-md transition">
+    <div className="rounded-2xl border border-gray-200 p-5 bg-white dark:border-none dark:bg-gray-700 hover:shadow-lg hover:-translate-y-0.5 transition">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2 mb-2">
@@ -35,13 +36,13 @@ export default function PredictionCard({ p }: { p: Prediction }) {
             {display}
           </h3>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
           <span className="text-sm text-gray-600 dark:text-gray-300">
             {p.notes_count} nota{p.notes_count !== 1 ? "s" : ""}
           </span>
           <Link
             href={`/timeline/${p.id}`}
-            className="px-3 py-1.5 rounded bg-brand-600 text-white text-sm hover:bg-brand-700"
+            className="px-3 py-1.5 rounded-full bg-brand-600 text-white text-sm hover:bg-brand-700 shadow-sm"
           >
             Ver
           </Link>

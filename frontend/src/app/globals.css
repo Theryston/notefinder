@@ -12,6 +12,57 @@
   --fg: 229 231 235;
 }
 
+/* Base document */
 body {
-  @apply bg-[rgb(var(--bg))] text-[rgb(var(--fg))];
+  @apply bg-[rgb(var(--bg))] text-[rgb(var(--fg))] font-sans antialiased;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection */
+::selection {
+  background: rgba(124, 58, 237, 0.2);
+}
+
+/* Focus ring */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.35);
+  border-radius: 8px;
+}
+
+/* Scrollbar (WebKit) */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.45);
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes slideDown {
+  from {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }

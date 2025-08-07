@@ -78,30 +78,32 @@ export default function NewPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Nova Análise</h1>
+      <h1 className="text-3xl font-extrabold mb-6 tracking-tight">
+        Nova Análise
+      </h1>
 
       <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
         Aviso: todos os arquivos e processos enviados ficarão publicamente
         expostos na página inicial para fins de demonstração e SEO.
       </p>
 
-      <div className="flex gap-2 mb-4">
+      <div className="inline-flex rounded-full border p-1 bg-white dark:bg-zinc-900 mb-5">
         <button
           onClick={() => setType("file")}
-          className={`px-4 py-2 rounded border ${
+          className={`px-4 py-1.5 rounded-full text-sm transition ${
             type === "file"
-              ? "bg-brand-600 text-white border-brand-600"
-              : "hover:bg-gray-50 dark:hover:bg-zinc-800"
+              ? "bg-brand-600 text-white"
+              : "text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5"
           }`}
         >
           Arquivo
         </button>
         <button
           onClick={() => setType("youtube")}
-          className={`px-4 py-2 rounded border ${
+          className={`px-4 py-1.5 rounded-full text-sm transition ${
             type === "youtube"
-              ? "bg-brand-600 text-white border-brand-600"
-              : "hover:bg-gray-50 dark:hover:bg-zinc-800"
+              ? "bg-brand-600 text-white"
+              : "text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5"
           }`}
         >
           YouTube
@@ -115,6 +117,7 @@ export default function NewPage() {
             type="file"
             accept="audio/*,video/*"
             onChange={(e) => setFile(e.target.files?.[0] || null)}
+            className="block w-full text-sm file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-600 file:text-white hover:file:bg-brand-700"
           />
           {file && <div className="text-xs text-gray-500">{file.name}</div>}
         </div>
@@ -125,24 +128,24 @@ export default function NewPage() {
             value={ytUrl}
             onChange={(e) => setYtUrl(e.target.value)}
             placeholder="https://youtube.com/watch?v=..."
-            className="w-full px-3 py-2 rounded border bg-white dark:bg-zinc-900"
+            className="w-full px-3 py-2.5 rounded-xl border bg-white dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
       )}
 
       <button
         onClick={start}
-        className="mt-6 px-5 py-2.5 rounded bg-brand-600 text-white hover:bg-brand-700"
+        className="mt-6 px-5 py-2.5 rounded-full bg-brand-600 text-white hover:bg-brand-700 shadow-sm"
       >
         Processar
       </button>
 
       {isProcessing && (
-        <div className="mt-8 border rounded-xl p-5">
+        <div className="mt-8 border rounded-2xl p-5">
           <div className="text-sm mb-2">{message}</div>
-          <div className="h-2 bg-gray-200 rounded">
+          <div className="h-2 bg-gray-200 rounded-full">
             <div
-              className="h-2 bg-brand-600 rounded"
+              className="h-2 bg-brand-600 rounded-full"
               style={{ width: `${progress}%` }}
             />
           </div>

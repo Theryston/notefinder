@@ -12,17 +12,17 @@ export default function QueueModal({
   const { data: jobs = [] } = useJobs(50, 2000);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50">
+    <div className="fixed inset-0 z-50 animate-[fadeIn_120ms_ease-out]">
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="absolute left-1/2 top-12 -translate-x-1/2 w-[92vw] max-w-2xl rounded-2xl border bg-white dark:bg-zinc-900 shadow-xl">
+      <div className="absolute left-1/2 top-12 -translate-x-1/2 w-[92vw] max-w-2xl rounded-2xl border bg-white dark:bg-zinc-900 shadow-xl animate-[slideDown_150ms_ease-out]">
         <div className="p-4 border-b flex items-center justify-between">
           <h3 className="font-semibold">Fila de Processamento</h3>
           <button
             onClick={onClose}
-            className="px-2 py-1 text-sm rounded border hover:bg-gray-50 dark:hover:bg-zinc-800"
+            className="px-2 py-1 text-sm rounded-full border hover:bg-black/5 dark:hover:bg-white/5"
           >
             Fechar
           </button>
@@ -38,7 +38,10 @@ export default function QueueModal({
                 (j) => j.status === "pending" || j.status === "processing"
               )
               .map((job) => (
-                <div key={job.id} className="border rounded-lg p-3">
+                <div
+                  key={job.id}
+                  className="border rounded-xl p-3 hover:shadow-sm transition"
+                >
                   <div className="flex items-center justify-between mb-1">
                     <div>
                       <div className="text-sm text-gray-700 dark:text-gray-200 font-medium">
@@ -58,9 +61,9 @@ export default function QueueModal({
                       {job.status}
                     </div>
                   </div>
-                  <div className="h-2 bg-gray-200 rounded">
+                  <div className="h-2 bg-gray-200 rounded-full">
                     <div
-                      className="h-2 bg-brand-600 rounded"
+                      className="h-2 bg-brand-600 rounded-full"
                       style={{ width: `${job.progress ?? 0}%` }}
                     />
                   </div>
