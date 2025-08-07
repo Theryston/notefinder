@@ -49,6 +49,23 @@
         </a>
       </div>
 
+      <!-- Processing Queue -->
+      <div id="jobsSection" class="bg-white p-6 rounded-lg shadow mb-8">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold text-gray-800">Fila de Processamento</h2>
+          <button
+            id="refreshJobs"
+            class="text-sm text-blue-600 hover:underline"
+          >
+            Atualizar
+          </button>
+        </div>
+        <div id="jobsEmpty" class="text-gray-500 text-sm">
+          Nenhum job em processamento no momento
+        </div>
+        <div id="jobsList" class="space-y-3"></div>
+      </div>
+
       <!-- Statistics -->
       <div id="stats" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div class="bg-white p-6 rounded-lg shadow">
@@ -196,6 +213,63 @@
 
     <script>
       let currentPredictions = [];
+      let jobsPollInterval = null;
+
+      // Jobs queue
+      async function loadJobs() {
+        try {
+          const res = await fetch("/queue/recent");
+          if (!res.ok) return;
+          const data = await res.json();
+          const jobs = (data.jobs || []).filter(
+            (j) => j.status === "pending" || j.status === "processing"
+          );
+          const jobsList = document.getElementById("jobsList");
+          const jobsEmpty = document.getElementById("jobsEmpty");
+
+          if (jobs.length === 0) {
+            jobsEmpty.classList.remove("hidden");
+            jobsList.innerHTML = "";
+            return;
+          }
+
+          jobsEmpty.classList.add("hidden");
+          jobsList.innerHTML = jobs
+            .map(
+              (job) => `
+            <div class="border rounded p-4">
+              <div class="flex justify-between items-center mb-2">
+                <div>
+                  <div class="text-sm text-gray-700 font-medium">${
+                    job.content_type === "youtube" ? "YouTube" : "Arquivo"
+                  }</div>
+                  <div class="text-xs text-gray-500 break-all">${
+                    job.content_path
+                  }</div>
+                </div>
+                <div class="text-sm ${
+                  job.status === "processing"
+                    ? "text-blue-600"
+                    : "text-gray-600"
+                } capitalize">${job.status}</div>
+              </div>
+              <div class="w-full bg-gray-200 rounded h-2">
+                <div class="bg-blue-600 h-2 rounded" style="width: ${
+                  job.progress ?? 0
+                }%"></div>
+              </div>
+              <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span>${job.progress ?? 0}%</span>
+                <span>${job.progress_message || ""}</span>
+              </div>
+            </div>
+          `
+            )
+            .join("");
+        } catch (e) {
+          // ignore
+        }
+      }
 
       // Load statistics
       async function loadStats() {
@@ -458,18 +532,16 @@
         document.getElementById("predictionModal").classList.add("hidden");
       });
 
-      // Close modal when clicking outside
       document
-        .getElementById("predictionModal")
-        .addEventListener("click", (e) => {
-          if (e.target === document.getElementById("predictionModal")) {
-            document.getElementById("predictionModal").classList.add("hidden");
-          }
-        });
+        .getElementById("refreshJobs")
+        .addEventListener("click", loadJobs);
 
-      // Initial load
+      // Initialize
       loadStats();
       loadPredictions();
+      loadJobs();
+      clearInterval(jobsPollInterval);
+      jobsPollInterval = setInterval(loadJobs, 2000);
     </script>
   </body>
 </html>
