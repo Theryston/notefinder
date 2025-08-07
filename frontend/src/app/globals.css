@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 255 255 255;
+  --fg: 17 24 39;
+}
+
+.dark {
+  --bg: 17 24 39;
+  --fg: 229 231 235;
+}
+
+body {
+  @apply bg-[rgb(var(--bg))] text-[rgb(var(--fg))];
+}

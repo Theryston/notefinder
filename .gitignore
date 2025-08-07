@@ -1,8 +1,8 @@
+__pycache__
+*.pyc
 venv/
-__pycache__/
-notes.json
-notes-*.json
-*.wav
-*.mp3
-uploads
-prediction_history.json
+uploads/
+node_modules/
+.next/
+.out/
+.env.local

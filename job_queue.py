@@ -33,7 +33,7 @@ class JobQueue:
             w.join(timeout=timeout)
         self._workers.clear()
 
-    def enqueue(self, content_path: str, content_type: str = "file") -> str:
+    def enqueue(self, content_path: str, content_type: str = "file", metadata: Optional[Dict[str, Any]] = None) -> str:
         job_id = str(uuid.uuid4())
         with self._lock:
             self._jobs[job_id] = {
@@ -48,6 +48,7 @@ class JobQueue:
                 "error": None,
                 "progress": 0,
                 "progress_message": "Na fila",
+                "metadata": metadata or {},
             }
         self._queue.put(job_id)
         return job_id
@@ -105,6 +106,7 @@ class JobQueue:
                     save_to_history=True,
                     content_type=job["content_type"],
                     progress_callback=on_progress,
+                    metadata=job.get("metadata") or {},
                 )
 
                 with self._lock:

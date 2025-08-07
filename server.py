@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from pipeline import pipeline, import_yt_audio
 from fastapi.responses import FileResponse
@@ -20,6 +21,14 @@ async def lifespan(app: FastAPI):
         job_queue.stop()
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -45,11 +54,12 @@ async def run_pipeline(request: Request):
     data = await request.json()
     content_path = data.get("content_path")
     content_type = data.get("content_type", "file")
+    metadata = data.get("metadata") or {}
 
     if not content_path:
         return JSONResponse(status_code=400, content={"error": "Missing content_path"})
 
-    notes, prediction_id = pipeline(content_path, save_to_history=True, content_type=content_type)
+    notes, prediction_id = pipeline(content_path, save_to_history=True, content_type=content_type, metadata=metadata)
 
     return JSONResponse(status_code=200, content={
         "notes": notes,
@@ -64,11 +74,16 @@ async def enqueue_job(request: Request):
     data = await request.json()
     content_path = data.get("content_path")
     content_type = data.get("content_type", "file")
+    metadata = data.get("metadata") or {}
 
     if not content_path:
         return JSONResponse(status_code=400, content={"error": "Missing content_path"})
 
-    job_id = job_queue.enqueue(content_path=content_path, content_type=content_type)
+    # Inject youtube_url into metadata for better titles when relevant
+    if content_type == "youtube" and "youtube_url" not in metadata:
+        metadata["youtube_url"] = content_path
+
+    job_id = job_queue.enqueue(content_path=content_path, content_type=content_type, metadata=metadata)
     return JSONResponse(status_code=202, content={"job_id": job_id, "status": "queued"})
 
 
@@ -105,6 +120,7 @@ async def get_prediction(prediction_id: str):
     """Retorna uma predição específica pelo ID"""
     prediction = prediction_history.get_prediction_by_id(prediction_id)
     if prediction:
+        # surface vocals_path for frontend audio usage
         return JSONResponse(status_code=200, content={"prediction": prediction})
     else:
         return JSONResponse(status_code=404, content={"error": "Prediction not found"})

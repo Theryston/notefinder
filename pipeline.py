@@ -6,7 +6,7 @@ import detect_notes
 from prettytable import PrettyTable
 import random
 from prediction_history import prediction_history
-from typing import Optional, Callable, Tuple
+from typing import Optional, Callable, Tuple, Dict, Any
 
 UPLOAD_DIR = "uploads";
 temp_dir = tempfile.mkdtemp('-notefinder-worker')
@@ -50,6 +50,7 @@ def pipeline(
     save_to_history: bool = True,
     content_type: str = "file",
     progress_callback: Optional[Callable[[int, str], None]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
 ) -> Tuple[list, Optional[str]]:
     print(f'Content path {content_path}')
 
@@ -75,15 +76,34 @@ def pipeline(
     prediction_id: Optional[str] = None
     # Salva no histórico se solicitado
     if save_to_history:
+        # Build metadata with SEO-friendly display title
+        meta: Dict[str, Any] = metadata.copy() if metadata else {}
+        if content_type == "file":
+            # prefer filename from content_path
+            try:
+                meta.setdefault("display_title", os.path.basename(content_path))
+            except Exception:
+                pass
+        elif content_type == "youtube":
+            # prefer provided yt_title, else fetch
+            if not meta.get("display_title"):
+                try:
+                    yt_info = youtube.get_youtube_info(meta.get("youtube_url") or content_path)
+                    if yt_info and yt_info.get("title"):
+                        meta["display_title"] = yt_info["title"]
+                        meta["youtube_id"] = yt_info.get("id")
+                        meta["youtube_uploader"] = yt_info.get("uploader")
+                except Exception:
+                    pass
+        # Always include file size if possible
+        meta.setdefault("file_size", os.path.getsize(content_path) if os.path.exists(content_path) else None)
+
         prediction_id = prediction_history.save_prediction(
             content_path=content_path,
             vocals_path=vocals_file_path,
             notes=detected_notes,
             content_type=content_type,
-            metadata={
-                "source": "pipeline_direct",
-                "file_size": os.path.getsize(content_path) if os.path.exists(content_path) else None
-            }
+            metadata=meta,
         )
         print(f'💾 Prediction saved with ID: {prediction_id}')
     
