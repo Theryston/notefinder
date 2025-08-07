@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NoteFinder - Timeline</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      #tabContainer::-webkit-scrollbar {
+        display: none;
+      }
+    </style>
+  </head>
+  <body class="bg-white min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+      <div class="container mx-auto px-4 py-4">
+        <div class="flex justify-between items-center">
+          <a href="/">
+            <h1 class="text-2xl font-bold text-gray-800">NoteFinder</h1>
+          </a>
+          <nav class="flex items-center space-x-4">
+            <a
+              href="https://github.com/Theryston/notefinder-worker"
+              class="text-gray-600 hover:text-blue-600 transition"
+            >
+              <i class="fab fa-github"></i>
+            </a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+      <!-- Loading State -->
+      <div
+        id="loading"
+        class="flex flex-col items-center justify-center min-h-[60vh]"
+      >
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"
+        ></div>
+        <span class="text-blue-700 font-semibold">Carregando timeline...</span>
+      </div>
+
+      <!-- Error State -->
+      <div
+        id="error"
+        class="hidden flex flex-col items-center justify-center min-h-[60vh]"
+      >
+        <i class="fas fa-exclamation-triangle text-6xl text-red-300 mb-4"></i>
+        <h3 class="text-xl font-semibold text-gray-600 mb-2">
+          Erro ao carregar timeline
+        </h3>
+        <p id="errorMessage" class="text-gray-500 mb-4">
+          Ocorreu um erro inesperado
+        </p>
+        <a
+          href="/"
+          class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          Voltar ao Início
+        </a>
+      </div>
+
+      <!-- Timeline Content -->
+      <div id="timelineContent" class="hidden">
+        <!-- Header Info -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+          <div class="flex justify-between items-start">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-800 mb-2">
+                Timeline de Notas
+              </h2>
+              <div class="flex items-center gap-4 text-sm text-gray-600">
+                <span
+                  id="contentType"
+                  class="px-2 py-1 rounded-full text-xs"
+                ></span>
+                <span id="timestamp"></span>
+                <span id="notesCount"></span>
+              </div>
+              <p
+                id="contentPath"
+                class="text-sm text-gray-500 mt-2 break-all"
+              ></p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                id="playPauseBtn"
+                class="px-4 py-2 bg-blue-500 text-white rounded font-bold hover:bg-blue-600 transition"
+              >
+                <i class="fas fa-play mr-1"></i>Play
+              </button>
+              <div class="flex items-center gap-2 text-sm">
+                <label>Velocidade</label>
+                <input
+                  id="speedRange"
+                  type="range"
+                  min="0.5"
+                  max="2"
+                  step="0.05"
+                  value="1"
+                  class="w-20"
+                />
+                <span id="speedValue">1x</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline Visualization -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <div
+            id="tabContainer"
+            class="relative w-full overflow-x-auto bg-gray-100 rounded border"
+            style="
+              scroll-behavior: smooth;
+              scrollbar-width: none;
+              -ms-overflow-style: none;
+            "
+          >
+            <div id="tabContent" class="absolute top-0 left-0 h-full"></div>
+          </div>
+        </div>
+
+        <!-- Notes Table -->
+        <div class="bg-white rounded-lg shadow p-6 mt-6">
+          <h3 class="text-lg font-bold mb-4">Detalhes das Notas</h3>
+          <div class="overflow-x-auto">
+            <table class="min-w-full border border-gray-300">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th
+                    class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700"
+                  >
+                    Nota
+                  </th>
+                  <th
+                    class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700"
+                  >
+                    Oitava
+                  </th>
+                  <th
+                    class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700"
+                  >
+                    Início (s)
+                  </th>
+                  <th
+                    class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700"
+                  >
+                    Fim (s)
+                  </th>
+                  <th
+                    class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700"
+                  >
+                    Freq. (Hz)
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="notesTableBody">
+                <!-- Notes will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Get prediction ID from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const predictionId = urlParams.get("prediction_id");
+
+      if (!predictionId) {
+        showError("ID da predição não fornecido");
+      }
+
+      // State variables
+      let audioElement = null;
+      let notesData = null;
+      let progressIndicator = null;
+      let isPlaying = false;
+      let scrollSpeed = 1;
+
+      // Constants for rendering
+      const PX_PER_SECOND = 100;
+      const PX_PER_OCTAVE = 30;
+      const NOTE_HEIGHT = 18;
+      const NOTE_COLORS = [
+        "bg-blue-400",
+        "bg-green-400",
+        "bg-yellow-400",
+        "bg-pink-400",
+        "bg-purple-400",
+        "bg-red-400",
+        "bg-teal-400",
+      ];
+
+      // Load prediction data
+      async function loadPrediction() {
+        try {
+          const response = await fetch(`/predictions/${predictionId}`);
+          if (!response.ok) {
+            throw new Error("Predição não encontrada");
+          }
+
+          const data = await response.json();
+          const prediction = data.prediction;
+
+          displayPredictionInfo(prediction);
+          notesData = prediction.notes;
+          renderTimeline(prediction.notes);
+          renderNotesTable(prediction.notes);
+
+          // Create audio element if content path exists
+          if (
+            prediction.content_path &&
+            prediction.content_path.startsWith("uploads/")
+          ) {
+            createAudioElement(prediction.content_path);
+          }
+
+          hideLoading();
+          showTimelineContent();
+        } catch (error) {
+          console.error("Error loading prediction:", error);
+          showError(error.message);
+        }
+      }
+
+      function displayPredictionInfo(prediction) {
+        // Content type badge
+        const contentTypeElement = document.getElementById("contentType");
+        contentTypeElement.textContent =
+          prediction.content_type === "youtube" ? "YouTube" : "Arquivo";
+        contentTypeElement.className = `px-2 py-1 rounded-full text-xs ${
+          prediction.content_type === "youtube"
+            ? "bg-red-100 text-red-800"
+            : "bg-green-100 text-green-800"
+        }`;
+
+        // Timestamp
+        document.getElementById("timestamp").textContent = new Date(
+          prediction.timestamp
+        ).toLocaleString("pt-BR");
+
+        // Notes count
+        document.getElementById("notesCount").textContent = `${
+          prediction.notes_count
+        } nota${prediction.notes_count !== 1 ? "s" : ""}`;
+
+        // Content path
+        document.getElementById("contentPath").textContent =
+          prediction.content_path;
+      }
+
+      function renderNotesTable(notes) {
+        const tbody = document.getElementById("notesTableBody");
+        tbody.innerHTML = notes
+          .map(
+            (note) => `
+                <tr>
+                    <td class="border border-gray-300 px-3 py-2 text-sm">${
+                      note.note
+                    }</td>
+                    <td class="border border-gray-300 px-3 py-2 text-sm">${
+                      note.octave
+                    }</td>
+                    <td class="border border-gray-300 px-3 py-2 text-sm">${note.start.toFixed(
+                      2
+                    )}</td>
+                    <td class="border border-gray-300 px-3 py-2 text-sm">${note.end.toFixed(
+                      2
+                    )}</td>
+                    <td class="border border-gray-300 px-3 py-2 text-sm">${note.frequency_mean.toFixed(
+                      2
+                    )}</td>
+                </tr>
+            `
+          )
+          .join("");
+      }
+
+      // MIDI note numbers for vertical mapping
+      function noteToMidi(note, octave) {
+        const NOTE_ORDER = [
+          "C",
+          "C#",
+          "D",
+          "D#",
+          "E",
+          "F",
+          "F#",
+          "G",
+          "G#",
+          "A",
+          "A#",
+          "B",
+        ];
+        return NOTE_ORDER.indexOf(note) + 12 * (octave + 1);
+      }
+
+      function getMinMaxMidi(notes) {
+        let min = Infinity,
+          max = -Infinity;
+        for (const n of notes) {
+          const midi = noteToMidi(n.note, n.octave);
+          if (midi < min) min = midi;
+          if (midi > max) max = midi;
+        }
+        return [min, max];
+      }
+
+      function renderTimeline(notes) {
+        const tabContent = document.getElementById("tabContent");
+        const tabContainer = document.getElementById("tabContainer");
+
+        tabContent.innerHTML = "";
+        if (!notes.length) return;
+
+        // Find min/max for scaling
+        const [minMidi, maxMidi] = getMinMaxMidi(notes);
+        const midiRange = maxMidi - minMidi + 1;
+
+        // Find max end time for total width
+        const maxEnd = Math.max(...notes.map((n) => n.end));
+        const height = midiRange * PX_PER_OCTAVE + 40;
+        const width = maxEnd * PX_PER_SECOND + 100;
+
+        tabContent.style.height = height + "px";
+        tabContainer.style.height = height + 20 + "px";
+        tabContent.style.width = width + "px";
+
+        // Create progress indicator
+        progressIndicator = document.createElement("div");
+        progressIndicator.className =
+          "absolute bg-red-500 opacity-70 cursor-pointer hover:opacity-90";
+        progressIndicator.style.width = "2px";
+        progressIndicator.style.height = "100%";
+        progressIndicator.style.top = "0px";
+        progressIndicator.style.left = "0px";
+        progressIndicator.style.zIndex = "10";
+
+        setupProgressIndicatorDrag();
+        tabContainer.appendChild(progressIndicator);
+
+        // Render each note as a bar
+        notes.forEach((n, i) => {
+          const midi = noteToMidi(n.note, n.octave);
+          const y = (maxMidi - midi) * PX_PER_OCTAVE + 20;
+          const x = n.start * PX_PER_SECOND;
+          const width = Math.max((n.end - n.start) * PX_PER_SECOND, 8);
+          const color = NOTE_COLORS[i % NOTE_COLORS.length];
+
+          const bar = document.createElement("div");
+          bar.className = `absolute ${color} rounded shadow text-xs flex items-center justify-center`;
+          bar.style.left = x + "px";
+          bar.style.top = y + "px";
+          bar.style.width = width + "px";
+          bar.style.height = NOTE_HEIGHT + "px";
+          bar.textContent = n.note + n.octave;
+          tabContent.appendChild(bar);
+        });
+      }
+
+      // Progress Indicator Drag Logic
+      let isDragging = false;
+      let wasPlayingBeforeDrag = false;
+
+      function setupProgressIndicatorDrag() {
+        progressIndicator.addEventListener("mousedown", startDrag);
+        document
+          .getElementById("tabContainer")
+          .addEventListener("mousedown", handleContainerClick);
+      }
+
+      function startDrag(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        isDragging = true;
+        wasPlayingBeforeDrag = isPlaying;
+
+        if (audioElement && isPlaying) {
+          audioElement.pause();
+        }
+
+        document.addEventListener("mousemove", onDrag);
+        document.addEventListener("mouseup", stopDrag);
+        progressIndicator.style.cursor = "grabbing";
+      }
+
+      function onDrag(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+
+        const tabContainer = document.getElementById("tabContainer");
+        const containerRect = tabContainer.getBoundingClientRect();
+        const relativeX =
+          e.clientX - containerRect.left + tabContainer.scrollLeft;
+        const newTime = Math.max(0, relativeX / PX_PER_SECOND);
+
+        if (audioElement) {
+          const maxTime = audioElement.duration || 0;
+          audioElement.currentTime = Math.min(newTime, maxTime);
+        }
+
+        const leftPosition = newTime * PX_PER_SECOND;
+        progressIndicator.style.left = leftPosition + "px";
+
+        const containerWidth = tabContainer.offsetWidth;
+        const scrollPosition = leftPosition - containerWidth / 2;
+        tabContainer.scrollLeft = Math.max(0, scrollPosition);
+      }
+
+      function stopDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+
+        if (audioElement && wasPlayingBeforeDrag) {
+          audioElement.play();
+        }
+
+        document.removeEventListener("mousemove", onDrag);
+        document.removeEventListener("mouseup", stopDrag);
+        progressIndicator.style.cursor = "pointer";
+      }
+
+      function handleContainerClick(e) {
+        const tabContainer = document.getElementById("tabContainer");
+        if (
+          e.target === tabContainer ||
+          e.target === document.getElementById("tabContent")
+        ) {
+          const containerRect = tabContainer.getBoundingClientRect();
+          const relativeX =
+            e.clientX - containerRect.left + tabContainer.scrollLeft;
+          const newTime = Math.max(0, relativeX / PX_PER_SECOND);
+
+          if (audioElement) {
+            const maxTime = audioElement.duration || 0;
+            audioElement.currentTime = Math.min(newTime, maxTime);
+          }
+
+          const leftPosition = newTime * PX_PER_SECOND;
+          progressIndicator.style.left = leftPosition + "px";
+
+          const containerWidth = tabContainer.offsetWidth;
+          const scrollPosition = leftPosition - containerWidth / 2;
+          tabContainer.scrollLeft = Math.max(0, scrollPosition);
+        }
+      }
+
+      // Audio Functions
+      function createAudioElement(audioPath) {
+        if (audioElement) {
+          audioElement.remove();
+        }
+
+        audioElement = document.createElement("audio");
+        audioElement.src = "/" + audioPath;
+        audioElement.preload = "auto";
+        audioElement.addEventListener("timeupdate", updateProgressIndicator);
+        audioElement.addEventListener("ended", () => {
+          isPlaying = false;
+          updatePlayButton();
+        });
+
+        // Add audio controls for debugging
+        const audioContainer = document.createElement("div");
+        audioContainer.className = "mb-4";
+        audioContainer.appendChild(audioElement);
+        document
+          .getElementById("timelineContent")
+          .insertBefore(
+            audioContainer,
+            document.getElementById("tabContainer").parentElement
+          );
+      }
+
+      function updateProgressIndicator() {
+        if (audioElement && progressIndicator && !isDragging) {
+          const currentTime = audioElement.currentTime;
+          const leftPosition = currentTime * PX_PER_SECOND;
+          progressIndicator.style.left = leftPosition + "px";
+
+          const tabContainer = document.getElementById("tabContainer");
+          const containerWidth = tabContainer.offsetWidth;
+          const scrollPosition = leftPosition - containerWidth / 2;
+          tabContainer.scrollLeft = Math.max(0, scrollPosition);
+        }
+      }
+
+      function updatePlayButton() {
+        const playPauseBtn = document.getElementById("playPauseBtn");
+        playPauseBtn.innerHTML = isPlaying
+          ? '<i class="fas fa-pause mr-1"></i>Pause'
+          : '<i class="fas fa-play mr-1"></i>Play';
+      }
+
+      // UI Functions
+      function showError(message) {
+        document.getElementById("loading").classList.add("hidden");
+        document.getElementById("error").classList.remove("hidden");
+        document.getElementById("errorMessage").textContent = message;
+      }
+
+      function hideLoading() {
+        document.getElementById("loading").classList.add("hidden");
+      }
+
+      function showTimelineContent() {
+        document.getElementById("timelineContent").classList.remove("hidden");
+      }
+
+      // Event Listeners
+      document.getElementById("playPauseBtn").addEventListener("click", () => {
+        isPlaying = !isPlaying;
+        updatePlayButton();
+
+        if (isPlaying) {
+          if (audioElement) {
+            audioElement.playbackRate = scrollSpeed;
+            audioElement.play();
+          }
+        } else {
+          if (audioElement) {
+            audioElement.pause();
+          }
+        }
+      });
+
+      document.getElementById("speedRange").addEventListener("input", () => {
+        scrollSpeed = parseFloat(document.getElementById("speedRange").value);
+        document.getElementById("speedValue").textContent =
+          scrollSpeed.toFixed(2) + "x";
+        if (audioElement) {
+          audioElement.playbackRate = scrollSpeed;
+        }
+      });
+
+      // Initialize
+      if (predictionId) {
+        loadPrediction();
+      }
+    </script>
+  </body>
+</html>

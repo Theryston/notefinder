@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NoteFinder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body class="bg-white min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+      <div class="container mx-auto px-4 py-4">
+        <div class="flex justify-between items-center">
+          <a href="/">
+            <h1 class="text-2xl font-bold text-gray-800">NoteFinder</h1>
+          </a>
+          <nav class="flex items-center space-x-4">
+            <a
+              href="https://github.com/Theryston/notefinder-worker"
+              class="text-gray-600 hover:text-blue-600 transition"
+            >
+              <i class="fab fa-github"></i>
+            </a>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex items-center justify-center min-h-[calc(100vh-80px)]">
+      <!-- Step 1 -->
+      <div id="step1" class="w-6/12">
+        <h2 class="text-2xl font-bold mb-6 text-center">Select Content Type</h2>
+        <div class="flex justify-center mb-6">
+          <button
+            id="fileBtn"
+            class="px-4 py-2 rounded-l bg-blue-500 text-white font-semibold focus:outline-none"
+          >
+            File
+          </button>
+          <button
+            id="youtubeBtn"
+            class="px-4 py-2 rounded-r bg-gray-200 text-gray-700 font-semibold focus:outline-none"
+          >
+            YouTube
+          </button>
+        </div>
+        <div id="fileInputSection" class="hidden mb-6">
+          <label class="block mb-2 text-gray-700">Upload File</label>
+          <div
+            id="dropzone"
+            class="flex items-center justify-center w-full h-32 p-4 border-2 border-dashed border-blue-400 rounded bg-blue-50 cursor-pointer text-blue-600"
+          >
+            Drag & Drop or Click to Upload
+          </div>
+          <input id="fileInput" type="file" class="hidden" />
+          <div id="fileName" class="mt-2 text-sm text-gray-600"></div>
+        </div>
+        <div id="youtubeInputSection" class="hidden mb-6">
+          <label class="block mb-2 text-gray-700">YouTube Link</label>
+          <input
+            id="youtubeInput"
+            type="text"
+            placeholder="Paste YouTube link here"
+            class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+        <button
+          id="submitBtn"
+          class="w-full py-2 mt-4 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 transition"
+        >
+          Process
+        </button>
+      </div>
+      <!-- Step 2 - Processing -->
+      <div id="step2" class="hidden flex flex-col items-center w-full px-4">
+        <div id="loading" class="flex flex-col items-center">
+          <div
+            class="animate-spin rounded-full h-8 w-8 border-b border-blue-500 border-t-transparent"
+          ></div>
+          <span class="text-blue-700 font-semibold mt-4">Processando...</span>
+          <p class="text-gray-600 mt-2 text-center">
+            Aguarde enquanto analisamos sua música
+          </p>
+        </div>
+        <div id="result" class="hidden w-full mt-6 text-center">
+          <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+            <i class="fas fa-check-circle text-4xl text-green-500 mb-4"></i>
+            <h3 class="text-xl font-bold text-green-800 mb-2">
+              Análise Concluída!
+            </h3>
+            <p class="text-green-700 mb-4">
+              Sua música foi processada com sucesso.
+            </p>
+            <div id="redirectInfo" class="text-sm text-green-600">
+              Redirecionando para a timeline...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // UI state
+      const fileBtn = document.getElementById("fileBtn");
+      const youtubeBtn = document.getElementById("youtubeBtn");
+      const fileInputSection = document.getElementById("fileInputSection");
+      const youtubeInputSection = document.getElementById(
+        "youtubeInputSection"
+      );
+      const dropzone = document.getElementById("dropzone");
+      const fileInput = document.getElementById("fileInput");
+      const fileName = document.getElementById("fileName");
+      const youtubeInput = document.getElementById("youtubeInput");
+      const submitBtn = document.getElementById("submitBtn");
+      const step1 = document.getElementById("step1");
+      const step2 = document.getElementById("step2");
+      const loading = document.getElementById("loading");
+      const result = document.getElementById("result");
+
+      let selectedType = "file";
+      let uploadedFile = null;
+
+      function setType(type) {
+        selectedType = type;
+        if (type === "file") {
+          fileBtn.classList.add("bg-blue-500", "text-white");
+          fileBtn.classList.remove("bg-gray-200", "text-gray-700");
+          youtubeBtn.classList.remove("bg-blue-500", "text-white");
+          youtubeBtn.classList.add("bg-gray-200", "text-gray-700");
+          fileInputSection.classList.remove("hidden");
+          youtubeInputSection.classList.add("hidden");
+        } else {
+          youtubeBtn.classList.add("bg-blue-500", "text-white");
+          youtubeBtn.classList.remove("bg-gray-200", "text-gray-700");
+          fileBtn.classList.remove("bg-blue-500", "text-white");
+          fileBtn.classList.add("bg-gray-200", "text-gray-700");
+          fileInputSection.classList.add("hidden");
+          youtubeInputSection.classList.remove("hidden");
+        }
+      }
+
+      fileBtn.addEventListener("click", () => setType("file"));
+      youtubeBtn.addEventListener("click", () => setType("youtube"));
+
+      // Drag & drop logic
+      dropzone.addEventListener("click", () => fileInput.click());
+      dropzone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropzone.classList.add("bg-blue-100");
+      });
+      dropzone.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        dropzone.classList.remove("bg-blue-100");
+      });
+      dropzone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropzone.classList.remove("bg-blue-100");
+        if (e.dataTransfer.files.length) {
+          fileInput.files = e.dataTransfer.files;
+          handleFileChange();
+        }
+      });
+      fileInput.addEventListener("change", handleFileChange);
+
+      function handleFileChange() {
+        if (fileInput.files.length) {
+          uploadedFile = fileInput.files[0];
+          fileName.textContent = uploadedFile.name;
+        } else {
+          uploadedFile = null;
+          fileName.textContent = "";
+        }
+      }
+
+      // Step logic
+      submitBtn.addEventListener("click", async () => {
+        if (selectedType === "file" && !uploadedFile) {
+          alert("Please upload a file.");
+          return;
+        }
+        if (selectedType === "youtube" && !youtubeInput.value.trim()) {
+          alert("Please enter a YouTube link.");
+          return;
+        }
+
+        step1.classList.add("hidden");
+        step2.classList.remove("hidden");
+        loading.classList.remove("hidden");
+        result.classList.add("hidden");
+
+        let contentPath = null;
+
+        if (selectedType === "file") {
+          // Upload file
+          const formData = new FormData();
+          formData.append("file", uploadedFile);
+          const uploadRes = await fetch("/upload", {
+            method: "POST",
+            body: formData,
+          });
+          if (!uploadRes.ok) {
+            loading.classList.add("hidden");
+            result.classList.remove("hidden");
+            document.getElementById("redirectInfo").innerHTML =
+              '<span class="text-red-600">Erro no upload do arquivo</span>';
+            return;
+          }
+          const uploadData = await uploadRes.json();
+          contentPath = uploadData.path;
+        } else {
+          // YouTube processing: first extract vocals
+          try {
+            const ytRes = await fetch("/import_yt_vocals", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ content_path: youtubeInput.value.trim() }),
+            });
+            if (!ytRes.ok) {
+              loading.classList.add("hidden");
+              result.classList.remove("hidden");
+              document.getElementById("redirectInfo").innerHTML =
+                '<span class="text-red-600">Erro ao extrair áudio do YouTube</span>';
+              return;
+            }
+            const ytData = await ytRes.json();
+            contentPath = ytData.path;
+          } catch (err) {
+            loading.classList.add("hidden");
+            result.classList.remove("hidden");
+            document.getElementById("redirectInfo").innerHTML =
+              '<span class="text-red-600">Erro na requisição do YouTube</span>';
+            return;
+          }
+        }
+
+        // Call pipeline
+        try {
+          const res = await fetch("/pipeline", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content_path: contentPath }),
+          });
+
+          const data = await res.json();
+
+          if (data.notes && Array.isArray(data.notes)) {
+            loading.classList.add("hidden");
+            result.classList.remove("hidden");
+
+            // Redirect to timeline after a short delay
+            setTimeout(() => {
+              window.location.href = `/timeline?prediction_id=${data.prediction_id}`;
+            }, 2000);
+          } else {
+            throw new Error("Invalid response format");
+          }
+        } catch (err) {
+          loading.classList.add("hidden");
+          result.classList.remove("hidden");
+          document.getElementById("redirectInfo").innerHTML =
+            '<span class="text-red-600">Erro no processamento da pipeline</span>';
+        }
+      });
+
+      // Default to file type
+      setType("file");
+    </script>
+  </body>
+</html>

@@ -95,9 +95,13 @@ async def upload_file(file: UploadFile = File(...)):
 async def web_file():
     return FileResponse("web/index.html")
 
-@app.get("/history")
-async def history_page():
-    return FileResponse("web/history.html")
+@app.get("/new")
+async def new_page():
+    return FileResponse("web/new.html")
+
+@app.get("/timeline")
+async def timeline_page():
+    return FileResponse("web/timeline.html")
 
 @app.get('/uploads/{filepath:path}')
 async def serve_uploads(filepath: str):

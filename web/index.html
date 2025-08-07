@@ -1,589 +1,475 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NoteFinder</title>
+    <title>NoteFinder - Histórico de Predições</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
-    <style>
-      /* Hide scrollbar for Chrome, Safari and Opera */
-      #tabContainer::-webkit-scrollbar {
-        display: none;
-      }
-    </style>
   </head>
-  <body class="bg-white min-h-screen">
+  <body class="bg-gray-50 min-h-screen">
     <!-- Header -->
     <header class="bg-white shadow-sm border-b">
       <div class="container mx-auto px-4 py-4">
         <div class="flex justify-between items-center">
-          <h1 class="text-2xl font-bold text-gray-800">NoteFinder</h1>
+          <a href="/">
+            <h1 class="text-2xl font-bold text-gray-800">NoteFinder</h1>
+          </a>
           <nav class="flex items-center space-x-4">
-            <a href="/" class="text-blue-600 font-medium">Nova Análise</a>
             <a
-              href="/history"
+              href="https://github.com/Theryston/notefinder-worker"
               class="text-gray-600 hover:text-blue-600 transition"
             >
-              <i class="fas fa-history mr-1"></i>Histórico
+              <i class="fab fa-github"></i>
             </a>
           </nav>
         </div>
       </div>
     </header>
 
-    <!-- Main Content -->
-    <div class="flex items-center justify-center min-h-[calc(100vh-80px)]">
-      <!-- Step 1 -->
-      <div id="step1" class="w-6/12">
-        <h2 class="text-2xl font-bold mb-6 text-center">Select Content Type</h2>
-        <div class="flex justify-center mb-6">
-          <button
-            id="fileBtn"
-            class="px-4 py-2 rounded-l bg-blue-500 text-white font-semibold focus:outline-none"
-          >
-            File
-          </button>
-          <button
-            id="youtubeBtn"
-            class="px-4 py-2 rounded-r bg-gray-200 text-gray-700 font-semibold focus:outline-none"
-          >
-            YouTube
-          </button>
+    <div class="container mx-auto px-4 py-8">
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-800">
+            Histórico de Predições
+          </h1>
+          <p class="text-gray-600 mt-2">
+            Visualize e gerencie suas análises de música anteriores
+          </p>
         </div>
-        <div id="fileInputSection" class="hidden mb-6">
-          <label class="block mb-2 text-gray-700">Upload File</label>
-          <div
-            id="dropzone"
-            class="flex items-center justify-center w-full h-32 p-4 border-2 border-dashed border-blue-400 rounded bg-blue-50 cursor-pointer text-blue-600"
-          >
-            Drag & Drop or Click to Upload
-          </div>
-          <input id="fileInput" type="file" class="hidden" />
-          <div id="fileName" class="mt-2 text-sm text-gray-600"></div>
-        </div>
-        <div id="youtubeInputSection" class="hidden mb-6">
-          <label class="block mb-2 text-gray-700">YouTube Link</label>
-          <input
-            id="youtubeInput"
-            type="text"
-            placeholder="Paste YouTube link here"
-            class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-        <button
-          id="submitBtn"
-          class="w-full py-2 mt-4 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 transition"
+        <a
+          href="/new"
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
         >
-          Process
-        </button>
+          <i class="fas fa-plus mr-2"></i>Nova Análise
+        </a>
       </div>
-      <!-- Step 2 -->
-      <div id="step2" class="hidden flex flex-col items-center w-full px-4">
-        <div id="loading" class="flex flex-col items-center">
-          <div
-            class="animate-spin rounded-full h-8 w-8 border-b border-blue-500 border-t-transparent"
-          ></div>
-          <span class="text-blue-700 font-semibold">Processing...</span>
+
+      <!-- Statistics -->
+      <div id="stats" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white p-6 rounded-lg shadow">
+          <div class="flex items-center">
+            <div class="p-2 bg-blue-100 rounded-lg">
+              <i class="fas fa-icons text-blue-600"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm text-gray-600">Total de Análises</p>
+              <p id="totalPredictions" class="text-2xl font-bold text-gray-800">
+                -
+              </p>
+            </div>
+          </div>
         </div>
-        <div id="result" class="hidden w-full mt-6">
-          <h3 class="text-lg font-bold mb-2">Result</h3>
-          <div class="flex items-center gap-4 mb-4">
-            <button
-              id="playPauseBtn"
-              class="px-4 py-2 bg-blue-500 text-white rounded font-bold"
+        <div class="bg-white p-6 rounded-lg shadow">
+          <div class="flex items-center">
+            <div class="p-2 bg-green-100 rounded-lg">
+              <i class="fas fa-file-audio text-green-600"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm text-gray-600">Arquivos</p>
+              <p id="filePredictions" class="text-2xl font-bold text-gray-800">
+                -
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+          <div class="flex items-center">
+            <div class="p-2 bg-red-100 rounded-lg">
+              <i class="fab fa-youtube text-red-600"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm text-gray-600">YouTube</p>
+              <p
+                id="youtubePredictions"
+                class="text-2xl font-bold text-gray-800"
+              >
+                -
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+          <div class="flex items-center">
+            <div class="p-2 bg-purple-100 rounded-lg">
+              <i class="fas fa-music text-purple-600"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm text-gray-600">Notas Detectadas</p>
+              <p id="totalNotes" class="text-2xl font-bold text-gray-800">-</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="bg-white p-4 rounded-lg shadow mb-6">
+        <div class="flex flex-wrap gap-4 items-center">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Tipo de Conteúdo</label
             >
-              Play
+            <select
+              id="contentTypeFilter"
+              class="border border-gray-300 rounded-md px-3 py-2"
+            >
+              <option value="">Todos</option>
+              <option value="file">Arquivo</option>
+              <option value="youtube">YouTube</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Limite</label
+            >
+            <select
+              id="limitFilter"
+              class="border border-gray-300 rounded-md px-3 py-2"
+            >
+              <option value="10">10 mais recentes</option>
+              <option value="25">25 mais recentes</option>
+              <option value="50">50 mais recentes</option>
+              <option value="100">100 mais recentes</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div id="loading" class="hidden flex justify-center items-center py-12">
+        <div
+          class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+        ></div>
+        <span class="ml-3 text-gray-600">Carregando...</span>
+      </div>
+
+      <!-- Predictions List -->
+      <div id="predictionsList" class="space-y-4">
+        <!-- Predictions will be loaded here -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden text-center py-12">
+        <i class="fas fa-music text-6xl text-gray-300 mb-4"></i>
+        <h3 class="text-xl font-semibold text-gray-600 mb-2">
+          Nenhuma predição encontrada
+        </h3>
+        <p class="text-gray-500 mb-4">
+          Faça sua primeira análise de música para começar
+        </p>
+        <a
+          href="/"
+          class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          Começar Análise
+        </a>
+      </div>
+    </div>
+
+    <!-- Prediction Detail Modal -->
+    <div
+      id="predictionModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div
+        class="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+      >
+        <div class="p-6 border-b">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-800">
+              Detalhes da Predição
+            </h3>
+            <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+              <i class="fas fa-times text-xl"></i>
             </button>
-            <label class="flex items-center gap-2 text-sm"
-              >Speed
-              <input
-                id="speedRange"
-                type="range"
-                min="0.5"
-                max="2"
-                step="0.05"
-                value="1"
-                class="ml-2"
-              />
-              <span id="speedValue">1x</span>
-            </label>
           </div>
-          <div
-            id="tabContainer"
-            class="relative w-full overflow-x-auto bg-gray-100 rounded border"
-            style="
-              scroll-behavior: smooth;
-              scrollbar-width: none;
-              -ms-overflow-style: none;
-            "
-          >
-            <div id="tabContent" class="absolute top-0 left-0 h-full"></div>
-          </div>
-          <code
-            id="jsonResult"
-            class="block bg-gray-100 p-4 rounded text-xs overflow-x-auto mt-4"
-          ></code>
-          <button
-            id="backBtn"
-            class="mt-4 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-          >
-            Back
-          </button>
+        </div>
+        <div id="modalContent" class="p-6">
+          <!-- Modal content will be loaded here -->
         </div>
       </div>
     </div>
+
     <script>
-      // UI state
-      const fileBtn = document.getElementById("fileBtn");
-      const youtubeBtn = document.getElementById("youtubeBtn");
-      const fileInputSection = document.getElementById("fileInputSection");
-      const youtubeInputSection = document.getElementById(
-        "youtubeInputSection"
-      );
-      const dropzone = document.getElementById("dropzone");
-      const fileInput = document.getElementById("fileInput");
-      const fileName = document.getElementById("fileName");
-      const youtubeInput = document.getElementById("youtubeInput");
-      const submitBtn = document.getElementById("submitBtn");
-      const step1 = document.getElementById("step1");
-      const step2 = document.getElementById("step2");
-      const loading = document.getElementById("loading");
-      const result = document.getElementById("result");
-      const jsonResult = document.getElementById("jsonResult");
-      const backBtn = document.getElementById("backBtn");
+      let currentPredictions = [];
 
-      let selectedType = "file";
-      let uploadedFilePath = null;
-      let uploadedFile = null;
-      let audioElement = null;
-      let notesData = null;
-      let progressIndicator = null;
-
-      function setType(type) {
-        selectedType = type;
-        if (type === "file") {
-          fileBtn.classList.add("bg-blue-500", "text-white");
-          fileBtn.classList.remove("bg-gray-200", "text-gray-700");
-          youtubeBtn.classList.remove("bg-blue-500", "text-white");
-          youtubeBtn.classList.add("bg-gray-200", "text-gray-700");
-          fileInputSection.classList.remove("hidden");
-          youtubeInputSection.classList.add("hidden");
-        } else {
-          youtubeBtn.classList.add("bg-blue-500", "text-white");
-          youtubeBtn.classList.remove("bg-gray-200", "text-gray-700");
-          fileBtn.classList.remove("bg-blue-500", "text-white");
-          fileBtn.classList.add("bg-gray-200", "text-gray-700");
-          fileInputSection.classList.add("hidden");
-          youtubeInputSection.classList.remove("hidden");
-        }
-      }
-
-      fileBtn.addEventListener("click", () => setType("file"));
-      youtubeBtn.addEventListener("click", () => setType("youtube"));
-
-      // Drag & drop logic
-      dropzone.addEventListener("click", () => fileInput.click());
-      dropzone.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        dropzone.classList.add("bg-blue-100");
-      });
-      dropzone.addEventListener("dragleave", (e) => {
-        e.preventDefault();
-        dropzone.classList.remove("bg-blue-100");
-      });
-      dropzone.addEventListener("drop", (e) => {
-        e.preventDefault();
-        dropzone.classList.remove("bg-blue-100");
-        if (e.dataTransfer.files.length) {
-          fileInput.files = e.dataTransfer.files;
-          handleFileChange();
-        }
-      });
-      fileInput.addEventListener("change", handleFileChange);
-      function handleFileChange() {
-        if (fileInput.files.length) {
-          uploadedFile = fileInput.files[0];
-          fileName.textContent = uploadedFile.name;
-        } else {
-          uploadedFile = null;
-          fileName.textContent = "";
-        }
-      }
-
-      // Step logic
-      submitBtn.addEventListener("click", async () => {
-        if (selectedType === "file" && !uploadedFile) {
-          alert("Please upload a file.");
-          return;
-        }
-        if (selectedType === "youtube" && !youtubeInput.value.trim()) {
-          alert("Please enter a YouTube link.");
-          return;
-        }
-        step1.classList.add("hidden");
-        step2.classList.remove("hidden");
-        loading.classList.remove("hidden");
-        result.classList.add("hidden");
-        let contentPath = null;
-        if (selectedType === "file") {
-          // Upload file
-          const formData = new FormData();
-          formData.append("file", uploadedFile);
-          const uploadRes = await fetch("/upload", {
-            method: "POST",
-            body: formData,
-          });
-          if (!uploadRes.ok) {
-            loading.classList.add("hidden");
-            result.classList.remove("hidden");
-            jsonResult.textContent = JSON.stringify(
-              { error: "File upload failed" },
-              null,
-              2
-            );
-            return;
-          }
-          const uploadData = await uploadRes.json();
-          contentPath = uploadData.path;
-          // Store the uploaded file path for audio playback
-          uploadedFilePath = contentPath;
-        } else {
-          // YouTube processing: first extract vocals
-          try {
-            const ytRes = await fetch("/import_yt_vocals", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ content_path: youtubeInput.value.trim() }),
-            });
-            if (!ytRes.ok) {
-              loading.classList.add("hidden");
-              result.classList.remove("hidden");
-              jsonResult.textContent = JSON.stringify(
-                { error: "Failed to extract YouTube vocals" },
-                null,
-                2
-              );
-              return;
-            }
-            const ytData = await ytRes.json();
-            contentPath = ytData.path;
-            // Store the extracted file path for audio playback
-            uploadedFilePath = contentPath;
-          } catch (err) {
-            loading.classList.add("hidden");
-            result.classList.remove("hidden");
-            jsonResult.textContent = JSON.stringify(
-              { error: "YouTube extraction request failed" },
-              null,
-              2
-            );
-            return;
-          }
-        }
-        // Call pipeline
+      // Load statistics
+      async function loadStats() {
         try {
-          const res = await fetch("/pipeline", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ content_path: contentPath }),
-          });
-          const data = await res.json();
-          loading.classList.add("hidden");
-          result.classList.remove("hidden");
-          jsonResult.textContent = JSON.stringify(
-            { message: "Success" },
-            null,
-            2
-          );
-          if (data.notes && Array.isArray(data.notes)) {
-            notesData = data.notes;
-            renderTab(data.notes);
-            // Create audio element for both file and YouTube
-            if (uploadedFilePath) {
-              createAudioElement();
-            }
-          }
-        } catch (err) {
-          loading.classList.add("hidden");
-          result.classList.remove("hidden");
-          jsonResult.textContent = JSON.stringify(
-            { error: "Pipeline request failed" },
-            null,
-            2
-          );
+          const response = await fetch("/predictions/stats");
+          const data = await response.json();
+          const stats = data.statistics;
+
+          document.getElementById("totalPredictions").textContent =
+            stats.total_predictions;
+          document.getElementById("filePredictions").textContent =
+            stats.file_predictions;
+          document.getElementById("youtubePredictions").textContent =
+            stats.youtube_predictions;
+          document.getElementById("totalNotes").textContent =
+            stats.total_notes_detected;
+        } catch (error) {
+          console.error("Error loading stats:", error);
         }
-      });
-      backBtn.addEventListener("click", () => {
-        if (audioElement) {
-          audioElement.pause();
-          audioElement.currentTime = 0;
-          audioElement.remove();
-          audioElement = null;
-        }
-        isPlaying = false;
-        playPauseBtn.textContent = "Play";
-        tabContainer.scrollLeft = 0;
-        speedRange.value = 1;
-        speedValue.textContent = "1x";
-        uploadedFilePath = null;
-        notesData = null;
-        progressIndicator = null;
-        step2.classList.add("hidden");
-        step1.classList.remove("hidden");
+      }
+
+      // Load predictions
+      async function loadPredictions() {
+        const loading = document.getElementById("loading");
+        const predictionsList = document.getElementById("predictionsList");
+        const emptyState = document.getElementById("emptyState");
+
         loading.classList.remove("hidden");
-        result.classList.add("hidden");
-        jsonResult.textContent = "";
-        fileInput.value = "";
-        fileName.textContent = "";
-        youtubeInput.value = "";
-        uploadedFile = null;
-        setType("file");
-      });
-      // Default to file type
-      setType("file");
+        predictionsList.classList.add("hidden");
+        emptyState.classList.add("hidden");
 
-      // --- Tab rendering and scroll logic ---
-      // Constants for rendering
-      const PX_PER_SECOND = 100;
-      const PX_PER_OCTAVE = 30;
-      const NOTE_BASE_Y = 200; // px from top for lowest note
-      const NOTE_HEIGHT = 18;
-      const NOTE_COLORS = [
-        "bg-blue-400",
-        "bg-green-400",
-        "bg-yellow-400",
-        "bg-pink-400",
-        "bg-purple-400",
-        "bg-red-400",
-        "bg-teal-400",
-      ];
-      // MIDI note numbers for vertical mapping
-      function noteToMidi(note, octave) {
-        const NOTE_ORDER = [
-          "C",
-          "C#",
-          "D",
-          "D#",
-          "E",
-          "F",
-          "F#",
-          "G",
-          "G#",
-          "A",
-          "A#",
-          "B",
-        ];
-        return NOTE_ORDER.indexOf(note) + 12 * (octave + 1);
-      }
-      function getMinMaxMidi(notes) {
-        let min = Infinity,
-          max = -Infinity;
-        for (const n of notes) {
-          const midi = noteToMidi(n.note, n.octave);
-          if (midi < min) min = midi;
-          if (midi > max) max = midi;
-        }
-        return [min, max];
-      }
-      function renderTab(notes) {
-        const tabContent = document.getElementById("tabContent");
-        tabContent.innerHTML = "";
-        if (!notes.length) return;
-        // Find min/max for scaling
-        const [minMidi, maxMidi] = getMinMaxMidi(notes);
-        const midiRange = maxMidi - minMidi + 1;
-        // Find max end time for total width
-        const maxEnd = Math.max(...notes.map((n) => n.end));
-        const height = midiRange * PX_PER_OCTAVE + 40;
-        const width = maxEnd * PX_PER_SECOND + 100;
-        tabContent.style.height = height + "px";
-        tabContainer.style.height = height + 20 + "px";
-        tabContent.style.width = width + "px";
-        // Create progress indicator
-        progressIndicator = document.createElement("div");
-        progressIndicator.className =
-          "absolute bg-red-500 opacity-70 cursor-pointer hover:opacity-90";
-        progressIndicator.style.width = "2px";
-        progressIndicator.style.height = "100%";
-        progressIndicator.style.top = "0px";
-        progressIndicator.style.left = "0px";
-        progressIndicator.style.zIndex = "10";
-        // Add draggable functionality
-        setupProgressIndicatorDrag();
-        tabContainer.appendChild(progressIndicator);
-        // Render each note as a bar
-        notes.forEach((n, i) => {
-          const midi = noteToMidi(n.note, n.octave);
-          const y = (maxMidi - midi) * PX_PER_OCTAVE + 20;
-          const x = n.start * PX_PER_SECOND;
-          const width = Math.max((n.end - n.start) * PX_PER_SECOND, 8);
-          const color = NOTE_COLORS[i % NOTE_COLORS.length];
-          const bar = document.createElement("div");
-          bar.className = `absolute ${color} rounded shadow text-xs flex items-center justify-center`;
-          bar.style.left = x + "px";
-          bar.style.top = y + "px";
-          bar.style.width = width + "px";
-          bar.style.height = NOTE_HEIGHT + "px";
-          bar.textContent = n.note + n.octave;
-          tabContent.appendChild(bar);
-        });
-      }
-      // --- Progress Indicator Drag Logic ---
-      let isDragging = false;
-      let wasPlayingBeforeDrag = false;
+        try {
+          const limit = document.getElementById("limitFilter").value;
+          const response = await fetch(`/predictions?limit=${limit}`);
+          const data = await response.json();
 
-      function setupProgressIndicatorDrag() {
-        progressIndicator.addEventListener("mousedown", startDrag);
-        tabContainer.addEventListener("mousedown", handleContainerClick);
-      }
+          currentPredictions = data.predictions;
+          displayPredictions(currentPredictions);
 
-      function startDrag(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        isDragging = true;
-        wasPlayingBeforeDrag = isPlaying;
-        // Pause audio while dragging
-        if (audioElement && isPlaying) {
-          audioElement.pause();
-        }
-        document.addEventListener("mousemove", onDrag);
-        document.addEventListener("mouseup", stopDrag);
-        progressIndicator.style.cursor = "grabbing";
-      }
-
-      function onDrag(e) {
-        if (!isDragging) return;
-        e.preventDefault();
-
-        const containerRect = tabContainer.getBoundingClientRect();
-        const relativeX =
-          e.clientX - containerRect.left + tabContainer.scrollLeft;
-        const newTime = Math.max(0, relativeX / PX_PER_SECOND);
-
-        // Update audio time
-        if (audioElement) {
-          const maxTime = audioElement.duration || 0;
-          audioElement.currentTime = Math.min(newTime, maxTime);
-        }
-
-        // Update progress indicator position
-        const leftPosition = newTime * PX_PER_SECOND;
-        progressIndicator.style.left = leftPosition + "px";
-
-        // Update scroll position to follow
-        const containerWidth = tabContainer.offsetWidth;
-        const scrollPosition = leftPosition - containerWidth / 2;
-        tabContainer.scrollLeft = Math.max(0, scrollPosition);
-      }
-
-      function stopDrag() {
-        if (!isDragging) return;
-        isDragging = false;
-
-        // Resume playing if it was playing before drag
-        if (audioElement && wasPlayingBeforeDrag) {
-          audioElement.play();
-        }
-
-        document.removeEventListener("mousemove", onDrag);
-        document.removeEventListener("mouseup", stopDrag);
-        progressIndicator.style.cursor = "pointer";
-      }
-
-      function handleContainerClick(e) {
-        if (
-          e.target === tabContainer ||
-          e.target === document.getElementById("tabContent")
-        ) {
-          const containerRect = tabContainer.getBoundingClientRect();
-          const relativeX =
-            e.clientX - containerRect.left + tabContainer.scrollLeft;
-          const newTime = Math.max(0, relativeX / PX_PER_SECOND);
-
-          // Update audio time
-          if (audioElement) {
-            const maxTime = audioElement.duration || 0;
-            audioElement.currentTime = Math.min(newTime, maxTime);
+          if (currentPredictions.length === 0) {
+            emptyState.classList.remove("hidden");
+          } else {
+            predictionsList.classList.remove("hidden");
           }
-
-          // Update progress indicator position
-          const leftPosition = newTime * PX_PER_SECOND;
-          progressIndicator.style.left = leftPosition + "px";
-
-          // Update scroll position to follow
-          const containerWidth = tabContainer.offsetWidth;
-          const scrollPosition = leftPosition - containerWidth / 2;
-          tabContainer.scrollLeft = Math.max(0, scrollPosition);
+        } catch (error) {
+          console.error("Error loading predictions:", error);
+          emptyState.classList.remove("hidden");
+        } finally {
+          loading.classList.add("hidden");
         }
       }
-      // --- Audio Functions ---
-      function createAudioElement() {
-        if (audioElement) {
-          audioElement.remove();
-        }
-        audioElement = document.createElement("audio");
-        audioElement.src = "/" + uploadedFilePath;
-        audioElement.preload = "auto";
-        audioElement.addEventListener("timeupdate", updateProgressIndicator);
-        audioElement.addEventListener("ended", () => {
-          isPlaying = false;
-          playPauseBtn.textContent = "Play";
-        });
-        // Add audio controls above the tab for debugging
-        const audioContainer = document.createElement("div");
-        audioContainer.className = "mb-2";
-        audioContainer.appendChild(audioElement);
-        document
-          .getElementById("result")
-          .insertBefore(
-            audioContainer,
-            document.getElementById("tabContainer")
+
+      // Display predictions
+      function displayPredictions(predictions) {
+        const predictionsList = document.getElementById("predictionsList");
+        const contentTypeFilter =
+          document.getElementById("contentTypeFilter").value;
+
+        // Filter by content type if specified
+        let filteredPredictions = predictions;
+        if (contentTypeFilter) {
+          filteredPredictions = predictions.filter(
+            (p) => p.content_type === contentTypeFilter
           );
+        }
+
+        if (filteredPredictions.length === 0) {
+          document.getElementById("emptyState").classList.remove("hidden");
+          predictionsList.classList.add("hidden");
+          return;
+        }
+
+        predictionsList.innerHTML = filteredPredictions
+          .map(
+            (prediction) => `
+                <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-1 text-xs rounded-full ${
+                                  prediction.content_type === "youtube"
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-green-100 text-green-800"
+                                }">
+                                    ${
+                                      prediction.content_type === "youtube"
+                                        ? "YouTube"
+                                        : "Arquivo"
+                                    }
+                                </span>
+                                <span class="text-sm text-gray-500">
+                                    ${new Date(
+                                      prediction.timestamp
+                                    ).toLocaleString("pt-BR")}
+                                </span>
+                            </div>
+                            <h3 class="font-semibold text-gray-800 truncate" title="${
+                              prediction.content_path
+                            }">
+                                ${prediction.content_path}
+                            </h3>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-600">
+                                ${prediction.notes_count} nota${
+              prediction.notes_count !== 1 ? "s" : ""
+            }
+                            </span>
+                            <button onclick="window.location.href = '/timeline?prediction_id=${
+                              prediction.id
+                            }'" 
+                                    class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition">
+                                <i class="fas fa-eye mr-1"></i>Ver
+                            </button>
+                            <button onclick="deletePrediction('${
+                              prediction.id
+                            }')" 
+                                    class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition">
+                                <i class="fas fa-trash mr-1"></i>Excluir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `
+          )
+          .join("");
       }
-      function updateProgressIndicator() {
-        if (audioElement && progressIndicator && !isDragging) {
-          const currentTime = audioElement.currentTime;
-          const leftPosition = currentTime * PX_PER_SECOND;
-          progressIndicator.style.left = leftPosition + "px";
-          // Auto-scroll to follow the progress
-          const tabContainer = document.getElementById("tabContainer");
-          const containerWidth = tabContainer.offsetWidth;
-          const scrollPosition = leftPosition - containerWidth / 2;
-          tabContainer.scrollLeft = Math.max(0, scrollPosition);
+
+      // View prediction details
+      async function viewPrediction(predictionId) {
+        try {
+          const response = await fetch(`/predictions/${predictionId}`);
+          const data = await response.json();
+          const prediction = data.prediction;
+
+          const modalContent = document.getElementById("modalContent");
+          modalContent.innerHTML = `
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-2">Informações Gerais</h4>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">ID:</span>
+                                    <span class="font-mono">${
+                                      prediction.id
+                                    }</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Tipo:</span>
+                                    <span class="capitalize">${
+                                      prediction.content_type
+                                    }</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Data/Hora:</span>
+                                    <span>${new Date(
+                                      prediction.timestamp
+                                    ).toLocaleString("pt-BR")}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Notas Detectadas:</span>
+                                    <span>${prediction.notes_count}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-2">Caminho do Conteúdo</h4>
+                            <p class="text-sm bg-gray-100 p-2 rounded break-all">${
+                              prediction.content_path
+                            }</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-2">Notas Detectadas</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full border border-gray-300">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">Nota</th>
+                                            <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">Oitava</th>
+                                            <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">Início (s)</th>
+                                            <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">Fim (s)</th>
+                                            <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">Freq. (Hz)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${prediction.notes
+                                          .map(
+                                            (note) => `
+                                            <tr>
+                                                <td class="border border-gray-300 px-3 py-2 text-sm">${
+                                                  note.note
+                                                }</td>
+                                                <td class="border border-gray-300 px-3 py-2 text-sm">${
+                                                  note.octave
+                                                }</td>
+                                                <td class="border border-gray-300 px-3 py-2 text-sm">${note.start.toFixed(
+                                                  2
+                                                )}</td>
+                                                <td class="border border-gray-300 px-3 py-2 text-sm">${note.end.toFixed(
+                                                  2
+                                                )}</td>
+                                                <td class="border border-gray-300 px-3 py-2 text-sm">${note.frequency_mean.toFixed(
+                                                  2
+                                                )}</td>
+                                            </tr>
+                                        `
+                                          )
+                                          .join("")}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+          document.getElementById("predictionModal").classList.remove("hidden");
+        } catch (error) {
+          console.error("Error loading prediction details:", error);
+          alert("Erro ao carregar detalhes da predição");
         }
       }
-      // --- Play/Pause and Scroll Logic ---
-      let isPlaying = false;
-      let scrollSpeed = 1; // 1x
-      const playPauseBtn = document.getElementById("playPauseBtn");
-      const speedRange = document.getElementById("speedRange");
-      const speedValue = document.getElementById("speedValue");
-      const tabContainer = document.getElementById("tabContainer");
-      playPauseBtn.addEventListener("click", () => {
-        isPlaying = !isPlaying;
-        playPauseBtn.textContent = isPlaying ? "Pause" : "Play";
-        if (isPlaying) {
-          if (audioElement) {
-            audioElement.playbackRate = scrollSpeed;
-            audioElement.play();
-          }
-        } else {
-          if (audioElement) {
-            audioElement.pause();
-          }
+
+      // Delete prediction
+      async function deletePrediction(predictionId) {
+        if (!confirm("Tem certeza que deseja excluir esta predição?")) {
+          return;
         }
-      });
-      speedRange.addEventListener("input", () => {
-        scrollSpeed = parseFloat(speedRange.value);
-        speedValue.textContent = scrollSpeed.toFixed(2) + "x";
-        if (audioElement) {
-          audioElement.playbackRate = scrollSpeed;
+
+        try {
+          const response = await fetch(`/predictions/${predictionId}`, {
+            method: "DELETE",
+          });
+
+          if (response.ok) {
+            loadPredictions();
+            loadStats();
+          } else {
+            alert("Erro ao excluir predição");
+          }
+        } catch (error) {
+          console.error("Error deleting prediction:", error);
+          alert("Erro ao excluir predição");
         }
+      }
+
+      // Event listeners
+      document
+        .getElementById("contentTypeFilter")
+        .addEventListener("change", () => {
+          displayPredictions(currentPredictions);
+        });
+
+      document
+        .getElementById("limitFilter")
+        .addEventListener("change", loadPredictions);
+
+      document.getElementById("closeModal").addEventListener("click", () => {
+        document.getElementById("predictionModal").classList.add("hidden");
       });
+
+      // Close modal when clicking outside
+      document
+        .getElementById("predictionModal")
+        .addEventListener("click", (e) => {
+          if (e.target === document.getElementById("predictionModal")) {
+            document.getElementById("predictionModal").classList.add("hidden");
+          }
+        });
+
+      // Initial load
+      loadStats();
+      loadPredictions();
     </script>
   </body>
 </html>
