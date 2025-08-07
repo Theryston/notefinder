@@ -37,23 +37,27 @@ def import_yt_vocals(content_path: str):
     
     print(f'Downloaded YouTube audio to {music_file_path}')
     
-    vocals_file_path = os.path.join(temp_dir, f"{random.randint(1000, 9999)}-vocals.wav")
-    vocals_extract_temp_dir = os.path.join(temp_dir, "vocals_extract")
-    audio.extract_vocals(music_file_path, vocals_file_path, vocals_extract_temp_dir)
+
     
-    return vocals_file_path
+    return music_file_path
 
 def pipeline(content_path: str, save_to_history: bool = True, content_type: str = "file"):
-    print(f'Vocal path {content_path}')
+    print(f'Content path {content_path}')
     
-    detected_notes = detect_notes.detect_notes(content_path)
+    vocals_file_path = os.path.join(temp_dir, f"{random.randint(1000, 9999)}-vocals.wav")
+    vocals_extract_temp_dir = os.path.join(temp_dir, "vocals_extract")
+    audio.extract_vocals(content_path, vocals_file_path, vocals_extract_temp_dir)
+    
+    print(f'Vocal path {vocals_file_path}')
+    
+    detected_notes = detect_notes.detect_notes(vocals_file_path)
     
     log_notes(detected_notes)
     
     # Salva no histórico se solicitado
     if save_to_history:
         prediction_id = prediction_history.save_prediction(
-            content_path=content_path,
+            content_path=vocals_file_path,
             notes=detected_notes,
             content_type=content_type,
             metadata={
