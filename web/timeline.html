@@ -91,15 +91,14 @@
                 class="text-sm text-gray-500 mt-2 break-all"
               ></p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-col gap-2 w-48">
               <button
                 id="playPauseBtn"
                 class="px-4 py-2 bg-blue-500 text-white rounded font-bold hover:bg-blue-600 transition"
               >
                 <i class="fas fa-play mr-1"></i>Play
               </button>
-              <div class="flex items-center gap-2 text-sm">
-                <label>Velocidade</label>
+              <div class="flex items-center gap-2 text-sm w-full">
                 <input
                   id="speedRange"
                   type="range"
@@ -107,9 +106,19 @@
                   max="2"
                   step="0.05"
                   value="1"
-                  class="w-20"
+                  class="w-full"
                 />
                 <span id="speedValue">1x</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm">
+                <label class="flex items-center gap-2">
+                  <input
+                    id="vocalsOnlyCheckbox"
+                    type="checkbox"
+                    class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                  />
+                  <span>Play vocals only</span>
+                </label>
               </div>
             </div>
           </div>
@@ -188,6 +197,9 @@
       let progressIndicator = null;
       let isPlaying = false;
       let scrollSpeed = 1;
+      let vocalsOnlyMode = false;
+      let contentAudioElement = null;
+      let vocalsAudioElement = null;
 
       // Constants for rendering
       const PX_PER_SECOND = 100;
@@ -224,7 +236,10 @@
             prediction.content_path &&
             prediction.content_path.startsWith("uploads/")
           ) {
-            createAudioElement(prediction.content_path);
+            createAudioElements(
+              prediction.content_path,
+              prediction.vocals_path
+            );
           }
 
           hideLoading();
@@ -411,6 +426,21 @@
           audioElement.currentTime = Math.min(newTime, maxTime);
         }
 
+        // Sync the other audio element
+        if (contentAudioElement && vocalsAudioElement) {
+          const maxTime = Math.min(
+            contentAudioElement.duration || 0,
+            vocalsAudioElement.duration || 0
+          );
+          const syncedTime = Math.min(newTime, maxTime);
+
+          if (vocalsOnlyMode && vocalsAudioElement) {
+            contentAudioElement.currentTime = syncedTime;
+          } else {
+            vocalsAudioElement.currentTime = syncedTime;
+          }
+        }
+
         const leftPosition = newTime * PX_PER_SECOND;
         progressIndicator.style.left = leftPosition + "px";
 
@@ -448,6 +478,21 @@
             audioElement.currentTime = Math.min(newTime, maxTime);
           }
 
+          // Sync the other audio element
+          if (contentAudioElement && vocalsAudioElement) {
+            const maxTime = Math.min(
+              contentAudioElement.duration || 0,
+              vocalsAudioElement.duration || 0
+            );
+            const syncedTime = Math.min(newTime, maxTime);
+
+            if (vocalsOnlyMode && vocalsAudioElement) {
+              contentAudioElement.currentTime = syncedTime;
+            } else {
+              vocalsAudioElement.currentTime = syncedTime;
+            }
+          }
+
           const leftPosition = newTime * PX_PER_SECOND;
           progressIndicator.style.left = leftPosition + "px";
 
@@ -458,30 +503,87 @@
       }
 
       // Audio Functions
-      function createAudioElement(audioPath) {
-        if (audioElement) {
-          audioElement.remove();
+      function createAudioElements(contentPath, vocalsPath) {
+        // Create content audio element
+        if (contentPath) {
+          contentAudioElement = document.createElement("audio");
+          contentAudioElement.src = "/" + contentPath;
+          contentAudioElement.preload = "auto";
+          contentAudioElement.addEventListener(
+            "timeupdate",
+            updateProgressIndicator
+          );
+          contentAudioElement.addEventListener("ended", () => {
+            isPlaying = false;
+            updatePlayButton();
+          });
         }
 
-        audioElement = document.createElement("audio");
-        audioElement.src = "/" + audioPath;
-        audioElement.preload = "auto";
-        audioElement.addEventListener("timeupdate", updateProgressIndicator);
-        audioElement.addEventListener("ended", () => {
-          isPlaying = false;
-          updatePlayButton();
-        });
-
-        // Add audio controls for debugging
-        const audioContainer = document.createElement("div");
-        audioContainer.className = "mb-4";
-        audioContainer.appendChild(audioElement);
-        document
-          .getElementById("timelineContent")
-          .insertBefore(
-            audioContainer,
-            document.getElementById("tabContainer").parentElement
+        // Create vocals audio element if vocals path exists
+        if (vocalsPath) {
+          vocalsAudioElement = document.createElement("audio");
+          vocalsAudioElement.src = "/" + vocalsPath;
+          vocalsAudioElement.preload = "auto";
+          vocalsAudioElement.addEventListener(
+            "timeupdate",
+            updateProgressIndicator
           );
+          vocalsAudioElement.addEventListener("ended", () => {
+            isPlaying = false;
+            updatePlayButton();
+          });
+        }
+
+        // Set initial audio element
+        audioElement = contentAudioElement;
+
+        // Add audio controls for debugging (only show content audio)
+        if (contentAudioElement) {
+          const audioContainer = document.createElement("div");
+          audioContainer.className = "mb-4";
+          audioContainer.appendChild(contentAudioElement);
+          document
+            .getElementById("timelineContent")
+            .insertBefore(
+              audioContainer,
+              document.getElementById("tabContainer").parentElement
+            );
+        }
+      }
+
+      function switchAudioSource() {
+        const wasPlaying = isPlaying;
+
+        // Pause current audio
+        if (audioElement && isPlaying) {
+          audioElement.pause();
+        }
+
+        // Switch audio source
+        if (vocalsOnlyMode && vocalsAudioElement) {
+          audioElement = vocalsAudioElement;
+        } else {
+          audioElement = contentAudioElement;
+        }
+
+        // Sync time between audio elements
+        if (contentAudioElement && vocalsAudioElement) {
+          const currentTime =
+            vocalsOnlyMode && vocalsAudioElement
+              ? vocalsAudioElement.currentTime
+              : contentAudioElement.currentTime;
+          if (vocalsOnlyMode && vocalsAudioElement) {
+            contentAudioElement.currentTime = currentTime;
+          } else {
+            vocalsAudioElement.currentTime = currentTime;
+          }
+        }
+
+        // Resume playing if it was playing before
+        if (wasPlaying && audioElement) {
+          audioElement.playbackRate = scrollSpeed;
+          audioElement.play();
+        }
       }
 
       function updateProgressIndicator() {
@@ -489,6 +591,15 @@
           const currentTime = audioElement.currentTime;
           const leftPosition = currentTime * PX_PER_SECOND;
           progressIndicator.style.left = leftPosition + "px";
+
+          // Sync the other audio element
+          if (contentAudioElement && vocalsAudioElement) {
+            if (vocalsOnlyMode && vocalsAudioElement) {
+              contentAudioElement.currentTime = currentTime;
+            } else {
+              vocalsAudioElement.currentTime = currentTime;
+            }
+          }
 
           const tabContainer = document.getElementById("tabContainer");
           const containerWidth = tabContainer.offsetWidth;
@@ -529,6 +640,13 @@
             audioElement.playbackRate = scrollSpeed;
             audioElement.play();
           }
+          // Apply speed to both audio elements
+          if (contentAudioElement) {
+            contentAudioElement.playbackRate = scrollSpeed;
+          }
+          if (vocalsAudioElement) {
+            vocalsAudioElement.playbackRate = scrollSpeed;
+          }
         } else {
           if (audioElement) {
             audioElement.pause();
@@ -543,7 +661,22 @@
         if (audioElement) {
           audioElement.playbackRate = scrollSpeed;
         }
+        // Apply speed to both audio elements
+        if (contentAudioElement) {
+          contentAudioElement.playbackRate = scrollSpeed;
+        }
+        if (vocalsAudioElement) {
+          vocalsAudioElement.playbackRate = scrollSpeed;
+        }
       });
+
+      document
+        .getElementById("vocalsOnlyCheckbox")
+        .addEventListener("change", () => {
+          vocalsOnlyMode =
+            document.getElementById("vocalsOnlyCheckbox").checked;
+          switchAudioSource();
+        });
 
       // Initialize
       if (predictionId) {
