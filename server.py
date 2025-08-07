@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.responses import JSONResponse
 import uvicorn
-from pipeline import pipeline, import_yt_vocals
+from pipeline import pipeline, import_yt_audio
 from fastapi.responses import FileResponse
 import os
 import random
@@ -16,7 +16,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 async def api_import_yt_vocals(request: Request):
     data = await request.json()
     content_path = data.get("content_path")
-    vocals_file_path = import_yt_vocals(content_path)
+    vocals_file_path = import_yt_audio(content_path)
     if vocals_file_path:
         import shutil
         filename = os.path.basename(vocals_file_path)
@@ -35,18 +35,7 @@ async def run_pipeline(request: Request):
     if not content_path:
         return JSONResponse(status_code=400, content={"error": "Missing content_path"})
     
-    notes = pipeline(content_path)
-    
-    # Salva a predição no histórico
-    prediction_id = prediction_history.save_prediction(
-        content_path=content_path,
-        notes=notes,
-        content_type=content_type,
-        metadata={
-            "source": "pipeline_api",
-            "file_size": os.path.getsize(content_path) if os.path.exists(content_path) else None
-        }
-    )
+    notes, prediction_id = pipeline(content_path, save_to_history=True, content_type=content_type)
     
     return JSONResponse(status_code=200, content={
         "notes": notes,

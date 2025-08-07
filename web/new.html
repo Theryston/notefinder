@@ -243,7 +243,10 @@
           const res = await fetch("/pipeline", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ content_path: contentPath }),
+            body: JSON.stringify({
+              content_path: contentPath,
+              content_type: selectedType,
+            }),
           });
 
           const data = await res.json();

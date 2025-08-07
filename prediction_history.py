@@ -16,7 +16,8 @@ class PredictionHistory:
                 json.dump([], f, ensure_ascii=False, indent=2)
     
     def save_prediction(self, 
-                       content_path: str, 
+                       content_path: str,
+                       vocals_path: str,
                        notes: List[Dict[str, Any]], 
                        content_type: str = "file",
                        metadata: Optional[Dict[str, Any]] = None) -> str:
@@ -38,6 +39,7 @@ class PredictionHistory:
             "id": prediction_id,
             "timestamp": datetime.now().isoformat(),
             "content_path": content_path,
+            "vocals_path": vocals_path,
             "content_type": content_type,
             "notes_count": len(notes),
             "notes": notes,

@@ -7,6 +7,7 @@ from prettytable import PrettyTable
 import random
 from prediction_history import prediction_history
 
+UPLOAD_DIR = "uploads";
 temp_dir = tempfile.mkdtemp('-notefinder-worker')
 
 def log_notes(notes: list):
@@ -25,26 +26,26 @@ def log_notes(notes: list):
     print(f'🎵 Found {len(notes)} note{"s" if len(notes) != 1 else ""}')
     print(table)
     
-def import_yt_vocals(content_path: str):
-    music_file_path = os.path.join(temp_dir, "music")
-    is_downloaded_yt_audio = youtube.download_youtube_audio(content_path, music_file_path)
+def import_yt_audio(content_path: str):
+    audio_file_path = os.path.join(temp_dir, f"{random.randint(1000, 9999)}-audio")
+    is_downloaded_yt_audio = youtube.download_youtube_audio(content_path, audio_file_path)
     
     if not is_downloaded_yt_audio:
         print("Failed to download YouTube audio")
         return
     
-    music_file_path = f"{music_file_path}.wav"
+    audio_file_path = f"{audio_file_path}.wav"
     
-    print(f'Downloaded YouTube audio to {music_file_path}')
+    print(f'Downloaded YouTube audio to {audio_file_path}')
     
 
     
-    return music_file_path
+    return audio_file_path
 
 def pipeline(content_path: str, save_to_history: bool = True, content_type: str = "file"):
     print(f'Content path {content_path}')
     
-    vocals_file_path = os.path.join(temp_dir, f"{random.randint(1000, 9999)}-vocals.wav")
+    vocals_file_path = os.path.join(UPLOAD_DIR, f"{random.randint(1000, 9999)}-vocals.wav")
     vocals_extract_temp_dir = os.path.join(temp_dir, "vocals_extract")
     audio.extract_vocals(content_path, vocals_file_path, vocals_extract_temp_dir)
     
@@ -57,7 +58,8 @@ def pipeline(content_path: str, save_to_history: bool = True, content_type: str 
     # Salva no histórico se solicitado
     if save_to_history:
         prediction_id = prediction_history.save_prediction(
-            content_path=vocals_file_path,
+            content_path=content_path,
+            vocals_path=vocals_file_path,
             notes=detected_notes,
             content_type=content_type,
             metadata={
@@ -67,4 +69,4 @@ def pipeline(content_path: str, save_to_history: bool = True, content_type: str 
         )
         print(f'💾 Prediction saved with ID: {prediction_id}')
     
-    return detected_notes
+    return detected_notes, prediction_id
