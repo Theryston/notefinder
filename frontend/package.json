@@ -15,7 +15,8 @@
     "next": "^14.2.6",
     "next-themes": "^0.3.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "@headlessui/react": "^2.2.7"
   },
   "devDependencies": {
     "@types/node": "^20.14.11",
