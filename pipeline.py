@@ -5,6 +5,7 @@ import audio
 import detect_notes
 from prettytable import PrettyTable
 import random
+from prediction_history import prediction_history
 
 temp_dir = tempfile.mkdtemp('-notefinder-worker')
 
@@ -42,11 +43,24 @@ def import_yt_vocals(content_path: str):
     
     return vocals_file_path
 
-def pipeline(content_path: str):
+def pipeline(content_path: str, save_to_history: bool = True, content_type: str = "file"):
     print(f'Vocal path {content_path}')
     
     detected_notes = detect_notes.detect_notes(content_path)
     
     log_notes(detected_notes)
+    
+    # Salva no histórico se solicitado
+    if save_to_history:
+        prediction_id = prediction_history.save_prediction(
+            content_path=content_path,
+            notes=detected_notes,
+            content_type=content_type,
+            metadata={
+                "source": "pipeline_direct",
+                "file_size": os.path.getsize(content_path) if os.path.exists(content_path) else None
+            }
+        )
+        print(f'💾 Prediction saved with ID: {prediction_id}')
     
     return detected_notes

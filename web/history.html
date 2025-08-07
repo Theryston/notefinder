@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NoteFinder - Histórico de Predições</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-800">
+            Histórico de Predições
+          </h1>
+          <p class="text-gray-600 mt-2">
+            Visualize e gerencie suas análises de música anteriores
+          </p>
+        </div>
+        <a
+          href="/"
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          <i class="fas fa-plus mr-2"></i>Nova Análise
+        </a>
+      </div>
+
+      <!-- Statistics -->
+      <div id="stats" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white p-6 rounded-lg shadow">
+          <div class="flex items-center">
+            <div class="p-2 bg-blue-100 rounded-lg">
+              <i class="fas fa-icons text-blue-600"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm text-gray-600">Total de Análises</p>
+              <p id="totalPredictions" class="text-2xl font-bold text-gray-800">
+                -
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+          <div class="flex items-center">
+            <div class="p-2 bg-green-100 rounded-lg">
+              <i class="fas fa-file-audio text-green-600"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm text-gray-600">Arquivos</p>
+              <p id="filePredictions" class="text-2xl font-bold text-gray-800">
+                -
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+          <div class="flex items-center">
+            <div class="p-2 bg-red-100 rounded-lg">
+              <i class="fab fa-youtube text-red-600"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm text-gray-600">YouTube</p>
+              <p
+                id="youtubePredictions"
+                class="text-2xl font-bold text-gray-800"
+              >
+                -
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+          <div class="flex items-center">
+            <div class="p-2 bg-purple-100 rounded-lg">
+              <i class="fas fa-music text-purple-600"></i>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm text-gray-600">Notas Detectadas</p>
+              <p id="totalNotes" class="text-2xl font-bold text-gray-800">-</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="bg-white p-4 rounded-lg shadow mb-6">
+        <div class="flex flex-wrap gap-4 items-center">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Tipo de Conteúdo</label
+            >
+            <select
+              id="contentTypeFilter"
+              class="border border-gray-300 rounded-md px-3 py-2"
+            >
+              <option value="">Todos</option>
+              <option value="file">Arquivo</option>
+              <option value="youtube">YouTube</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Limite</label
+            >
+            <select
+              id="limitFilter"
+              class="border border-gray-300 rounded-md px-3 py-2"
+            >
+              <option value="10">10 mais recentes</option>
+              <option value="25">25 mais recentes</option>
+              <option value="50">50 mais recentes</option>
+              <option value="100">100 mais recentes</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div id="loading" class="hidden flex justify-center items-center py-12">
+        <div
+          class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+        ></div>
+        <span class="ml-3 text-gray-600">Carregando...</span>
+      </div>
+
+      <!-- Predictions List -->
+      <div id="predictionsList" class="space-y-4">
+        <!-- Predictions will be loaded here -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden text-center py-12">
+        <i class="fas fa-music text-6xl text-gray-300 mb-4"></i>
+        <h3 class="text-xl font-semibold text-gray-600 mb-2">
+          Nenhuma predição encontrada
+        </h3>
+        <p class="text-gray-500 mb-4">
+          Faça sua primeira análise de música para começar
+        </p>
+        <a
+          href="/"
+          class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          Começar Análise
+        </a>
+      </div>
+    </div>
+
+    <!-- Prediction Detail Modal -->
+    <div
+      id="predictionModal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div
+        class="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+      >
+        <div class="p-6 border-b">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xl font-bold text-gray-800">
+              Detalhes da Predição
+            </h3>
+            <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+        </div>
+        <div id="modalContent" class="p-6">
+          <!-- Modal content will be loaded here -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentPredictions = [];
+
+      // Load statistics
+      async function loadStats() {
+        try {
+          const response = await fetch("/predictions/stats");
+          const data = await response.json();
+          const stats = data.statistics;
+
+          document.getElementById("totalPredictions").textContent =
+            stats.total_predictions;
+          document.getElementById("filePredictions").textContent =
+            stats.file_predictions;
+          document.getElementById("youtubePredictions").textContent =
+            stats.youtube_predictions;
+          document.getElementById("totalNotes").textContent =
+            stats.total_notes_detected;
+        } catch (error) {
+          console.error("Error loading stats:", error);
+        }
+      }
+
+      // Load predictions
+      async function loadPredictions() {
+        const loading = document.getElementById("loading");
+        const predictionsList = document.getElementById("predictionsList");
+        const emptyState = document.getElementById("emptyState");
+
+        loading.classList.remove("hidden");
+        predictionsList.classList.add("hidden");
+        emptyState.classList.add("hidden");
+
+        try {
+          const limit = document.getElementById("limitFilter").value;
+          const response = await fetch(`/predictions?limit=${limit}`);
+          const data = await response.json();
+
+          currentPredictions = data.predictions;
+          displayPredictions(currentPredictions);
+
+          if (currentPredictions.length === 0) {
+            emptyState.classList.remove("hidden");
+          } else {
+            predictionsList.classList.remove("hidden");
+          }
+        } catch (error) {
+          console.error("Error loading predictions:", error);
+          emptyState.classList.remove("hidden");
+        } finally {
+          loading.classList.add("hidden");
+        }
+      }
+
+      // Display predictions
+      function displayPredictions(predictions) {
+        const predictionsList = document.getElementById("predictionsList");
+        const contentTypeFilter =
+          document.getElementById("contentTypeFilter").value;
+
+        // Filter by content type if specified
+        let filteredPredictions = predictions;
+        if (contentTypeFilter) {
+          filteredPredictions = predictions.filter(
+            (p) => p.content_type === contentTypeFilter
+          );
+        }
+
+        if (filteredPredictions.length === 0) {
+          document.getElementById("emptyState").classList.remove("hidden");
+          predictionsList.classList.add("hidden");
+          return;
+        }
+
+        predictionsList.innerHTML = filteredPredictions
+          .map(
+            (prediction) => `
+                <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-1 text-xs rounded-full ${
+                                  prediction.content_type === "youtube"
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-green-100 text-green-800"
+                                }">
+                                    ${
+                                      prediction.content_type === "youtube"
+                                        ? "YouTube"
+                                        : "Arquivo"
+                                    }
+                                </span>
+                                <span class="text-sm text-gray-500">
+                                    ${new Date(
+                                      prediction.timestamp
+                                    ).toLocaleString("pt-BR")}
+                                </span>
+                            </div>
+                            <h3 class="font-semibold text-gray-800 truncate" title="${
+                              prediction.content_path
+                            }">
+                                ${prediction.content_path}
+                            </h3>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-600">
+                                ${prediction.notes_count} nota${
+              prediction.notes_count !== 1 ? "s" : ""
+            }
+                            </span>
+                            <button onclick="viewPrediction('${
+                              prediction.id
+                            }')" 
+                                    class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition">
+                                <i class="fas fa-eye mr-1"></i>Ver
+                            </button>
+                            <button onclick="deletePrediction('${
+                              prediction.id
+                            }')" 
+                                    class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition">
+                                <i class="fas fa-trash mr-1"></i>Excluir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `
+          )
+          .join("");
+      }
+
+      // View prediction details
+      async function viewPrediction(predictionId) {
+        try {
+          const response = await fetch(`/predictions/${predictionId}`);
+          const data = await response.json();
+          const prediction = data.prediction;
+
+          const modalContent = document.getElementById("modalContent");
+          modalContent.innerHTML = `
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-2">Informações Gerais</h4>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">ID:</span>
+                                    <span class="font-mono">${
+                                      prediction.id
+                                    }</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Tipo:</span>
+                                    <span class="capitalize">${
+                                      prediction.content_type
+                                    }</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Data/Hora:</span>
+                                    <span>${new Date(
+                                      prediction.timestamp
+                                    ).toLocaleString("pt-BR")}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Notas Detectadas:</span>
+                                    <span>${prediction.notes_count}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-2">Caminho do Conteúdo</h4>
+                            <p class="text-sm bg-gray-100 p-2 rounded break-all">${
+                              prediction.content_path
+                            }</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-2">Notas Detectadas</h4>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full border border-gray-300">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">Nota</th>
+                                            <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">Oitava</th>
+                                            <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">Início (s)</th>
+                                            <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">Fim (s)</th>
+                                            <th class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">Freq. (Hz)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${prediction.notes
+                                          .map(
+                                            (note) => `
+                                            <tr>
+                                                <td class="border border-gray-300 px-3 py-2 text-sm">${
+                                                  note.note
+                                                }</td>
+                                                <td class="border border-gray-300 px-3 py-2 text-sm">${
+                                                  note.octave
+                                                }</td>
+                                                <td class="border border-gray-300 px-3 py-2 text-sm">${note.start.toFixed(
+                                                  2
+                                                )}</td>
+                                                <td class="border border-gray-300 px-3 py-2 text-sm">${note.end.toFixed(
+                                                  2
+                                                )}</td>
+                                                <td class="border border-gray-300 px-3 py-2 text-sm">${note.frequency_mean.toFixed(
+                                                  2
+                                                )}</td>
+                                            </tr>
+                                        `
+                                          )
+                                          .join("")}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+          document.getElementById("predictionModal").classList.remove("hidden");
+        } catch (error) {
+          console.error("Error loading prediction details:", error);
+          alert("Erro ao carregar detalhes da predição");
+        }
+      }
+
+      // Delete prediction
+      async function deletePrediction(predictionId) {
+        if (!confirm("Tem certeza que deseja excluir esta predição?")) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`/predictions/${predictionId}`, {
+            method: "DELETE",
+          });
+
+          if (response.ok) {
+            loadPredictions();
+            loadStats();
+          } else {
+            alert("Erro ao excluir predição");
+          }
+        } catch (error) {
+          console.error("Error deleting prediction:", error);
+          alert("Erro ao excluir predição");
+        }
+      }
+
+      // Event listeners
+      document
+        .getElementById("contentTypeFilter")
+        .addEventListener("change", () => {
+          displayPredictions(currentPredictions);
+        });
+
+      document
+        .getElementById("limitFilter")
+        .addEventListener("change", loadPredictions);
+
+      document.getElementById("closeModal").addEventListener("click", () => {
+        document.getElementById("predictionModal").classList.add("hidden");
+      });
+
+      // Close modal when clicking outside
+      document
+        .getElementById("predictionModal")
+        .addEventListener("click", (e) => {
+          if (e.target === document.getElementById("predictionModal")) {
+            document.getElementById("predictionModal").classList.add("hidden");
+          }
+        });
+
+      // Initial load
+      loadStats();
+      loadPredictions();
+    </script>
+  </body>
+</html>

@@ -5,3 +5,4 @@ notes-*.json
 *.wav
 *.mp3
 uploads
+prediction_history.json

@@ -5,6 +5,7 @@ from pipeline import pipeline, import_yt_vocals
 from fastapi.responses import FileResponse
 import os
 import random
+from prediction_history import prediction_history
 
 app = FastAPI()
 
@@ -29,12 +30,59 @@ async def api_import_yt_vocals(request: Request):
 async def run_pipeline(request: Request):
     data = await request.json()
     content_path = data.get("content_path")
+    content_type = data.get("content_type", "file")
     
     if not content_path:
         return JSONResponse(status_code=400, content={"error": "Missing content_path"})
     
     notes = pipeline(content_path)
-    return JSONResponse(status_code=200, content={"notes": notes})
+    
+    # Salva a predição no histórico
+    prediction_id = prediction_history.save_prediction(
+        content_path=content_path,
+        notes=notes,
+        content_type=content_type,
+        metadata={
+            "source": "pipeline_api",
+            "file_size": os.path.getsize(content_path) if os.path.exists(content_path) else None
+        }
+    )
+    
+    return JSONResponse(status_code=200, content={
+        "notes": notes,
+        "prediction_id": prediction_id,
+        "notes_count": len(notes)
+    })
+
+@app.get("/predictions")
+async def get_predictions(limit: int = 10):
+    """Retorna as predições mais recentes"""
+    predictions = prediction_history.get_recent_predictions(limit)
+    return JSONResponse(status_code=200, content={"predictions": predictions})
+
+@app.get("/predictions/stats")
+async def get_prediction_stats():
+    """Retorna estatísticas das predições"""
+    stats = prediction_history.get_statistics()
+    return JSONResponse(status_code=200, content={"statistics": stats})
+
+@app.get("/predictions/{prediction_id}")
+async def get_prediction(prediction_id: str):
+    """Retorna uma predição específica pelo ID"""
+    prediction = prediction_history.get_prediction_by_id(prediction_id)
+    if prediction:
+        return JSONResponse(status_code=200, content={"prediction": prediction})
+    else:
+        return JSONResponse(status_code=404, content={"error": "Prediction not found"})
+
+@app.delete("/predictions/{prediction_id}")
+async def delete_prediction(prediction_id: str):
+    """Remove uma predição do histórico"""
+    success = prediction_history.delete_prediction(prediction_id)
+    if success:
+        return JSONResponse(status_code=200, content={"message": "Prediction deleted successfully"})
+    else:
+        return JSONResponse(status_code=404, content={"error": "Prediction not found"})
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
@@ -46,6 +94,10 @@ async def upload_file(file: UploadFile = File(...)):
 @app.get("/")
 async def web_file():
     return FileResponse("web/index.html")
+
+@app.get("/history")
+async def history_page():
+    return FileResponse("web/history.html")
 
 @app.get('/uploads/{filepath:path}')
 async def serve_uploads(filepath: str):
