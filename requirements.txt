@@ -9,3 +9,4 @@ prettytable
 fastapi
 uvicorn
 python-multipart
+diffq

@@ -7,6 +7,7 @@ from prettytable import PrettyTable
 import random
 from prediction_history import prediction_history
 from typing import Optional, Callable, Tuple, Dict, Any
+import shutil
 
 UPLOAD_DIR = "uploads";
 temp_dir = tempfile.mkdtemp('-notefinder')
@@ -67,6 +68,12 @@ def pipeline(
     print(f'Vocal path {vocals_file_path}')
     
     detected_notes = detect_notes.detect_notes(vocals_file_path)
+
+    # Cleanup heavy intermediate demucs output to save disk space
+    try:
+        shutil.rmtree(vocals_extract_temp_dir, ignore_errors=True)
+    except Exception:
+        pass
     
     if progress_callback:
         progress_callback(85, "Salvando resultado")

@@ -22,7 +22,24 @@ RUN apt-get update \
        git \
     && rm -rf /var/lib/apt/lists/*
 
+# Define environment variables for Demucs
+ENV DEMUCS_MODEL=mdx_q \
+    DEMUCS_JOBS=1 \
+    DEMUCS_SEGMENT=15 \
+    OMP_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1
+
+# Put ML caches under /app/.cache (can be mounted as a persistent volume)
+ENV TORCH_HOME=/app/.cache/torch \
+    HF_HOME=/app/.cache/hf \
+    TRANSFORMERS_CACHE=/app/.cache/hf \
+    XDG_CACHE_HOME=/app/.cache
+
 WORKDIR /app
+
+# Prepare cache dirs (optional but avoids first-write race)
+RUN mkdir -p /app/.cache/torch /app/.cache/hf
 
 # Install Python dependencies first to leverage Docker layer caching
 COPY requirements.txt ./
