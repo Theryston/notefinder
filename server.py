@@ -31,8 +31,9 @@ app.add_middleware(
 )
 
 UPLOAD_DIR = "uploads"
+DATA_DIR = "data"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-os.makedirs("data", exist_ok=True)
+os.makedirs(DATA_DIR, exist_ok=True)
 
 @app.post("/import_yt_vocals")
 async def api_import_yt_vocals(request: Request):

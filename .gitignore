@@ -2,6 +2,7 @@ __pycache__
 *.pyc
 venv/
 uploads/
+data/
 node_modules/
 .next/
 .out/

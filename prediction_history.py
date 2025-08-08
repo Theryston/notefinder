@@ -6,6 +6,7 @@ import uuid
 
 class PredictionHistory:
     def __init__(self, history_file: str = "data/prediction_history.json"):
+        os.makedirs(os.path.dirname(history_file), exist_ok=True)
         self.history_file = history_file
         self.ensure_history_file()
     
