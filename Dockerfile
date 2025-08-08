@@ -7,12 +7,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     TF_CPP_MIN_LOG_LEVEL=2
 
-# System dependencies required at runtime
+# System dependencies required at runtime and for building native wheels
 # - ffmpeg: for yt-dlp postprocessing and pydub
 # - libsndfile1: for librosa/soundfile backend
 # - ca-certificates: HTTPS for yt-dlp
 # - curl: used by container HEALTHCHECK
 # - git: optional but often required by some models/tools
+# - build-essential, pkg-config, cmake, ninja-build, rustc, cargo: compile native deps like diffq
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        ffmpeg \
@@ -20,6 +21,12 @@ RUN apt-get update \
        ca-certificates \
        curl \
        git \
+       build-essential \
+       pkg-config \
+       cmake \
+       ninja-build \
+       rustc \
+       cargo \
     && rm -rf /var/lib/apt/lists/*
 
 # Define environment variables for Demucs
@@ -44,6 +51,7 @@ RUN mkdir -p /app/.cache/torch /app/.cache/hf
 # Install Python dependencies first to leverage Docker layer caching
 COPY requirements.txt ./
 RUN python -m pip install --upgrade pip \
+    && pip install --no-cache-dir --upgrade setuptools wheel \
     && pip install --no-cache-dir -r requirements.txt
 
 # Copy backend source code
