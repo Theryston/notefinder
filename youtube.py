@@ -1,11 +1,15 @@
 import yt_dlp
-
+import os
 
 def download_youtube_audio(url: str, output_path: str):
+    cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
+    if not os.path.exists(cookies_path):
+        raise FileNotFoundError(f"Cookies file not found at {cookies_path}")
+    
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': output_path,
-        'cookies': 'cookies.txt',
+        'cookies': cookies_path,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'wav',
