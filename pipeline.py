@@ -9,7 +9,7 @@ from prediction_history import prediction_history
 from typing import Optional, Callable, Tuple, Dict, Any
 
 UPLOAD_DIR = "uploads";
-temp_dir = tempfile.mkdtemp('-notefinder-worker')
+temp_dir = tempfile.mkdtemp('-notefinder')
 
 def log_notes(notes: list):
     table = PrettyTable()

@@ -39,7 +39,7 @@ export default function Header() {
             Nova Análise
           </Link>
           <a
-            href="https://github.com/Theryston/notefinder-worker"
+            href="https://github.com/Theryston/notefinder"
             target="_blank"
             rel="noreferrer"
             className="ml-1 p-2 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition"
@@ -103,7 +103,7 @@ export default function Header() {
         {/* Mobile actions */}
         <div className="flex sm:hidden items-center gap-2">
           <a
-            href="https://github.com/Theryston/notefinder-worker"
+            href="https://github.com/Theryston/notefinder"
             target="_blank"
             rel="noreferrer"
             className="ml-1 p-2 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition"
