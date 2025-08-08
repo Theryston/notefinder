@@ -1,6 +1,7 @@
 import yt_dlp
 import os
 
+
 def download_youtube_audio(url: str, output_path: str):
     cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
     if not os.path.exists(cookies_path):
@@ -9,7 +10,7 @@ def download_youtube_audio(url: str, output_path: str):
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': output_path,
-        'cookies': cookies_path,
+        'cookiefile': cookies_path,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'wav',
@@ -35,6 +36,11 @@ def get_youtube_info(url: str) -> dict:
         'skip_download': True,
         'nocheckcertificate': True,
     }
+    # Use cookies if available to avoid age/bot checks
+    cookies_path = os.path.join(os.path.dirname(__file__), 'cookies.txt')
+    if os.path.exists(cookies_path):
+        info_opts['cookiefile'] = cookies_path
+
     try:
         with yt_dlp.YoutubeDL(info_opts) as ydl:
             info = ydl.extract_info(url, download=False)
