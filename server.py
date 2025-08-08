@@ -145,21 +145,6 @@ async def upload_file(file: UploadFile = File(...)):
     return {"path": file_location}
 
 
-@app.get("/")
-async def web_file():
-    return FileResponse("web/index.html")
-
-
-@app.get("/new")
-async def new_page():
-    return FileResponse("web/new.html")
-
-
-@app.get("/timeline")
-async def timeline_page():
-    return FileResponse("web/timeline.html")
-
-
 @app.get('/uploads/{filepath:path}')
 async def serve_uploads(filepath: str):
     file_path = os.path.join(UPLOAD_DIR, filepath)
