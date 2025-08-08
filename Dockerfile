@@ -27,9 +27,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Create necessary directories
-RUN mkdir -p uploads && \
-    mkdir -p web && \
-    chmod 755 uploads
+RUN mkdir -p uploads && mkdir -p data && chmod 755 uploads && chmod 755 data
 
 # Copy application code
 COPY . .

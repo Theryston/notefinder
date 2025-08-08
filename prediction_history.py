@@ -5,7 +5,7 @@ from typing import List, Dict, Any, Optional
 import uuid
 
 class PredictionHistory:
-    def __init__(self, history_file: str = "prediction_history.json"):
+    def __init__(self, history_file: str = "data/prediction_history.json"):
         self.history_file = history_file
         self.ensure_history_file()
     
@@ -52,10 +52,6 @@ class PredictionHistory:
         
         # Adiciona a nova predição no início da lista
         history.insert(0, prediction_data)
-        
-        # Mantém apenas as últimas 100 predições para não sobrecarregar o arquivo
-        if len(history) > 100:
-            history = history[:100]
         
         # Salva o histórico atualizado
         with open(self.history_file, 'w', encoding='utf-8') as f:
