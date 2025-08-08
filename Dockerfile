@@ -40,8 +40,8 @@ RUN mkdir -p /app/uploads /app/data
 EXPOSE 8000
 
 # Container healthcheck (FastAPI ready)
-HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=6 \
+HEALTHCHECK --interval=120s --timeout=5s --start-period=10s --retries=6 \
   CMD curl -fsS http://localhost:8000/predictions/stats >/dev/null || exit 1
 
 # Launch FastAPI via Uvicorn in production mode (no reload)
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"] 
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]
