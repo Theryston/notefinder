@@ -60,7 +60,7 @@ Turn any song into a timeline of sung notes. NoteFinder automatically downloads 
 - Timeline (`/timeline/[id]`)
   - Play/pause audio; toggle “vocals only”; adjust playback speed; drag/click to seek; notes are colored bars labeled with note+octave; below, a sortable table lists all detections with timings and mean frequency
 
-Environment configuration for the frontend is read from `process.env.BACKEND_URL` at build time (falls back to `http://localhost:8000`).
+Environment configuration for the frontend is read from `process.env.NEXT_PUBLIC_BACKEND_URL` at build time (falls back to `http://localhost:8000`).
 
 ## Quick Start (Local)
 
