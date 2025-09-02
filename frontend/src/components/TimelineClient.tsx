@@ -23,6 +23,7 @@ export default function TimelineClient({ id }: { id: string }) {
 
   const [isDragging, setIsDragging] = useState(false);
   const wasPlayingRef = useRef(false);
+  const isDraggingRef = useRef(false);
 
   // Semitone transposition offset (can be negative)
   const [transpose, setTranspose] = useState(0);
@@ -265,6 +266,7 @@ export default function TimelineClient({ id }: { id: string }) {
     if (!container || !indicator) return;
 
     function startMouseDrag() {
+      isDraggingRef.current = true;
       setIsDragging(true);
       wasPlayingRef.current = isPlaying;
       if (audio && isPlaying) audio.pause();
@@ -280,7 +282,7 @@ export default function TimelineClient({ id }: { id: string }) {
     }
 
     function onMouseMove(e: MouseEvent) {
-      if (!isDragging) return;
+      if (!isDraggingRef.current) return;
       const cont = tabContainerRef.current;
       if (!cont) return;
       const rect = cont.getBoundingClientRect();
@@ -289,7 +291,8 @@ export default function TimelineClient({ id }: { id: string }) {
     }
 
     function onMouseUp() {
-      if (isDragging) {
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false;
         setIsDragging(false);
         document.removeEventListener("mousemove", onMouseMove);
         document.removeEventListener("mouseup", onMouseUp);
@@ -305,6 +308,7 @@ export default function TimelineClient({ id }: { id: string }) {
     }
 
     function startTouchDrag() {
+      isDraggingRef.current = true;
       setIsDragging(true);
       wasPlayingRef.current = isPlaying;
       if (audio && isPlaying) audio.pause();
@@ -317,7 +321,7 @@ export default function TimelineClient({ id }: { id: string }) {
     }
 
     function onTouchMove(e: TouchEvent) {
-      if (!isDragging) return;
+      if (!isDraggingRef.current) return;
       const cont = tabContainerRef.current;
       if (!cont) return;
       const x = getTouchX(e.touches[0]);
@@ -326,7 +330,8 @@ export default function TimelineClient({ id }: { id: string }) {
     }
 
     function onTouchEnd() {
-      if (isDragging) {
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false;
         setIsDragging(false);
         document.removeEventListener("touchmove", onTouchMove);
         document.removeEventListener("touchend", onTouchEnd);
@@ -351,7 +356,15 @@ export default function TimelineClient({ id }: { id: string }) {
       const relativeX = e.clientX - rect.left + cont.scrollLeft;
       const progressLeft = getProgressLeftPx();
       if (Math.abs(relativeX - progressLeft) <= DRAG_HIT_PX) {
-        startMouseDrag();
+        // Move to the point and start drag immediately
+        seekTo(relativeX / PX_PER_SECOND);
+        isDraggingRef.current = true;
+        setIsDragging(true);
+        wasPlayingRef.current = isPlaying;
+        if (audio && isPlaying) audio.pause();
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+        (indicator as HTMLDivElement).style.cursor = "grabbing";
         e.preventDefault();
         e.stopPropagation();
       } else {
@@ -370,7 +383,14 @@ export default function TimelineClient({ id }: { id: string }) {
       const x = getTouchX(t);
       const progressLeft = getProgressLeftPx();
       if (Math.abs(x - progressLeft) <= DRAG_HIT_PX) {
-        startTouchDrag();
+        // Move to the point and start drag immediately
+        seekTo(x / PX_PER_SECOND);
+        isDraggingRef.current = true;
+        setIsDragging(true);
+        wasPlayingRef.current = isPlaying;
+        if (audio && isPlaying) audio.pause();
+        document.addEventListener("touchmove", onTouchMove, { passive: false });
+        document.addEventListener("touchend", onTouchEnd);
         e.preventDefault();
       } else {
         seekTo(x / PX_PER_SECOND);
@@ -394,7 +414,7 @@ export default function TimelineClient({ id }: { id: string }) {
       document.removeEventListener("touchmove", onTouchMove);
       document.removeEventListener("touchend", onTouchEnd);
     };
-  }, [audio, isPlaying, isDragging]);
+  }, [audio, isPlaying]);
 
   function seekTo(newTime: number) {
     const a = audio;
