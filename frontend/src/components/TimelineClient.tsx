@@ -24,34 +24,49 @@ export default function TimelineClient({ id }: { id: string }) {
   const [isDragging, setIsDragging] = useState(false);
   const wasPlayingRef = useRef(false);
 
+  // Semitone transposition offset (can be negative)
+  const [transpose, setTranspose] = useState(0);
+
+  const NOTE_ORDER = useMemo(
+    () => ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"],
+    []
+  );
+
+  const toMidiFromNote = (note: string, octave: number) =>
+    NOTE_ORDER.indexOf(note) + 12 * (octave + 1);
+  const fromMidiToNote = (midi: number) => {
+    const wrapped = ((midi % 12) + 12) % 12;
+    const note = NOTE_ORDER[wrapped];
+    const octave = Math.floor(midi / 12) - 1;
+    return { note, octave };
+  };
+
+  const displayNotes = useMemo(() => {
+    if (!prediction?.notes?.length) return [] as any[];
+    return prediction.notes.map((n: any) => {
+      const baseMidi = toMidiFromNote(n.note, n.octave);
+      const transposedMidi = baseMidi + transpose;
+      const { note, octave } = fromMidiToNote(transposedMidi);
+      return { ...n, note, octave, _midi: transposedMidi };
+    });
+  }, [prediction, transpose, NOTE_ORDER]);
+
   const [minMidi, maxMidi, maxEnd] = useMemo(() => {
-    if (!prediction?.notes?.length) return [0, 0, 0];
-    const order = [
-      "C",
-      "C#",
-      "D",
-      "D#",
-      "E",
-      "F",
-      "F#",
-      "G",
-      "G#",
-      "A",
-      "A#",
-      "B",
-    ];
-    const toMidi = (n: any) => order.indexOf(n.note) + 12 * (n.octave + 1);
+    if (!displayNotes.length) return [0, 0, 0];
     let min = Infinity,
       max = -Infinity,
       end = 0;
-    for (const n of prediction.notes) {
-      const m = toMidi(n);
+    for (const n of displayNotes) {
+      const m =
+        typeof n._midi === "number"
+          ? n._midi
+          : toMidiFromNote(n.note, n.octave);
       if (m < min) min = m;
       if (m > max) max = m;
       if (n.end > end) end = n.end;
     }
     return [min, max, end];
-  }, [prediction]);
+  }, [displayNotes]);
 
   function setCurrentTimeSafely(el: HTMLAudioElement, t: number) {
     const assign = () => {
@@ -311,6 +326,25 @@ export default function TimelineClient({ id }: { id: string }) {
                 <option value={2}>2x velocidade</option>
               </select>
             </div>
+            <div className="flex items-center gap-2">
+              <button
+                aria-label="Transpor meio tom abaixo"
+                onClick={() => setTranspose((t) => t - 1)}
+                className="px-3 py-1.5 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition"
+              >
+                −
+              </button>
+              <div className="flex-1 text-center text-sm text-gray-700 dark:text-gray-200">
+                Transpor {transpose > 0 ? `+${transpose}` : transpose}
+              </div>
+              <button
+                aria-label="Transpor meio tom acima"
+                onClick={() => setTranspose((t) => t + 1)}
+                className="px-3 py-1.5 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition"
+              >
+                +
+              </button>
+            </div>
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
@@ -346,22 +380,11 @@ export default function TimelineClient({ id }: { id: string }) {
               ref={progressRef}
               className="absolute top-0 bottom-0 w-0.5 bg-brand-600 cursor-pointer"
             />
-            {prediction.notes.map((n: any, i: number) => {
-              const order = [
-                "C",
-                "C#",
-                "D",
-                "D#",
-                "E",
-                "F",
-                "F#",
-                "G",
-                "G#",
-                "A",
-                "A#",
-                "B",
-              ];
-              const midi = order.indexOf(n.note) + 12 * (n.octave + 1);
+            {displayNotes.map((n: any, i: number) => {
+              const midi =
+                typeof n._midi === "number"
+                  ? n._midi
+                  : toMidiFromNote(n.note, n.octave);
               const y = (maxMidi - midi) * PX_PER_OCTAVE + 20;
               const x = n.start * PX_PER_SECOND;
               const w = Math.max((n.end - n.start) * PX_PER_SECOND, 8);
@@ -402,7 +425,7 @@ export default function TimelineClient({ id }: { id: string }) {
             </tr>
           </thead>
           <tbody className="text-sm">
-            {prediction.notes.map((n: any, i: number) => (
+            {displayNotes.map((n: any, i: number) => (
               <tr
                 key={i}
                 className="border-t border-gray-200 dark:border-gray-800"
