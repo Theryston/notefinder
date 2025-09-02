@@ -264,16 +264,21 @@ export default function TimelineClient({ id }: { id: string }) {
     const indicator = progressRef.current;
     if (!container || !indicator) return;
 
-    function onMouseDown(e: MouseEvent) {
+    function startMouseDrag() {
       setIsDragging(true);
       wasPlayingRef.current = isPlaying;
       if (audio && isPlaying) audio.pause();
       document.addEventListener("mousemove", onMouseMove);
       document.addEventListener("mouseup", onMouseUp);
       (indicator as HTMLDivElement).style.cursor = "grabbing";
+    }
+
+    function onMouseDown(e: MouseEvent) {
+      startMouseDrag();
       e.preventDefault();
       e.stopPropagation();
     }
+
     function onMouseMove(e: MouseEvent) {
       if (!isDragging) return;
       const cont = tabContainerRef.current;
@@ -282,6 +287,7 @@ export default function TimelineClient({ id }: { id: string }) {
       const relativeX = e.clientX - rect.left + cont.scrollLeft;
       seekTo(relativeX / PX_PER_SECOND);
     }
+
     function onMouseUp() {
       if (isDragging) {
         setIsDragging(false);
@@ -297,13 +303,19 @@ export default function TimelineClient({ id }: { id: string }) {
       const rect = cont.getBoundingClientRect();
       return t.clientX - rect.left + cont.scrollLeft;
     }
-    function onTouchStart(e: TouchEvent) {
+
+    function startTouchDrag() {
       setIsDragging(true);
       wasPlayingRef.current = isPlaying;
       if (audio && isPlaying) audio.pause();
       document.addEventListener("touchmove", onTouchMove, { passive: false });
       document.addEventListener("touchend", onTouchEnd);
     }
+
+    function onTouchStart(e: TouchEvent) {
+      startTouchDrag();
+    }
+
     function onTouchMove(e: TouchEvent) {
       if (!isDragging) return;
       const cont = tabContainerRef.current;
@@ -312,6 +324,7 @@ export default function TimelineClient({ id }: { id: string }) {
       seekTo(x / PX_PER_SECOND);
       e.preventDefault();
     }
+
     function onTouchEnd() {
       if (isDragging) {
         setIsDragging(false);
@@ -321,23 +334,61 @@ export default function TimelineClient({ id }: { id: string }) {
       }
     }
 
+    const DRAG_HIT_PX = 10;
+    function getProgressLeftPx() {
+      const ind = progressRef.current as HTMLDivElement | null;
+      if (!ind) return 0;
+      const val = parseFloat(ind.style.left || "0");
+      return Number.isFinite(val) ? val : 0;
+    }
     function onContainerClick(e: MouseEvent) {
       const cont = tabContainerRef.current;
       if (!cont) return;
-      if (e.target === cont || (e.target as HTMLElement).id === "tabContent") {
-        const rect = cont.getBoundingClientRect();
-        const relativeX = e.clientX - rect.left + cont.scrollLeft;
+      const target = e.target as HTMLElement;
+      if (target === progressRef.current) return;
+      if (target.closest('[data-note-block="1"]')) return;
+      const rect = cont.getBoundingClientRect();
+      const relativeX = e.clientX - rect.left + cont.scrollLeft;
+      const progressLeft = getProgressLeftPx();
+      if (Math.abs(relativeX - progressLeft) <= DRAG_HIT_PX) {
+        startMouseDrag();
+        e.preventDefault();
+        e.stopPropagation();
+      } else {
         seekTo(relativeX / PX_PER_SECOND);
+      }
+    }
+
+    function onContainerTouchTap(e: TouchEvent) {
+      const cont = tabContainerRef.current;
+      if (!cont) return;
+      const target = e.target as HTMLElement;
+      if (target === progressRef.current) return;
+      if (target.closest('[data-note-block="1"]')) return;
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+      const x = getTouchX(t);
+      const progressLeft = getProgressLeftPx();
+      if (Math.abs(x - progressLeft) <= DRAG_HIT_PX) {
+        startTouchDrag();
+        e.preventDefault();
+      } else {
+        seekTo(x / PX_PER_SECOND);
+        e.preventDefault();
       }
     }
 
     indicator.addEventListener("mousedown", onMouseDown);
     indicator.addEventListener("touchstart", onTouchStart, { passive: false });
     container.addEventListener("mousedown", onContainerClick);
+    container.addEventListener("touchstart", onContainerTouchTap, {
+      passive: false,
+    });
     return () => {
       indicator.removeEventListener("mousedown", onMouseDown);
       indicator.removeEventListener("touchstart", onTouchStart);
       container.removeEventListener("mousedown", onContainerClick);
+      container.removeEventListener("touchstart", onContainerTouchTap);
       document.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseup", onMouseUp);
       document.removeEventListener("touchmove", onTouchMove);
@@ -425,7 +476,7 @@ export default function TimelineClient({ id }: { id: string }) {
                 onClick={() => setTranspose((t) => t - 1)}
                 className="px-3 py-1.5 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition"
               >
-                −
+                -
               </button>
               <div className="flex-1 text-center text-sm text-gray-700 dark:text-gray-200">
                 Transpor {transpose > 0 ? `+${transpose}` : transpose}
@@ -471,8 +522,15 @@ export default function TimelineClient({ id }: { id: string }) {
           <div className="relative" style={{ width, height }}>
             <div
               ref={progressRef}
-              className="absolute top-0 bottom-0 w-0.5 bg-brand-600 cursor-pointer"
-            />
+              className="absolute top-0 bottom-0 w-0.5 bg-brand-600 cursor-grab"
+              style={{ pointerEvents: "auto" }}
+            >
+              <div
+                className="absolute -left-2 -right-2 top-0 bottom-0"
+                style={{ pointerEvents: "auto" }}
+              />
+            </div>
+
             {displayNotes.map((n: any, i: number) => {
               const midi =
                 typeof n._midi === "number"
@@ -494,6 +552,7 @@ export default function TimelineClient({ id }: { id: string }) {
               return (
                 <div
                   key={i}
+                  data-note-block="1"
                   className={`absolute ${color} rounded text-xs flex items-center justify-center shadow`}
                   style={{ left: x, top: y, width: w, height: 18 }}
                 >
