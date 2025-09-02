@@ -51,6 +51,77 @@ export default function TimelineClient({ id }: { id: string }) {
     });
   }, [prediction, transpose, NOTE_ORDER]);
 
+  // Estimate musical key (tonal center) from displayed notes using
+  // Krumhansl-Schmuckler style profiles with duration-weighted histogram
+  const estimatedKey = useMemo(() => {
+    if (!displayNotes.length)
+      return null as null | {
+        tonicIndex: number;
+        mode: "maior" | "menor";
+        label: string;
+      };
+    const hist = new Array(12).fill(0);
+    for (const n of displayNotes) {
+      const midi =
+        typeof n._midi === "number"
+          ? n._midi
+          : toMidiFromNote(n.note, n.octave);
+      const pc = ((midi % 12) + 12) % 12;
+      const dur = Math.max(0, (n.end ?? 0) - (n.start ?? 0)) || 1;
+      hist[pc] += dur;
+    }
+    const sum = hist.reduce((a, b) => a + b, 0) || 1;
+    const h = hist.map((x) => x / sum);
+
+    const majorProfile = [
+      6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88,
+    ];
+    const minorProfile = [
+      6.33, 2.68, 3.52, 5.38, 2.6, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17,
+    ];
+
+    function cosineSimilarity(a: number[], b: number[]) {
+      let dot = 0,
+        na = 0,
+        nb = 0;
+      for (let i = 0; i < 12; i++) {
+        dot += a[i] * b[i];
+        na += a[i] * a[i];
+        nb += b[i] * b[i];
+      }
+      return dot / (Math.sqrt(na) * Math.sqrt(nb) || 1);
+    }
+    function rotated(profile: number[], k: number) {
+      const out = new Array(12);
+      for (let i = 0; i < 12; i++) out[i] = profile[(i - k + 12) % 12];
+      return out;
+    }
+
+    let bestScore = -Infinity;
+    let bestIndex = 0;
+    let bestMode: "maior" | "menor" = "maior";
+    for (let k = 0; k < 12; k++) {
+      const scoreMaj = cosineSimilarity(h, rotated(majorProfile, k));
+      if (scoreMaj > bestScore) {
+        bestScore = scoreMaj;
+        bestIndex = k;
+        bestMode = "maior";
+      }
+      const scoreMin = cosineSimilarity(h, rotated(minorProfile, k));
+      if (scoreMin > bestScore) {
+        bestScore = scoreMin;
+        bestIndex = k;
+        bestMode = "menor";
+      }
+    }
+    const tonic = NOTE_ORDER[bestIndex];
+    return {
+      tonicIndex: bestIndex,
+      mode: bestMode,
+      label: `${tonic} ${bestMode}`,
+    };
+  }, [displayNotes, NOTE_ORDER]);
+
   const [minMidi, maxMidi, maxEnd] = useMemo(() => {
     if (!displayNotes.length) return [0, 0, 0];
     let min = Infinity,
@@ -79,6 +150,13 @@ export default function TimelineClient({ id }: { id: string }) {
     else el.addEventListener("loadedmetadata", assign, { once: true });
   }
 
+  function getEffectiveRate(spd: number, tr: number) {
+    // Change pitch by semitones using playbackRate multiplier
+    // ratio = 2^(semitones/12)
+    const pitchRatio = Math.pow(2, tr / 12);
+    return spd * pitchRatio;
+  }
+
   useEffect(() => {
     if (!prediction) return;
     if (prediction.content_path?.startsWith("uploads/")) {
@@ -88,6 +166,17 @@ export default function TimelineClient({ id }: { id: string }) {
         ? new Audio(`${BACKEND_URL}/${prediction.vocals_path}`)
         : null;
       if (va) va.preload = "auto";
+
+      // Ensure pitch changes with playbackRate (do not preserve pitch)
+      // Vendor-prefixed fallbacks included.
+      (ca as any).preservesPitch = false;
+      (ca as any).mozPreservesPitch = false;
+      (ca as any).webkitPreservesPitch = false;
+      if (va) {
+        (va as any).preservesPitch = false;
+        (va as any).mozPreservesPitch = false;
+        (va as any).webkitPreservesPitch = false;
+      }
 
       const onTimeContent = () => updateProgress(ca.currentTime);
       const onTimeVocals = () => updateProgress(va!.currentTime);
@@ -133,7 +222,7 @@ export default function TimelineClient({ id }: { id: string }) {
     if (!a) return;
     if (isPlaying) a.pause();
     else {
-      a.playbackRate = speed;
+      a.playbackRate = getEffectiveRate(speed, transpose);
       a.play();
     }
     setIsPlaying(!isPlaying);
@@ -150,23 +239,24 @@ export default function TimelineClient({ id }: { id: string }) {
       setCurrentTimeSafely(va, currentTime);
       setAudio(va);
       if (was) {
-        va.playbackRate = speed;
+        va.playbackRate = getEffectiveRate(speed, transpose);
         va.play();
       }
     } else {
       setCurrentTimeSafely(ca, currentTime);
       setAudio(ca);
       if (was) {
-        ca.playbackRate = speed;
+        ca.playbackRate = getEffectiveRate(speed, transpose);
         ca.play();
       }
     }
   }
 
   useEffect(() => {
-    if (contentAudio) contentAudio.playbackRate = speed;
-    if (vocalsAudio) vocalsAudio.playbackRate = speed;
-  }, [speed, contentAudio, vocalsAudio]);
+    const eff = getEffectiveRate(speed, transpose);
+    if (contentAudio) contentAudio.playbackRate = eff;
+    if (vocalsAudio) vocalsAudio.playbackRate = eff;
+  }, [speed, transpose, contentAudio, vocalsAudio]);
 
   // Dragging and clicking (mouse + touch)
   useEffect(() => {
@@ -299,6 +389,9 @@ export default function TimelineClient({ id }: { id: string }) {
               <span className="text-gray-500">
                 {prediction.notes_count} nota
                 {prediction.notes_count !== 1 ? "s" : ""}
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                {estimatedKey ? `Tom: ${estimatedKey.label}` : "Tom: —"}
               </span>
             </div>
             <h1 className="text-xl font-bold">
