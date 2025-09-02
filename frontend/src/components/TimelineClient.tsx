@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import TimelineControls from "@/components/TimelineControls";
+import TimelineViewport from "@/components/TimelineViewport";
 import { usePrediction } from "@/hooks/usePredictions";
 import { BACKEND_URL } from "@/lib/config";
+import clsx from "clsx";
 
 export default function TimelineClient({ id }: { id: string }) {
   const { data: prediction } = usePrediction(id);
@@ -24,6 +27,7 @@ export default function TimelineClient({ id }: { id: string }) {
   const [isDragging, setIsDragging] = useState(false);
   const wasPlayingRef = useRef(false);
   const isDraggingRef = useRef(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Semitone transposition offset (can be negative)
   const [transpose, setTranspose] = useState(0);
@@ -440,7 +444,7 @@ export default function TimelineClient({ id }: { id: string }) {
   const height = (maxMidi - minMidi + 1) * PX_PER_OCTAVE + 40;
 
   return (
-    <div className="space-y-6">
+    <div className={clsx("space-y-6", isFullscreen && "h-0 overflow-hidden")}>
       <div className="rounded-2xl border border-gray-200 p-5 bg-white dark:border-none dark:bg-gray-700">
         <div className="flex items-start justify-between gap-6 flex-col md:flex-row">
           <div>
@@ -461,129 +465,89 @@ export default function TimelineClient({ id }: { id: string }) {
                 {prediction.notes_count} nota
                 {prediction.notes_count !== 1 ? "s" : ""}
               </span>
-              <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                {estimatedKey ? `Tom: ${estimatedKey.label}` : "Tom: —"}
-              </span>
             </div>
             <h1 className="text-xl font-bold">
               {prediction.metadata?.display_title || prediction.content_path}
             </h1>
           </div>
-          <div className="w-full md:w-52 shrink-0 space-y-2">
-            <button
-              onClick={handlePlayPause}
-              className="w-full px-4 py-2 rounded-full bg-brand-600 text-white hover:bg-brand-700 shadow-sm"
-            >
-              {isPlaying ? "Pause" : "Play"}
-            </button>
-            <div className="flex items-center gap-2">
-              <select
-                value={speed}
-                onChange={(e) => setSpeed(Number(e.target.value))}
-                className="flex-1 px-3 py-2 rounded-xl border-none bg-zinc-100 dark:bg-zinc-900"
-              >
-                <option value={0.5}>0.5x velocidade</option>
-                <option value={0.75}>0.75x velocidade</option>
-                <option value={1}>1x velocidade</option>
-                <option value={1.25}>1.25x velocidade</option>
-                <option value={1.5}>1.5x velocidade</option>
-                <option value={2}>2x velocidade</option>
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                aria-label="Transpor meio tom abaixo"
-                onClick={() => setTranspose((t) => t - 1)}
-                className="px-3 py-1.5 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition"
-              >
-                -
-              </button>
-              <div className="flex-1 text-center text-sm text-gray-700 dark:text-gray-200">
-                Transpor {transpose > 0 ? `+${transpose}` : transpose}
-              </div>
-              <button
-                aria-label="Transpor meio tom acima"
-                onClick={() => setTranspose((t) => t + 1)}
-                className="px-3 py-1.5 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition"
-              >
-                +
-              </button>
-            </div>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={vocalsOnly}
-                onChange={(e) => {
-                  setVocalsOnly(e.target.checked);
-                  switchSource(e.target.checked);
+          <TimelineControls
+            isPlaying={isPlaying}
+            onPlayPause={handlePlayPause}
+            speed={speed}
+            onSpeedChange={(v) => setSpeed(v)}
+            transpose={transpose}
+            onTransposeInc={() => setTranspose((t) => t + 1)}
+            onTransposeDec={() => setTranspose((t) => t - 1)}
+            vocalsOnly={vocalsOnly}
+            onToggleVocals={(checked) => {
+              setVocalsOnly(checked);
+              switchSource(checked);
+            }}
+            estimatedKey={estimatedKey}
+          />
+        </div>
+      </div>
+
+      <div className="rounded-2xl relative border border-gray-200 bg-white dark:border-none dark:bg-gray-700 overflow-hidden">
+        <FullscreenControls
+          isFullscreen={isFullscreen}
+          setIsFullscreen={setIsFullscreen}
+        />
+
+        <TimelineViewport
+          tabContainerRef={tabContainerRef}
+          progressRef={progressRef}
+          width={width}
+          height={height}
+          notes={displayNotes as any}
+          toMidiFromNote={toMidiFromNote}
+          pxPerSecond={PX_PER_SECOND}
+          pxPerOctave={PX_PER_OCTAVE}
+          maxMidi={maxMidi}
+        />
+      </div>
+
+      {isFullscreen && (
+        <div className="fixed top-0 left-0 right-0 bottom-0 !m-0 z-[1000] border-gray-200 bg-white dark:border-none dark:bg-gray-700">
+          <FullscreenControls
+            isFullscreen={isFullscreen}
+            setIsFullscreen={setIsFullscreen}
+          />
+
+          <div className="absolute inset-0">
+            <TimelineViewport
+              tabContainerRef={tabContainerRef}
+              progressRef={progressRef}
+              width={width}
+              height={"100vh"}
+              notes={displayNotes as any}
+              toMidiFromNote={toMidiFromNote}
+              pxPerSecond={PX_PER_SECOND}
+              pxPerOctave={PX_PER_OCTAVE}
+              maxMidi={maxMidi}
+            />
+          </div>
+          <div className="fixed top-4 left-4 z-[1001]">
+            <div className="rounded-xl border border-gray-200 bg-white dark:border-none dark:bg-gray-800 shadow p-3 w-fit h-fit space-y-2">
+              <TimelineControls
+                isPlaying={isPlaying}
+                onPlayPause={handlePlayPause}
+                speed={speed}
+                onSpeedChange={(v) => setSpeed(v)}
+                transpose={transpose}
+                onTransposeInc={() => setTranspose((t) => t + 1)}
+                onTransposeDec={() => setTranspose((t) => t - 1)}
+                vocalsOnly={vocalsOnly}
+                onToggleVocals={(checked) => {
+                  setVocalsOnly(checked);
+                  switchSource(checked);
                 }}
-              />
-              Apenas vozes
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-gray-200 bg-white dark:border-none dark:bg-gray-700 overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white/60 dark:border-none dark:bg-black/20">
-          <div className="text-sm text-gray-600 dark:text-gray-300">
-            Linha do tempo
-          </div>
-          <div className="text-xs text-gray-500">
-            Arraste o marcador ou clique para navegar
-          </div>
-        </div>
-        <div
-          ref={tabContainerRef}
-          id="tabContent"
-          className="relative overflow-x-auto whitespace-nowrap select-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-          style={{ maxWidth: "100%" }}
-        >
-          <div className="relative" style={{ width, height }}>
-            <div
-              ref={progressRef}
-              className="absolute top-0 bottom-0 w-0.5 bg-brand-600 cursor-grab"
-              style={{ pointerEvents: "auto" }}
-            >
-              <div
-                className="absolute -left-2 -right-2 top-0 bottom-0"
-                style={{ pointerEvents: "auto" }}
+                estimatedKey={estimatedKey}
               />
             </div>
-
-            {displayNotes.map((n: any, i: number) => {
-              const midi =
-                typeof n._midi === "number"
-                  ? n._midi
-                  : toMidiFromNote(n.note, n.octave);
-              const y = (maxMidi - midi) * PX_PER_OCTAVE + 20;
-              const x = n.start * PX_PER_SECOND;
-              const w = Math.max((n.end - n.start) * PX_PER_SECOND, 8);
-              const colors = [
-                "bg-blue-400",
-                "bg-green-400",
-                "bg-yellow-400",
-                "bg-pink-400",
-                "bg-purple-400",
-                "bg-red-400",
-                "bg-teal-400",
-              ];
-              const color = colors[i % colors.length];
-              return (
-                <div
-                  key={i}
-                  data-note-block="1"
-                  className={`absolute ${color} rounded text-xs flex items-center justify-center shadow`}
-                  style={{ left: x, top: y, width: w, height: 18 }}
-                >
-                  {n.note}
-                  {n.octave}
-                </div>
-              );
-            })}
           </div>
         </div>
-      </div>
+      )}
 
       <div className="rounded-xl border border-gray-200 p-5 bg-white dark:border-none dark:bg-gray-700 overflow-x-auto">
         <table className="min-w-full">
@@ -612,6 +576,57 @@ export default function TimelineClient({ id }: { id: string }) {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function FullscreenControls({
+  isFullscreen,
+  setIsFullscreen,
+}: {
+  isFullscreen: boolean;
+  setIsFullscreen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  return (
+    <div className="absolute top-4 right-4 z-[1001]">
+      <button
+        aria-label={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
+        onClick={() => setIsFullscreen((prev) => !prev)}
+        className="p-2 rounded-md border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
+        title={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
+      >
+        {isFullscreen ? (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M9 3H3v6M21 9V3h-6M15 21h6v-6M3 15v6h6"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+          </svg>
+        ) : (
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M4 9V4h5M15 4h5v5M9 20H4v-5M20 15v5h-5"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+          </svg>
+        )}
+      </button>
     </div>
   );
 }
