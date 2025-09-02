@@ -7,10 +7,13 @@ import { usePrediction } from "@/hooks/usePredictions";
 import { BACKEND_URL } from "@/lib/config";
 import clsx from "clsx";
 
+const PX_PER_SECOND = 100;
+const PX_PER_OCTAVE = 30;
+const SILENCE_GAP_THRESHOLD_SECONDS = 10;
+const NEXT_NOTE_PRE_ROLL_SECONDS = 1;
+
 export default function TimelineClient({ id }: { id: string }) {
   const { data: prediction } = usePrediction(id);
-  const PX_PER_SECOND = 100;
-  const PX_PER_OCTAVE = 30;
 
   const tabContainerRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef<HTMLDivElement | null>(null);
@@ -28,6 +31,7 @@ export default function TimelineClient({ id }: { id: string }) {
   const wasPlayingRef = useRef(false);
   const isDraggingRef = useRef(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
 
   // Semitone transposition offset (can be negative)
   const [transpose, setTranspose] = useState(0);
@@ -220,6 +224,7 @@ export default function TimelineClient({ id }: { id: string }) {
     } else if (left > thresholdRight) {
       container.scrollLeft = left - container.clientWidth * 0.6;
     }
+    setCurrentTime(currentTime);
   }
 
   function handlePlayPause() {
@@ -512,6 +517,12 @@ export default function TimelineClient({ id }: { id: string }) {
             pxPerOctave={PX_PER_OCTAVE}
             maxMidi={maxMidi}
           />
+
+          <NextNotesButton
+            displayNotes={displayNotes}
+            currentTime={currentTime}
+            seekTo={seekTo}
+          />
         </div>
       )}
 
@@ -533,6 +544,12 @@ export default function TimelineClient({ id }: { id: string }) {
               pxPerSecond={PX_PER_SECOND}
               pxPerOctave={PX_PER_OCTAVE}
               maxMidi={maxMidi}
+            />
+
+            <NextNotesButton
+              displayNotes={displayNotes}
+              currentTime={currentTime}
+              seekTo={seekTo}
             />
           </div>
           <div className="fixed top-4 left-4 z-[1001]">
@@ -584,6 +601,41 @@ export default function TimelineClient({ id }: { id: string }) {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function NextNotesButton({
+  displayNotes,
+  currentTime,
+  seekTo,
+}: {
+  displayNotes: any[];
+  currentTime: number;
+  seekTo: (newTime: number) => void;
+}) {
+  const nextStart = displayNotes
+    .map((n: any) => n.start)
+    .filter((s: number) => s > currentTime)
+    .sort((a: number, b: number) => a - b)[0];
+
+  const shouldShow =
+    typeof nextStart === "number" &&
+    nextStart - currentTime >= SILENCE_GAP_THRESHOLD_SECONDS &&
+    currentTime < nextStart - NEXT_NOTE_PRE_ROLL_SECONDS;
+
+  if (!shouldShow) return null;
+
+  const target = Math.max(0, nextStart - NEXT_NOTE_PRE_ROLL_SECONDS);
+
+  return (
+    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
+      <button
+        onClick={() => seekTo(target)}
+        className="px-3 py-1 text-xs rounded-full bg-white text-gray-900 shadow border border-black/10 hover:bg-gray-50"
+      >
+        próximas notas {"->"}
+      </button>
     </div>
   );
 }
