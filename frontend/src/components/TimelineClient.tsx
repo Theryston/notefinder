@@ -263,6 +263,12 @@ export default function TimelineClient({ id }: { id: string }) {
     if (vocalsAudio) vocalsAudio.playbackRate = eff;
   }, [speed, transpose, contentAudio, vocalsAudio]);
 
+  // Keep playhead in sync when toggling fullscreen
+  useEffect(() => {
+    const current = audio?.currentTime || 0;
+    requestAnimationFrame(() => updateProgress(current));
+  }, [isFullscreen, audio]);
+
   // Dragging and clicking (mouse + touch)
   useEffect(() => {
     const container = tabContainerRef.current;
@@ -418,7 +424,7 @@ export default function TimelineClient({ id }: { id: string }) {
       document.removeEventListener("touchmove", onTouchMove);
       document.removeEventListener("touchend", onTouchEnd);
     };
-  }, [audio, isPlaying]);
+  }, [audio, isPlaying, isFullscreen]);
 
   function seekTo(newTime: number) {
     const a = audio;
@@ -488,24 +494,26 @@ export default function TimelineClient({ id }: { id: string }) {
         </div>
       </div>
 
-      <div className="rounded-2xl relative border border-gray-200 bg-white dark:border-none dark:bg-gray-700 overflow-hidden">
-        <FullscreenControls
-          isFullscreen={isFullscreen}
-          setIsFullscreen={setIsFullscreen}
-        />
+      {!isFullscreen && (
+        <div className="rounded-2xl relative border border-gray-200 bg-white dark:border-none dark:bg-gray-700 overflow-hidden">
+          <FullscreenControls
+            isFullscreen={isFullscreen}
+            setIsFullscreen={setIsFullscreen}
+          />
 
-        <TimelineViewport
-          tabContainerRef={tabContainerRef}
-          progressRef={progressRef}
-          width={width}
-          height={height}
-          notes={displayNotes as any}
-          toMidiFromNote={toMidiFromNote}
-          pxPerSecond={PX_PER_SECOND}
-          pxPerOctave={PX_PER_OCTAVE}
-          maxMidi={maxMidi}
-        />
-      </div>
+          <TimelineViewport
+            tabContainerRef={tabContainerRef}
+            progressRef={progressRef}
+            width={width}
+            height={height}
+            notes={displayNotes as any}
+            toMidiFromNote={toMidiFromNote}
+            pxPerSecond={PX_PER_SECOND}
+            pxPerOctave={PX_PER_OCTAVE}
+            maxMidi={maxMidi}
+          />
+        </div>
+      )}
 
       {isFullscreen && (
         <div className="fixed top-0 left-0 right-0 bottom-0 !m-0 z-[1000] border-gray-200 bg-white dark:border-none dark:bg-gray-700">
