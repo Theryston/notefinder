@@ -1,3 +1,5 @@
-- [ ] Page /
-- [ ] Page /new
+- [ ] Page /sign-up
+- [ ] Page /sign-in
 - [ ] Page /search?q=
+- [ ] Page /new
+- [ ] Page /
