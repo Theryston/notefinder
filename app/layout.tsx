@@ -1,0 +1,36 @@
+import { ThemeProvider } from '@/components/theme-provider';
+import { Manrope } from 'next/font/google';
+import type { Metadata } from 'next';
+import { cn } from '@/lib/utils';
+import './globals.css';
+
+const font = Manrope({ subsets: ['latin'], variable: '--font-manrope' });
+
+export const metadata: Metadata = {
+  title:
+    'NoteFinder - Descubra as notas vocais para cantar a sua música favorita',
+  description:
+    'NoteFinder descubra as notas vocais para cantar a sua música favorita sem desafinar e fazer feio na frente dos amigos!',
+  keywords: ['notas musicais', 'detector de notas', 'voz', 'música', 'YouTube'],
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="pt-BR">
+      <body className={cn(font.className, 'antialiased')}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
