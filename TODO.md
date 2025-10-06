@@ -1,5 +1,6 @@
 - [ ] Page /sign-up
 - [ ] Page /sign-in
 - [ ] Page /search?q=
-- [ ] Page /new
 - [ ] Page /
+- [ ] Page /profile (private)
+- [ ] Page /new (private)
