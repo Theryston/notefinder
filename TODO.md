@@ -1,0 +1,3 @@
+- [ ] Page /
+- [ ] Page /new
+- [ ] Page /search?q=

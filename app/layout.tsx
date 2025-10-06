@@ -1,5 +1,5 @@
-import { ThemeProvider } from '@/components/theme-provider';
 import { Manrope } from 'next/font/google';
+import { Providers } from './providers';
 import type { Metadata } from 'next';
 import { cn } from '@/lib/utils';
 import './globals.css';
@@ -22,14 +22,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={cn(font.className, 'antialiased')}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
