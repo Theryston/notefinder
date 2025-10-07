@@ -1,5 +1,5 @@
 - [ ] Page /new (private)
-- [ ] Page /search?q=
+- [ ] Page /search?q= and header search input
 - [ ] Page /
 - [ ] Page /users/:username (private)
 - [ ] Publish google oauth app to prod

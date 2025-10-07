@@ -2,7 +2,7 @@ import { auth } from '@/auth';
 import { Container } from '@/components/container';
 import { redirect } from 'next/navigation';
 import { VerifyEmailForm } from './components/verify-email-form';
-import { User } from '@/lib/generated/prisma';
+import { User } from '@prisma/client';
 
 export default async function VerifyEmail({
   searchParams,

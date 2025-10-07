@@ -1,7 +1,7 @@
 import { Header } from './header';
 import { Footer } from './footer';
 import { auth } from '@/auth';
-import { User } from '@/lib/generated/prisma';
+import { User } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 

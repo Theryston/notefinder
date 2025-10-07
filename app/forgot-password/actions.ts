@@ -6,7 +6,6 @@ import { sendForgotPasswordCode } from '@/lib/services/users/send-forgot-passwor
 import { redirect } from 'next/navigation';
 import { hash } from 'bcryptjs';
 import moment from 'moment';
-import { passwordSchema } from '../sign-up/schema';
 import { forgotPasswordResetSchema } from './schema';
 
 export type ForgotPasswordRequestState = {

@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { User } from '@/lib/generated/prisma';
+import { User } from '@prisma/client';
 
 export async function Header() {
   const session = await auth();
