@@ -24,6 +24,7 @@ model User {
 
   accounts              Account[]
   emailVerificationCode EmailVerificationCode[]
+  forgotPasswordCode    ForgotPasswordCode[]
 
   @@map("users")
 }
@@ -61,4 +62,17 @@ model EmailVerificationCode {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("email_verification_codes")
+}
+
+model ForgotPasswordCode {
+  id        String   @id @default(cuid()) @map("id")
+  userId    String   @map("user_id")
+  code      String   @map("code")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("forgot_password_codes")
 }

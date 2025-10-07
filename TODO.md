@@ -1,9 +1,9 @@
-- [ ] Page /forgot-password
+- [ ] Page /new (private)
 - [ ] Page /search?q=
 - [ ] Page /
 - [ ] Page /users/:username (private)
-- [ ] Page /new (private)
 - [ ] Publish google oauth app to prod
+- [x] Page /forgot-password
 - [x] Page /sign-up
 - [x] Page /sign-in
 - [x] Page /verify-email

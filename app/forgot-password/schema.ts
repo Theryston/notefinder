@@ -1,14 +1,10 @@
 import z from 'zod';
+import { passwordSchema } from '../sign-up/schema';
 
-export const passwordSchema = z
-  .string()
-  .min(6, 'Senha deve ter ao menos 6 caracteres');
-
-export const signUpSchema = z
+export const forgotPasswordResetSchema = z
   .object({
-    name: z.string().min(1, 'Nome é obrigatório'),
-    username: z.string().min(1, 'Username é obrigatório'),
     email: z.string().email('Email inválido'),
+    code: z.string().length(6, 'Código inválido'),
     password: passwordSchema,
     confirmPassword: z.string(),
   })
