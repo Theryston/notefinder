@@ -1,6 +1,10 @@
-- [ ] Page /sign-up
-- [ ] Page /sign-in
+- [ ] Page /forgot-password
 - [ ] Page /search?q=
 - [ ] Page /
-- [ ] Page /profile (private)
+- [ ] Page /users/:username (private)
 - [ ] Page /new (private)
+- [ ] Publish google oauth app to prod
+- [x] Page /sign-up
+- [x] Page /sign-in
+- [x] Page /verify-email
+- [x] Page /setup-username

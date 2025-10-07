@@ -1,5 +1,5 @@
 import { Container } from '@/components/container';
 
 export default function Home() {
-  return <Container>ok</Container>;
+  return <Container pathname="/">ok</Container>;
 }

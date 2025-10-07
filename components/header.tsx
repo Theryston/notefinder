@@ -16,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import { User } from '@/lib/generated/prisma';
 
 export async function Header() {
   const session = await auth();
@@ -123,7 +124,7 @@ function UserAvatar({ session }: { session: Session }) {
         <DropdownMenuLabel>{session.user.name}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/profile">Perfil</Link>
+          <Link href={`/users/${(session.user as User).username}`}>Perfil</Link>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleSignOut}>Sair</DropdownMenuItem>
       </DropdownMenuContent>

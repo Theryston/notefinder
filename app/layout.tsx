@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   keywords: ['notas musicais', 'detector de notas', 'voz', 'música', 'YouTube'],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

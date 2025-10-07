@@ -7,5 +7,5 @@ export default async function New() {
 
   if (!session?.user) redirect('/sign-in?redirectTo=/new');
 
-  return <Container>New</Container>;
+  return <Container pathname="/new">New</Container>;
 }

@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import { Container } from '@/components/container';
 import { Button } from '@/components/ui/button';
-import { onSigninGoogle } from './actions';
+import { onSignupGoogle } from './actions';
 import { CredentialsForm } from './components/credentials-form';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 
-export default async function SignIn({
+export default async function SignUp({
   searchParams,
 }: {
   searchParams: Promise<{ redirectTo: string }>;
@@ -18,13 +18,13 @@ export default async function SignIn({
   if (session?.user) redirect('/');
 
   return (
-    <Container pathname="/sign-in">
+    <Container pathname="/sign-up">
       <div className="max-w-sm mx-auto py-12">
         <div className="flex flex-col gap-6">
           <div className="text-center">
-            <h1 className="text-2xl font-semibold">Entrar</h1>
+            <h1 className="text-2xl font-semibold">Criar conta</h1>
             <p className="text-sm text-muted-foreground">
-              Acesse sua conta para continuar.
+              Preencha os campos para criar sua conta.
             </p>
           </div>
 
@@ -41,19 +41,19 @@ export default async function SignIn({
             </div>
           </div>
 
-          <form action={onSigninGoogle}>
+          <form action={onSignupGoogle}>
             <Button variant="outline" type="submit" className="w-full">
-              Entrar com Google
+              Criar conta com Google
             </Button>
           </form>
 
           <p className="text-center text-sm">
-            Não tem uma conta?{' '}
+            Já tem uma conta?{' '}
             <Link
-              href={`/sign-up${redirectTo ? `?redirectTo=${redirectTo}` : ''}`}
+              href={`/sign-in${redirectTo ? `?redirectTo=${redirectTo}` : ''}`}
               className="underline underline-offset-4 hover:text-primary"
             >
-              Criar conta
+              Entrar
             </Link>
           </p>
         </div>

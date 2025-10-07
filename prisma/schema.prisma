@@ -15,13 +15,15 @@ model User {
   name          String?   @map("name")
   email         String    @unique @map("email")
   emailVerified DateTime? @map("email_verified_at")
+  username      String?   @unique @map("username")
   password      String?   @map("password")
   image         String?   @map("image_url")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  accounts Account[]
+  accounts              Account[]
+  emailVerificationCode EmailVerificationCode[]
 
   @@map("users")
 }
@@ -46,4 +48,17 @@ model Account {
 
   @@id([provider, providerAccountId])
   @@map("accounts")
+}
+
+model EmailVerificationCode {
+  id        String   @id @default(cuid()) @map("id")
+  userId    String   @map("user_id")
+  code      String   @map("code")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_verification_codes")
 }
