@@ -1,3 +1,5 @@
+- [ ] Bug: not creating account with credentials in prod (maybe because of the signing after it)
+- [ ] Bug: not verifying email with credentials in prod (maybe because of the signing after it)
 - [ ] Page /new (private)
 - [ ] Page /search?q= and header search input
 - [ ] Page /
