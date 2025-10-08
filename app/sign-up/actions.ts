@@ -94,7 +94,7 @@ export const onSignupCredentials = async (
       redirectTo: `/verify-email${redirectTo ? `?redirectTo=${redirectTo}` : ''}`,
     });
   } catch (error) {
-    // Allow Next.js/NextAuth to perform the redirect by rethrowing the redirect error
+    console.error(error);
     if (isNextRedirectError(error)) {
       throw error;
     }

@@ -56,8 +56,8 @@ export const onSetupUsername = async (
 
     revalidatePath('/');
     redirect(redirectTo);
-    return { success: 'Nome de usuário salvo com sucesso' };
   } catch (error) {
+    console.error(error);
     if (isNextRedirectError(error)) throw error;
     return {
       error: { username: ['Não foi possível salvar o nome de usuário'] },

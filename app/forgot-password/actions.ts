@@ -113,8 +113,8 @@ export const onForgotPasswordReset = async (
 
     redirect('/sign-in');
   } catch (error) {
-    if (isNextRedirectError(error)) throw error;
     console.error(error);
+    if (isNextRedirectError(error)) throw error;
     return {
       error: { code: ['Não foi possível redefinir a senha'] },
       values: { code, password, confirmPassword },

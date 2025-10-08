@@ -78,6 +78,7 @@ export const onVerifyEmail = async (
       redirectTo,
     });
   } catch (error) {
+    console.error(error);
     if (isNextRedirectError(error)) throw error;
     return { error: 'Não foi possível verificar o email' };
   }
@@ -96,6 +97,7 @@ export const onResendCode = async (): Promise<VerifyEmailState | void> => {
     await sendEmailVerifyCode(email);
     return { success: 'Código reenviado com sucesso' };
   } catch (error) {
+    console.error(error);
     if (isNextRedirectError(error)) throw error;
     return { error: 'Não foi possível reenviar o código' };
   }
