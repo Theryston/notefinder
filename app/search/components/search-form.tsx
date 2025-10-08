@@ -93,9 +93,9 @@ export function SearchForm({
       )}
 
       {!isMobile && isPending ? (
-        <div className="mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {Array.from({ length: 3 * 7 }).map((_, idx) => (
+        <div className="mt-4 w-full h-full">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full h-full">
+            {Array.from({ length: 3 * 10 }).map((_, idx) => (
               <div className="w-full h-24" key={idx}>
                 <Skeleton />
               </div>
@@ -105,8 +105,8 @@ export function SearchForm({
       ) : (
         state?.tracks &&
         hasTracks && (
-          <div className="mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="mt-4 w-full h-full">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full h-full">
               {state.tracks.map((t, idx) => (
                 <TrackItem
                   key={`${t.artists[0].name}-${t.title}-${idx}`}
