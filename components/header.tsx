@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { User } from '@prisma/client';
+import { getUserByIdWithCache } from '@/lib/services/users/get-user-by-id';
 
 export async function Header() {
   const session = await auth();
@@ -102,8 +103,11 @@ export async function Header() {
   );
 }
 
-function UserAvatar({ session }: { session: Session }) {
-  if (!session.user) return null;
+async function UserAvatar({ session }: { session: Session }) {
+  if (!session.user || !session.user.id) return null;
+
+  const user = await getUserByIdWithCache(session.user.id);
+  if (!user) return null;
 
   const handleSignOut = async () => {
     'use server';
@@ -114,17 +118,15 @@ function UserAvatar({ session }: { session: Session }) {
     <DropdownMenu>
       <DropdownMenuTrigger>
         <Avatar>
-          <AvatarImage src={session.user.image ?? ''} />
-          <AvatarFallback>
-            {session.user.name?.charAt(0).toUpperCase()}
-          </AvatarFallback>
+          <AvatarImage src={user.image || ''} />
+          <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuLabel>{session.user.name}</DropdownMenuLabel>
+        <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href={`/users/${(session.user as User).username}`}>Perfil</Link>
+          <Link href={`/users/${user?.username}`}>Perfil</Link>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleSignOut}>Sair</DropdownMenuItem>
       </DropdownMenuContent>

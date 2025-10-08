@@ -2,9 +2,10 @@
 
 import prisma from '@/lib/prisma';
 import moment from 'moment';
-import { auth, signIn } from '@/auth';
+import { auth } from '@/auth';
 import { isNextRedirectError } from '@/lib/utils';
 import { sendEmailVerifyCode } from '@/lib/services/users/send-email-verify-code';
+import { redirect } from 'next/navigation';
 
 export type VerifyEmailState = {
   error?: string;
@@ -71,12 +72,7 @@ export const onVerifyEmail = async (
       data: { expiresAt: moment().subtract(1, 'minutes').toDate() },
     });
 
-    await signIn('credentials', {
-      email: user?.email,
-      password: user?.password,
-      hashedPassword: user?.password,
-      redirectTo,
-    });
+    redirect(redirectTo);
   } catch (error) {
     console.error(error);
     if (isNextRedirectError(error)) throw error;

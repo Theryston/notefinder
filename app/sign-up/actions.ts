@@ -89,7 +89,7 @@ export const onSignupCredentials = async (
     await sendEmailVerifyCode(email);
 
     await signIn('credentials', {
-      email,
+      emailOrUsername: email,
       password,
       redirectTo: `/verify-email${redirectTo ? `?redirectTo=${redirectTo}` : ''}`,
     });

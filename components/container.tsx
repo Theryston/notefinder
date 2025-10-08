@@ -3,7 +3,7 @@ import { Footer } from './footer';
 import { auth } from '@/auth';
 import { User } from '@prisma/client';
 import { redirect } from 'next/navigation';
-import prisma from '@/lib/prisma';
+import { getUserById } from '@/lib/services/users/get-user-by-id';
 
 type Props = {
   children: React.ReactNode;
@@ -40,21 +40,20 @@ async function SetupUser({
 }) {
   const session = await auth();
 
-  if (!session?.user) return children;
+  if (!session?.user || !session.user.id) return children;
 
   const isGoogle =
     (session.user as User & { provider: string }).provider === 'google';
   const isEmailVerified = (session.user as User).emailVerified;
 
   if (!isGoogle && !isEmailVerified) {
-    if (pathname !== '/verify-email')
+    const user = await getUserById(session.user.id);
+
+    if (pathname !== '/verify-email' && !user?.emailVerified) {
       redirect(`/verify-email${pathname ? `?redirectTo=${pathname}` : ''}`);
+    }
   } else if (session.user.id && !(session.user as User).username) {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: session.user.id,
-      },
-    });
+    const user = await getUserById(session.user.id);
 
     if (pathname !== '/setup-username' && !user?.username) {
       redirect(`/setup-username${pathname ? `?redirectTo=${pathname}` : ''}`);

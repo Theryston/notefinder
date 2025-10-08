@@ -5,6 +5,7 @@ import { auth } from '@/auth';
 import { isNextRedirectError } from '@/lib/utils';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { setupUsernameSchema } from './schema';
 
 export type SetupUsernameState = {
   error?: { username?: string[] };
@@ -29,18 +30,12 @@ export const onSetupUsername = async (
 
     const username = rawUsername.toLowerCase();
 
-    if (!username || username.length < 3 || username.length > 50) {
-      return {
-        error: { username: ['Use 3-50 caracteres'] },
-        values: { username: rawUsername },
-      };
-    }
+    const parsed = setupUsernameSchema.safeParse({ username });
 
-    const validPattern = /^[a-z0-9_]+$/;
-    if (!validPattern.test(username)) {
+    if (!parsed.success) {
       return {
-        error: { username: ['Apenas letras, números e _'] },
-        values: { username: rawUsername },
+        error: parsed.error.flatten().fieldErrors,
+        values: { username },
       };
     }
 

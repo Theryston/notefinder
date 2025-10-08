@@ -2,7 +2,7 @@ import { auth } from '@/auth';
 import { Container } from '@/components/container';
 import { redirect } from 'next/navigation';
 import { UsernameForm } from './components/username-form';
-import prisma from '@/lib/prisma';
+import { getUserByIdWithCache } from '@/lib/services/users/get-user-by-id';
 
 export default async function SetupUsername({
   searchParams,
@@ -17,15 +17,8 @@ export default async function SetupUsername({
     redirect(`/sign-in${redirectTo ? `?redirectTo=${redirectTo}` : ''}`);
   }
 
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-  });
-
-  if (user?.username) {
-    redirect(redirectTo);
-  }
+  const user = await getUserByIdWithCache(session.user.id);
+  if (user?.username) redirect(redirectTo);
 
   return (
     <Container pathname="/setup-username">
