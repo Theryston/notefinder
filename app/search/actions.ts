@@ -124,7 +124,7 @@ export const onAddNotes = async (
       });
     }
 
-    redirect(`/tracks/${track.id}`);
+    redirect(`/tracks/${track.id}?just-created=true`);
   } catch (error) {
     if (isNextRedirectError(error)) throw error;
     console.error(error);
