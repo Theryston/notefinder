@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { GithubIcon, PlusIcon, SearchIcon, UserIcon } from 'lucide-react';
+import { GithubIcon, SearchIcon, UserIcon } from 'lucide-react';
 import { Button } from './ui/button';
 import { SearchInput } from './search-input';
 import { auth, signOut } from '@/auth';
@@ -16,8 +16,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { User } from '@prisma/client';
 import { getUserByIdWithCache } from '@/lib/services/users/get-user-by-id';
+import { Suspense } from 'react';
 
 export async function Header() {
   const session = await auth();
@@ -31,7 +31,7 @@ export async function Header() {
   return (
     <>
       <div className="h-20" />
-      <header className="w-full h-20 border-b fixed top-0 left-0 right-0 z-50">
+      <header className="w-full h-20 border-b fixed top-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-sm">
         <div className="flex items-center justify-between max-w-screen-2xl px-4 mx-auto h-full">
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
@@ -49,16 +49,15 @@ export async function Header() {
             </Link>
 
             <div className="hidden md:block">
-              <SearchInput />
+              <Suspense
+                fallback={<div className="w-full h-12 bg-muted rounded-md" />}
+              >
+                <SearchInput />
+              </Suspense>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <Button size="icon" aria-label="Add" asChild>
-              <Link href={session?.user ? '/new' : '/sign-in?redirectTo=/new'}>
-                <PlusIcon />
-              </Link>
-            </Button>
             <Button
               variant="outline"
               size="icon"
@@ -104,15 +103,19 @@ export async function Header() {
 }
 
 async function UserAvatar({ session }: { session: Session }) {
-  if (!session.user || !session.user.id) return null;
-
-  const user = await getUserByIdWithCache(session.user.id);
-  if (!user) return null;
+  if (!session.user || !session.user?.id) return null;
 
   const handleSignOut = async () => {
     'use server';
     await signOut();
   };
+
+  const user = await getUserByIdWithCache(session.user.id);
+
+  if (!user) {
+    handleSignOut();
+    return null;
+  }
 
   return (
     <DropdownMenu>

@@ -2,6 +2,7 @@ import { Manrope } from 'next/font/google';
 import type { Metadata } from 'next';
 import { cn } from '@/lib/utils';
 import './globals.css';
+import { Toaster } from '@/components/ui/sonner';
 
 const font = Manrope({ subsets: ['latin'], variable: '--font-manrope' });
 
@@ -20,7 +21,10 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={cn(font.className, 'antialiased')}>{children}</body>
+      <body className={cn(font.className, 'antialiased')}>
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }

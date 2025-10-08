@@ -24,6 +24,7 @@ model User {
   accounts              Account[]
   emailVerificationCode EmailVerificationCode[]
   forgotPasswordCode    ForgotPasswordCode[]
+  tracks                Track[]
 
   @@map("users")
 }
@@ -74,4 +75,90 @@ model ForgotPasswordCode {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("forgot_password_codes")
+}
+
+enum TrackStatus {
+  QUEUED
+  DOWNLOADING_THUMBNAILS
+  DOWNLOADING_VIDEO
+  EXTRACTING_LYRICS
+  EXTRACTING_VOCALS
+  DETECTING_VOCALS_NOTES
+  ERROR
+  COMPLETED
+}
+
+model Track {
+  id                String      @id @default(cuid()) @map("id")
+  ytId              String      @map("yt_id")
+  jobId             String?     @map("job_id")
+  status            TrackStatus @default(QUEUED) @map("status")
+  statusDescription String?     @map("status_description")
+  title             String?     @map("title")
+  duration          String?     @map("duration")
+  year              Int?        @map("year")
+  durationSeconds   Int?        @map("duration_seconds")
+  isExplicit        Boolean?    @map("is_explicit")
+  albumId           String?     @map("album_id")
+  creatorId         String      @map("creator_id")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+
+  creator      User          @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  album        Album?        @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  thumbnails   Thumbnail[]
+  trackArtists TrackArtist[]
+
+  @@map("tracks")
+}
+
+model Album {
+  id        String   @id @default(cuid()) @map("id")
+  name      String   @map("name")
+  ytId      String   @map("yt_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tracks Track[]
+
+  @@map("albums")
+}
+
+model Thumbnail {
+  id        String   @id @default(cuid()) @map("id")
+  trackId   String   @map("track_id")
+  url       String   @map("url")
+  width     Int?     @map("width")
+  height    Int?     @map("height")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@map("thumbnails")
+}
+
+model TrackArtist {
+  id        String   @id @default(cuid()) @map("id")
+  artistId  String   @map("artist_id")
+  trackId   String   @map("track_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  track  Track  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@map("track_artists")
+}
+
+model Artist {
+  id        String   @id @default(cuid()) @map("id")
+  name      String   @map("name")
+  ytId      String   @map("yt_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  trackArtists TrackArtist[]
+
+  @@map("artists")
 }

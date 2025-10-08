@@ -1,5 +1,11 @@
 import { Container } from '@/components/container';
 import { RequestForm } from './components/request-form';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Esqueci minha senha',
+  description: 'Informe seu email para receber um código de recuperação.',
+};
 
 export default async function ForgotPassword() {
   return (

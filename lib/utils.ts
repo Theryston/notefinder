@@ -20,3 +20,14 @@ export function isNextRedirectError(
     candidate.digest.startsWith('NEXT_REDIRECT')
   );
 }
+
+export function getBiggestOne<T>(data: T[], key: keyof T) {
+  return data.reduce((max: T, current: T) => {
+    return Number(current[key]) > Number(max[key]) ? current : max;
+  }, data[0]);
+}
+
+export function getFullHeight(noStrBlank: boolean = true) {
+  if (noStrBlank) return `calc(100dvh-(var(--spacing)*54))`;
+  return `calc(100dvh - (var(--spacing) * 54))`;
+}
