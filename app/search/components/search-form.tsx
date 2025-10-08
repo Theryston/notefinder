@@ -1,16 +1,17 @@
 'use client';
 
 import { useActionState, useEffect, useRef, useState } from 'react';
-import { onSearchTracks, type SearchTracksState } from '../actions';
+import { onAddNotes, onSearchTracks, type SearchTracksState } from '../actions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { SearchIcon } from 'lucide-react';
 
 import { TrackItem } from '@/components/track-item';
 import { cn, getFullHeight } from '@/lib/utils';
-import Link from 'next/link';
-import { AddButton } from './add-button';
 import { Skeleton } from '@/components/sheleton';
+import { toast } from 'sonner';
+import { NotefinderWorkerYtmusicSearchResponse } from '@/lib/services/notefinder-worker/types';
+import { Artist, Track } from '@prisma/client';
 
 export function SearchForm({
   defaultQuery,
@@ -107,38 +108,76 @@ export function SearchForm({
         hasTracks && (
           <div className="mt-4 w-full h-full">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full h-full">
-              {state.tracks.map((t, idx) => (
-                <TrackItem
-                  key={`${t.artists[0].name}-${t.title}-${idx}`}
+              {state.tracks.map((t) => (
+                <CustomTrackItem
+                  key={`${t.artists[0].name}-${t.title}`}
                   track={t}
-                  appendFooter={
-                    <>
-                      <div className="w-fit absolute top-2 right-2">
-                        {t.existingTrack ? (
-                          <Button variant="outline" className="w-28" asChild>
-                            <Link href={`/tracks/${t.existingTrack.id}`}>
-                              Ver notas
-                            </Link>
-                          </Button>
-                        ) : (
-                          <AddButton fullTrack={t} />
-                        )}
-                      </div>
-                      <Link
-                        href={`https://www.youtube.com/watch?v=${t.videoId}`}
-                        target="_blank"
-                        className="w-fit text-xs text-muted-foreground hover:text-primary"
-                      >
-                        Ouvir no YT Music
-                      </Link>
-                    </>
-                  }
                 />
               ))}
             </div>
           </div>
         )
       )}
+    </div>
+  );
+}
+
+function CustomTrackItem({
+  track,
+}: {
+  track: NotefinderWorkerYtmusicSearchResponse & {
+    existingTrack?: Track & { artists: Artist[] };
+  };
+}) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const [state, formAction, isPending] = useActionState(onAddNotes, null);
+
+  useEffect(() => {
+    if (state?.error) {
+      toast.error(
+        state.error.videoId?.join(', ') ||
+          'Erro ao adicionar música ao catálogo',
+      );
+    }
+  }, [state]);
+
+  return (
+    <div
+      className={cn('w-full h-full', {
+        'opacity-50 pointer-events-none': isPending,
+      })}
+    >
+      {!track.existingTrack && (
+        <form action={formAction} className="hidden" ref={formRef}>
+          <input
+            type="hidden"
+            name="externalTrack"
+            value={JSON.stringify(track)}
+          />
+        </form>
+      )}
+      <TrackItem
+        key={`${track.artists[0].name}-${track.title}`}
+        onGoToTrack={() => {
+          if (formRef.current) formRef.current.requestSubmit();
+        }}
+        track={{
+          ...track,
+          artists: track.artists.map((a) => {
+            const existingArtist = track.existingTrack?.artists.find(
+              (ea) => a.id === ea.ytId,
+            );
+
+            return {
+              name: a.name,
+              id: existingArtist?.id || undefined,
+            };
+          }),
+        }}
+        href={
+          track.existingTrack ? `/tracks/${track.existingTrack.id}` : undefined
+        }
+      />
     </div>
   );
 }

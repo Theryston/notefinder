@@ -6,7 +6,7 @@ import { searchTrackSchema } from '@/app/search/schema';
 import prisma from '@/lib/prisma';
 import { addNotesQueue } from '@/lib/services/notefinder-worker/queues';
 import { redirect } from 'next/navigation';
-import { Track } from '@prisma/client';
+import { Artist, Track } from '@prisma/client';
 import { auth } from '@/auth';
 import { isNextRedirectError } from '@/lib/utils';
 
@@ -139,7 +139,7 @@ export type SearchTracksState = {
   error?: { track?: string[] };
   values?: { track?: string };
   tracks?: (NotefinderWorkerYtmusicSearchResponse & {
-    existingTrack?: Track;
+    existingTrack?: Track & { artists: Artist[] };
   })[];
 };
 
@@ -169,6 +169,13 @@ export const onSearchTracks = async (
       where: {
         ytId: { in: tracks.map((track) => track.videoId) },
       },
+      include: {
+        trackArtists: {
+          include: {
+            artist: true,
+          },
+        },
+      },
     });
 
     const mappedTracks = tracks.map((track) => {
@@ -176,7 +183,12 @@ export const onSearchTracks = async (
 
       return {
         ...track,
-        existingTrack,
+        existingTrack: existingTrack
+          ? ({
+              ...existingTrack,
+              artists: existingTrack.trackArtists.map((t) => t.artist),
+            } as Track & { artists: Artist[] })
+          : undefined,
       };
     });
 
