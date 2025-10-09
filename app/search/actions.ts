@@ -1,6 +1,6 @@
 'use server';
 
-import { type NotefinderWorkerYtmusicSearchResponse } from '@/lib/services/notefinder-worker/types';
+import { type NotefinderYtmusicSearchResponse } from '@/lib/services/notefinder-ytmusic/types';
 import prisma from '@/lib/prisma';
 import { addNotesQueue } from '@/lib/services/notefinder-worker/queues';
 import { redirect } from 'next/navigation';
@@ -133,7 +133,7 @@ export const onAddNotes = async (
 export type SearchTracksState = {
   error?: { track?: string[] };
   values?: { track?: string };
-  tracks?: (NotefinderWorkerYtmusicSearchResponse & {
+  tracks?: (NotefinderYtmusicSearchResponse & {
     existingTrack?: Track & { artists: Artist[] };
   })[];
 };

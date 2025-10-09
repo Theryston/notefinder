@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { NotefinderWorkerYtmusicSearchResponse } from './services/notefinder-worker/types';
+import { NotefinderYtmusicSearchResponse } from './services/notefinder-ytmusic/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -34,8 +34,8 @@ export function getFullHeight(noStrBlank: boolean = true) {
 }
 
 export function filterValidIds(
-  data: NotefinderWorkerYtmusicSearchResponse[],
-): NotefinderWorkerYtmusicSearchResponse[] {
+  data: NotefinderYtmusicSearchResponse[],
+): NotefinderYtmusicSearchResponse[] {
   return data
     .map((track) => ({
       ...track,

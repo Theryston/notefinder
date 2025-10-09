@@ -1,6 +1,6 @@
 'use client';
 
-import { NotefinderWorkerYtmusicSearchResponse } from '@/lib/services/notefinder-worker/types';
+import { NotefinderYtmusicSearchResponse } from '@/lib/services/notefinder-ytmusic/types';
 import { Artist, Track } from '@prisma/client';
 import { useActionState, useRef } from 'react';
 import { onAddNotes } from '../actions';
@@ -12,7 +12,7 @@ import { TrackItem } from '@/components/track-item';
 export function CustomTrackItem({
   track,
 }: {
-  track: NotefinderWorkerYtmusicSearchResponse & {
+  track: NotefinderYtmusicSearchResponse & {
     existingTrack?: Track & { artists: Artist[] };
   };
 }) {

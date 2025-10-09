@@ -1,4 +1,4 @@
-export interface NotefinderWorkerYtmusicSearchResponse {
+export interface NotefinderYtmusicSearchResponse {
   category: string;
   resultType: string;
   title: string;

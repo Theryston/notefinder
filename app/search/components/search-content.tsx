@@ -1,20 +1,20 @@
 import { cn, getFullHeight } from '@/lib/utils';
-import { NotefinderWorkerYtmusicSearchResponse } from '@/lib/services/notefinder-worker/types';
+import { NotefinderYtmusicSearchResponse } from '@/lib/services/notefinder-ytmusic/types';
 import { Artist, Track } from '@prisma/client';
-import { notefinderWorkerYtmusicSearch } from '@/lib/services/notefinder-worker/ytmusic-search';
+import { notefinderYtmusicSearch } from '@/lib/services/notefinder-ytmusic/ytmusic-search';
 import prisma from '@/lib/prisma';
 import { CustomTrackItem } from './custom-track-item';
 import { unstable_cache as cache } from 'next/cache';
 
 export async function SearchContent({ query }: { query: string }) {
-  let tracks: (NotefinderWorkerYtmusicSearchResponse & {
+  let tracks: (NotefinderYtmusicSearchResponse & {
     existingTrack?: Track & { artists: Artist[] };
   })[] = [];
 
   if (query.length > 0) {
     const getExternalTracks = cache(
       async (q: string) =>
-        notefinderWorkerYtmusicSearch({
+        notefinderYtmusicSearch({
           query: q,
           limit: 30,
         }),

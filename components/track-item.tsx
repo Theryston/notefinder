@@ -1,4 +1,4 @@
-import { Thumbnail } from '@/lib/services/notefinder-worker/types';
+import { Thumbnail } from '@/lib/services/notefinder-ytmusic/types';
 import { cn, getBiggestOne } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';

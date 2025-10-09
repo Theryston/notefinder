@@ -1,0 +1,76 @@
+import prisma from '@/lib/prisma';
+import { TrackStatus } from '@prisma/client';
+import { revalidateTag } from 'next/cache';
+import { NextResponse } from 'next/server';
+import { Resend } from 'resend';
+import { CompletedEmail } from './completed-email';
+import { ErrorEmail } from './error-email';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const { status: newStatus } = await request.json();
+
+  if (!newStatus || !Object.values(TrackStatus).includes(newStatus)) {
+    return NextResponse.json({ error: 'status is required' }, { status: 400 });
+  }
+
+  const currentTrack = await prisma.track.findFirst({
+    where: {
+      id,
+    },
+    include: {
+      creator: true,
+    },
+  });
+
+  if (!currentTrack) {
+    return NextResponse.json({ error: 'Track not found' }, { status: 404 });
+  }
+
+  if (currentTrack.status !== newStatus && newStatus === 'ERROR') {
+    await prisma.track.delete({
+      where: {
+        id,
+      },
+    });
+
+    await resend.emails.send({
+      from: 'Notefinder <noreply@notefinder.com.br>',
+      to: currentTrack.creator.email,
+      subject: `Houve um erro ao processar a música ${currentTrack.title}`,
+      react: ErrorEmail({ track: currentTrack }),
+    });
+
+    return NextResponse.json({ message: 'Track deleted' }, { status: 200 });
+  }
+
+  await prisma.track.update({
+    where: {
+      id,
+    },
+    data: {
+      status: newStatus,
+    },
+  });
+
+  if (currentTrack.status !== newStatus && newStatus === 'COMPLETED') {
+    await resend.emails.send({
+      from: 'Notefinder <noreply@notefinder.com.br>',
+      to: currentTrack.creator.email,
+      subject: `As notas da música ${currentTrack.title} estão disponíveis`,
+      react: CompletedEmail({ track: currentTrack }),
+    });
+  }
+
+  revalidateTag(`track_${id}`);
+
+  return NextResponse.json(
+    { message: 'Track status updated' },
+    { status: 200 },
+  );
+}
