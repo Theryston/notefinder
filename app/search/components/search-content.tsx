@@ -14,9 +14,6 @@ export async function SearchContent({ query }: { query: string }) {
   if (query.length > 0) {
     const getTracks = cache(
       async (q: string) => {
-        console.log('started sleep');
-        await new Promise((resolve) => setTimeout(resolve, 10000));
-        console.log('ended sleep');
         const externalTracks = await notefinderWorkerYtmusicSearch({
           query: q,
           limit: 30,
