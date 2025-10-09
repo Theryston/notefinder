@@ -211,8 +211,8 @@ export function ProcessingTrack({
                   : '.'}
                 <br />
                 <br />
-                Este processo roda em segundo plano. Você pode fechar esta
-                página e voltar mais tarde quando preferir.
+                Este processo roda em nuvem. Você pode fechar esta página e
+                voltar mais tarde quando preferir.
               </div>
             )}
 
