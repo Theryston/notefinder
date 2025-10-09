@@ -1,8 +1,10 @@
 import prisma from '@/lib/prisma';
+import { withMiddleware } from '@/lib/with-middleware';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
+import { trackMiddleware } from '../track-middleware';
 
-export async function POST(
+async function createThumbnail(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -34,3 +36,5 @@ export async function POST(
 
   return NextResponse.json(thumbnail);
 }
+
+export const POST = withMiddleware(trackMiddleware, createThumbnail);

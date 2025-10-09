@@ -1,6 +1,8 @@
 import prisma from '@/lib/prisma';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
+import { trackMiddleware } from '../track-middleware';
+import { withMiddleware } from '@/lib/with-middleware';
 
 type Note = {
   note: string;
@@ -10,7 +12,7 @@ type Note = {
   frequency_mean: number;
 };
 
-export async function POST(
+async function createNotes(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -40,3 +42,5 @@ export async function POST(
 
   return NextResponse.json({ message: 'Notes created' }, { status: 200 });
 }
+
+export const POST = withMiddleware(trackMiddleware, createNotes);

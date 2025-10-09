@@ -5,10 +5,12 @@ import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { CompletedEmail } from './completed-email';
 import { ErrorEmail } from './error-email';
+import { withMiddleware } from '@/lib/with-middleware';
+import { trackMiddleware } from '../track-middleware';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export async function PUT(
+async function updateTrackStatus(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -69,3 +71,5 @@ export async function PUT(
     { status: 200 },
   );
 }
+
+export const PUT = withMiddleware(trackMiddleware, updateTrackStatus);

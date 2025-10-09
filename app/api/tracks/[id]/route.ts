@@ -1,8 +1,24 @@
 import prisma from '@/lib/prisma';
+import { withMiddleware } from '@/lib/with-middleware';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
+import { trackMiddleware } from './track-middleware';
 
-export async function PUT(
+async function getTrack(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const track = await prisma.track.findUnique({ where: { id } });
+
+  if (!track) {
+    return NextResponse.json({ error: 'Track not found' }, { status: 404 });
+  }
+
+  return NextResponse.json(track);
+}
+
+async function putTrack(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -26,3 +42,6 @@ export async function PUT(
 
   return NextResponse.json({ message: 'Track updated' }, { status: 200 });
 }
+
+export const GET = withMiddleware(trackMiddleware, getTrack);
+export const PUT = withMiddleware(trackMiddleware, putTrack);
