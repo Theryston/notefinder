@@ -72,4 +72,28 @@ async function updateTrackStatus(
   );
 }
 
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+
+  const track = await prisma.track.findFirst({
+    where: { id },
+    select: {
+      status: true,
+      statusDescription: true,
+    },
+  });
+
+  if (!track) {
+    return NextResponse.json({ error: 'Track not found' }, { status: 404 });
+  }
+
+  return NextResponse.json({
+    status: track.status,
+    statusDescription: track.statusDescription,
+  });
+}
+
 export const PUT = withMiddleware(trackMiddleware, updateTrackStatus);
