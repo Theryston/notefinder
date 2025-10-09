@@ -3,6 +3,7 @@ import { getTrackCached } from '@/lib/services/track/get-track-cached';
 import { notFound } from 'next/navigation';
 import { ProcessingTrack } from './components/processing-track';
 import { TrackContent } from './components/track-content';
+import { auth } from '@/auth';
 
 export async function generateMetadata({
   params,
@@ -32,14 +33,12 @@ export async function generateMetadata({
 
 export default async function Track({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ 'just-created': string }>;
 }) {
   const { id } = await params;
   const track = await getTrackCached({ id });
-  const { 'just-created': justCreated } = await searchParams;
+  const session = await auth();
 
   if (!track) notFound();
 
@@ -50,7 +49,7 @@ export default async function Track({
           id={id}
           defaultStatus={track.status}
           defaultStatusDescription={track.statusDescription || undefined}
-          justCreated={justCreated === 'true'}
+          isCreator={session?.user?.id === track.creatorId}
         />
       )}
       {track.status === 'COMPLETED' && <TrackContent track={track} />}

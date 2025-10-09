@@ -119,7 +119,7 @@ export const onAddNotes = async (
     }
 
     revalidateTag(`track_${track.ytId}`);
-    redirect(`/tracks/${track.id}?just-created=true`);
+    redirect(`/tracks/${track.id}`);
   } catch (error) {
     if (isNextRedirectError(error)) throw error;
     console.error(error);

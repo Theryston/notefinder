@@ -70,11 +70,11 @@ export function ProcessingTrack({
   id,
   defaultStatus,
   defaultStatusDescription,
-  justCreated,
+  isCreator,
 }: {
   id: string;
   defaultStatus: TrackStatus;
-  justCreated: boolean;
+  isCreator: boolean;
   defaultStatusDescription?: string;
 }) {
   const [status, setStatus] = React.useState<TrackStatus>(defaultStatus);
@@ -206,7 +206,7 @@ export function ProcessingTrack({
                 A música que você selecionou ainda não está no nosso catálogo,
                 mas não se preocupe — nosso sistema vai automaticamente detectar
                 as notas para você
-                {justCreated
+                {isCreator
                   ? ' e vamos notificar seu e-mail assim que terminarmos.'
                   : '.'}
                 <br />
