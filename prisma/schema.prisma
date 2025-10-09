@@ -25,6 +25,7 @@ model User {
   emailVerificationCode EmailVerificationCode[]
   forgotPasswordCode    ForgotPasswordCode[]
   tracks                Track[]
+  notes                 TrackNote[]
 
   @@map("users")
 }
@@ -110,6 +111,7 @@ model Track {
   album        Album?        @relation(fields: [albumId], references: [id], onDelete: Cascade)
   thumbnails   Thumbnail[]
   trackArtists TrackArtist[]
+  notes        TrackNote[]
 
   @@map("tracks")
 }
@@ -163,4 +165,22 @@ model Artist {
   trackArtists TrackArtist[]
 
   @@map("artists")
+}
+
+model TrackNote {
+  id            String   @id @default(cuid()) @map("id")
+  trackId       String   @map("track_id")
+  note          String   @map("note")
+  octave        Int      @map("octave")
+  start         Float    @map("start")
+  end           Float    @map("end")
+  frequencyMean Float    @map("frequency_mean")
+  creatorId     String?  @map("creator_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  track   Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  creator User? @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@map("track_notes")
 }
