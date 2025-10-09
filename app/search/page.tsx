@@ -1,7 +1,9 @@
 import { Container } from '@/components/container';
-import { SearchForm } from './components/search-form';
 import { userAgent } from 'next/server';
 import { headers } from 'next/headers';
+import { SearchContent } from './components/search-content';
+import { SearchInput } from '@/components/search-input';
+import { Suspense } from 'react';
 
 export const generateMetadata = async ({
   searchParams,
@@ -42,7 +44,16 @@ export default async function Search({
 
   return (
     <Container pathname="/search" showHeader={deviceType === 'desktop'}>
-      <SearchForm defaultQuery={q} isMobile={deviceType === 'mobile'} />
+      <div className="flex flex-col gap-4">
+        <div className="w-full md:w-md pt-4 flex md:hidden">
+          <Suspense
+            fallback={<div className="w-full h-12 bg-muted rounded-md" />}
+          >
+            <SearchInput />
+          </Suspense>
+        </div>
+        <SearchContent query={q || ''} />
+      </div>
     </Container>
   );
 }

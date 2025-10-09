@@ -1,14 +1,13 @@
 'use server';
 
 import { type NotefinderWorkerYtmusicSearchResponse } from '@/lib/services/notefinder-worker/types';
-import { notefinderWorkerYtmusicSearch } from '@/lib/services/notefinder-worker/ytmusic-search';
-import { searchTrackSchema } from '@/app/search/schema';
 import prisma from '@/lib/prisma';
 import { addNotesQueue } from '@/lib/services/notefinder-worker/queues';
 import { redirect } from 'next/navigation';
 import { Artist, Track } from '@prisma/client';
 import { auth } from '@/auth';
 import { isNextRedirectError } from '@/lib/utils';
+import { revalidateTag } from 'next/cache';
 
 export type AddNotesState = {
   error?: { videoId?: string[] };
@@ -124,6 +123,7 @@ export const onAddNotes = async (
       });
     }
 
+    revalidateTag(track.ytId);
     redirect(`/tracks/${track.id}?just-created=true`);
   } catch (error) {
     if (isNextRedirectError(error)) throw error;
@@ -141,69 +141,4 @@ export type SearchTracksState = {
   tracks?: (NotefinderWorkerYtmusicSearchResponse & {
     existingTrack?: Track & { artists: Artist[] };
   })[];
-};
-
-export const onSearchTracks = async (
-  _prevState: unknown,
-  formData: FormData,
-): Promise<SearchTracksState> => {
-  const rawTrack = String(formData.get('track') || '').trim();
-
-  const parsed = searchTrackSchema.safeParse({ track: rawTrack });
-
-  if (!parsed.success) {
-    return {
-      error: parsed.error.flatten().fieldErrors,
-      values: { track: rawTrack },
-      tracks: [],
-    };
-  }
-
-  try {
-    const tracks = await notefinderWorkerYtmusicSearch({
-      query: parsed.data.track,
-      limit: 30,
-    });
-
-    const alreadyExists = await prisma.track.findMany({
-      where: {
-        ytId: { in: tracks.map((track) => track.videoId) },
-      },
-      include: {
-        trackArtists: {
-          include: {
-            artist: true,
-          },
-        },
-      },
-    });
-
-    const mappedTracks = tracks.map((track) => {
-      const existingTrack = alreadyExists.find((t) => t.ytId === track.videoId);
-
-      return {
-        ...track,
-        existingTrack: existingTrack
-          ? ({
-              ...existingTrack,
-              artists: existingTrack.trackArtists.map((t) => t.artist),
-            } as Track & { artists: Artist[] })
-          : undefined,
-      };
-    });
-
-    return { values: { track: parsed.data.track }, tracks: mappedTracks };
-  } catch (error) {
-    console.error(
-      (error as unknown as { response?: { data?: unknown } })?.response?.data ||
-        error,
-    );
-    return {
-      error: {
-        track: ['Não foi possível buscar as músicas. Tente novamente.'],
-      },
-      values: { track: rawTrack },
-      tracks: [],
-    };
-  }
 };

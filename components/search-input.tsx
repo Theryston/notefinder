@@ -1,39 +1,64 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { SearchIcon } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export function SearchInput() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const pathname = usePathname();
 
   const query = searchParams.get('q') || '';
 
-  const onSearch = (query: string) => {
-    if (!query) return;
-    router.push(`/search?q=${query}`);
-  };
+  const [inputValue, setInputValue] = useState(query);
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const query = formData.get('query') as string;
-    onSearch(query);
-  };
+  const onSearch = useCallback(
+    (newQuery: string) => {
+      const currentQuery = searchParams.get('q') || '';
+      if (!newQuery || newQuery === currentQuery) return;
+      router.replace(`/search?q=${newQuery}`);
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      setIsSearching(true);
+    },
+    [router, searchParams],
+  );
 
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  const onSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const formData = new FormData(e.target as HTMLFormElement);
+      const newQuery = formData.get('newQuery') as string;
+      onSearch(newQuery);
+    },
+    [onSearch],
+  );
 
-    timeoutRef.current = setTimeout(() => {
-      onSearch(value);
-    }, 1000);
-  };
+  const onChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setInputValue(value);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+      timeoutRef.current = setTimeout(() => {
+        onSearch(value);
+      }, 1000);
+    },
+    [onSearch],
+  );
+
+  useEffect(() => {
+    setIsSearching(false);
+  }, [pathname, query]);
+
+  useEffect(() => {
+    setInputValue(query);
+  }, [query]);
 
   return (
     <form
@@ -41,12 +66,12 @@ export function SearchInput() {
       onSubmit={onSubmit}
     >
       <Input
-        name="query"
+        name="newQuery"
         type="text"
         placeholder="O que você quer cantar hoje?"
         className="w-full h-12"
-        defaultValue={query}
         onChange={onChange}
+        value={inputValue}
       />
 
       <Button
@@ -55,6 +80,7 @@ export function SearchInput() {
         variant="ghost"
         className="absolute right-2"
         type="submit"
+        isLoading={isSearching}
       >
         <SearchIcon />
       </Button>
