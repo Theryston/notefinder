@@ -93,6 +93,8 @@ model Track {
   ytId              String      @map("yt_id")
   jobId             String?     @map("job_id")
   status            TrackStatus @default(QUEUED) @map("status")
+  musicUrl          String?     @map("music_url")
+  vocalsUrl         String?     @map("vocals_url")
   statusDescription String?     @map("status_description")
   title             String?     @map("title")
   duration          String?     @map("duration")
