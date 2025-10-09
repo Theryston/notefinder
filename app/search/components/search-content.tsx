@@ -4,56 +4,64 @@ import { Artist, Track } from '@prisma/client';
 import { notefinderWorkerYtmusicSearch } from '@/lib/services/notefinder-worker/ytmusic-search';
 import prisma from '@/lib/prisma';
 import { CustomTrackItem } from './custom-track-item';
-import {
-  unstable_cacheLife as cacheLife,
-  unstable_cacheTag as cacheTag,
-} from 'next/cache';
+import { unstable_cache as cache } from 'next/cache';
 
 export async function SearchContent({ query }: { query: string }) {
-  'use cache';
-  cacheLife('max');
-
   let tracks: (NotefinderWorkerYtmusicSearchResponse & {
     existingTrack?: Track & { artists: Artist[] };
   })[] = [];
 
   if (query.length > 0) {
-    const externalTracks = await notefinderWorkerYtmusicSearch({
-      query,
-      limit: 30,
-    });
+    const getTracks = cache(
+      async (q: string) => {
+        console.log('started sleep');
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+        console.log('ended sleep');
+        const externalTracks = await notefinderWorkerYtmusicSearch({
+          query: q,
+          limit: 30,
+        });
 
-    const alreadyExists = await prisma.track.findMany({
-      where: {
-        ytId: { in: externalTracks.map((track) => track.videoId) },
-      },
-      include: {
-        trackArtists: {
-          include: {
-            artist: true,
+        const alreadyExists = await prisma.track.findMany({
+          where: {
+            ytId: { in: externalTracks.map((track) => track.videoId) },
           },
-        },
+          include: {
+            trackArtists: {
+              include: {
+                artist: true,
+              },
+            },
+          },
+        });
+
+        return externalTracks.map((track) => {
+          const existingTrack = alreadyExists.find(
+            (t) => t.ytId === track.videoId,
+          );
+
+          return {
+            ...track,
+            existingTrack: existingTrack
+              ? ({
+                  ...existingTrack,
+                  artists: existingTrack.trackArtists.map((t) => t.artist),
+                } as Track & { artists: Artist[] })
+              : undefined,
+          };
+        });
       },
-    });
+      [query],
+      {
+        revalidate: false,
+        tags: ['search'],
+      },
+    );
 
-    tracks = externalTracks.map((track) => {
-      const existingTrack = alreadyExists.find((t) => t.ytId === track.videoId);
-
-      return {
-        ...track,
-        existingTrack: existingTrack
-          ? ({
-              ...existingTrack,
-              artists: existingTrack.trackArtists.map((t) => t.artist),
-            } as Track & { artists: Artist[] })
-          : undefined,
-      };
-    });
+    tracks = await getTracks(query);
   }
 
   const hasTracks = tracks.length > 0;
-
-  cacheTag(`search_${query}`, ...tracks.map((t) => t.videoId));
 
   return (
     <div

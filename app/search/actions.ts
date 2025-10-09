@@ -33,10 +33,6 @@ export const onAddNotes = async (
 
   const videoId = externalTrack.videoId;
 
-  const session = await auth();
-
-  if (!session?.user) redirect('/sign-in?redirectTo=/search?q=' + videoId);
-
   try {
     const alreadyExists = await prisma.track.findFirst({
       where: {
@@ -44,12 +40,11 @@ export const onAddNotes = async (
       },
     });
 
-    if (alreadyExists) {
-      return {
-        error: { videoId: ['Esta música já existe no nosso catálogo'] },
-        values: { videoId },
-      };
-    }
+    if (alreadyExists) redirect(`/tracks/${alreadyExists.id}`);
+
+    const session = await auth();
+
+    if (!session?.user) redirect('/sign-in?redirectTo=/search?q=' + videoId);
 
     let album = await prisma.album.findFirst({
       where: {
@@ -123,7 +118,7 @@ export const onAddNotes = async (
       });
     }
 
-    revalidateTag(track.ytId);
+    revalidateTag('search');
     redirect(`/tracks/${track.id}?just-created=true`);
   } catch (error) {
     if (isNextRedirectError(error)) throw error;
