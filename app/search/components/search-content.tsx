@@ -12,16 +12,28 @@ export async function SearchContent({ query }: { query: string }) {
   })[] = [];
 
   if (query.length > 0) {
-    const getTracks = cache(
-      async (q: string) => {
-        const externalTracks = await notefinderWorkerYtmusicSearch({
+    const getExternalTracks = cache(
+      async (q: string) =>
+        notefinderWorkerYtmusicSearch({
           query: q,
           limit: 30,
-        });
+        }),
+      [query],
+      {
+        revalidate: false,
+        tags: [`search_${query}`],
+      },
+    );
 
-        const alreadyExists = await prisma.track.findMany({
+    const externalTracks = await getExternalTracks(query);
+
+    const videoIds = externalTracks.map((track) => track.videoId);
+
+    const getExistingTracks = cache(
+      async (vids: string[]) =>
+        prisma.track.findMany({
           where: {
-            ytId: { in: externalTracks.map((track) => track.videoId) },
+            ytId: { in: vids },
           },
           include: {
             trackArtists: {
@@ -30,32 +42,29 @@ export async function SearchContent({ query }: { query: string }) {
               },
             },
           },
-        });
-
-        return externalTracks.map((track) => {
-          const existingTrack = alreadyExists.find(
-            (t) => t.ytId === track.videoId,
-          );
-
-          return {
-            ...track,
-            existingTrack: existingTrack
-              ? ({
-                  ...existingTrack,
-                  artists: existingTrack.trackArtists.map((t) => t.artist),
-                } as Track & { artists: Artist[] })
-              : undefined,
-          };
-        });
-      },
-      [query],
+        }),
+      ['existing_tracks', ...videoIds.sort()],
       {
         revalidate: false,
-        tags: ['search'],
+        tags: videoIds.map((id) => `track_${id}`),
       },
     );
 
-    tracks = await getTracks(query);
+    const alreadyExists = await getExistingTracks(videoIds);
+
+    tracks = externalTracks.map((track) => {
+      const existingTrack = alreadyExists.find((t) => t.ytId === track.videoId);
+
+      return {
+        ...track,
+        existingTrack: existingTrack
+          ? ({
+              ...existingTrack,
+              artists: existingTrack.trackArtists.map((t) => t.artist),
+            } as Track & { artists: Artist[] })
+          : undefined,
+      };
+    });
   }
 
   const hasTracks = tracks.length > 0;

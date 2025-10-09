@@ -118,7 +118,7 @@ export const onAddNotes = async (
       });
     }
 
-    revalidateTag('search');
+    revalidateTag(`track_${track.ytId}`);
     redirect(`/tracks/${track.id}?just-created=true`);
   } catch (error) {
     if (isNextRedirectError(error)) throw error;
