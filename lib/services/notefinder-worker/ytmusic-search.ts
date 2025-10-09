@@ -1,3 +1,4 @@
+import { filterValidIds } from '@/lib/utils';
 import { getNotefinderWorkerClient } from './get-client';
 import { NotefinderWorkerYtmusicSearchResponse } from './types';
 
@@ -11,5 +12,5 @@ export const notefinderWorkerYtmusicSearch = async (params: {
   const response = await client.get('/ytmusic/search', {
     params,
   });
-  return response.data;
+  return filterValidIds(response.data);
 };

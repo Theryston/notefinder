@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { NotefinderWorkerYtmusicSearchResponse } from './services/notefinder-worker/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -30,4 +31,16 @@ export function getBiggestOne<T>(data: T[], key: keyof T) {
 export function getFullHeight(noStrBlank: boolean = true) {
   if (noStrBlank) return `calc(100dvh-(var(--spacing)*54))`;
   return `calc(100dvh - (var(--spacing) * 54))`;
+}
+
+export function filterValidIds(
+  data: NotefinderWorkerYtmusicSearchResponse[],
+): NotefinderWorkerYtmusicSearchResponse[] {
+  return data
+    .map((track) => ({
+      ...track,
+      artists: track.artists.filter((artist) => artist.id),
+    }))
+    .filter((track) => track.videoId)
+    .filter((track) => track.artists.length > 0);
 }
