@@ -12,7 +12,8 @@ type PitchPoint = {
 const TRAIL_DURATION_SECONDS = 3; // How long the trail lasts
 const MAX_POINTS = 100; // Maximum number of points to keep
 const SILENCE_THRESHOLD = 0.95; // Clarity threshold for valid pitch
-const GAP_THRESHOLD_MS = 500; // Se ficar mais de 500ms sem som, considera um gap
+const GAP_THRESHOLD_SECONDS = 0.3; // Se o gap na timeline for maior que 0.3s, quebra a linha
+const MAX_MIDI_JUMP = 12; // Pulos maiores que 12 semitons (1 oitava) também quebram a linha
 
 export function PitchLine({
   pitchData,
@@ -35,13 +36,11 @@ export function PitchLine({
 }) {
   const [pitchHistory, setPitchHistory] = useState<PitchPoint[]>([]);
   const lastUpdateRef = useRef<number>(0);
-  const lastValidPitchTimeRef = useRef<number>(0);
   const lastCurrentTimeRef = useRef<number>(0);
 
   useEffect(() => {
     if (!isActive) {
       setPitchHistory([]);
-      lastValidPitchTimeRef.current = 0;
       lastCurrentTimeRef.current = 0;
       return;
     }
@@ -54,24 +53,29 @@ export function PitchLine({
     setPitchHistory((prev) => {
       if (currentTime === undefined) return prev;
 
-      // Detecta se houve um "seek" para trás na timeline
-      const hasSeekBackwards = currentTime < lastCurrentTimeRef.current - 0.5; // 0.5s de tolerância
+      const hasSeekBackwards = currentTime < lastCurrentTimeRef.current - 0.5;
       lastCurrentTimeRef.current = currentTime;
 
-      // Se voltou na timeline, remove todos os pontos que estão à frente
       let cleanedHistory = prev;
       if (hasSeekBackwards) {
         cleanedHistory = prev.filter((p) => p.time <= currentTime);
       }
 
       if (pitchData && pitchData.clarity >= SILENCE_THRESHOLD) {
-        const timeSinceLastPitch = now - lastValidPitchTimeRef.current;
-        lastValidPitchTimeRef.current = now;
+        const lastPoint = cleanedHistory[cleanedHistory.length - 1];
+        let hasGap = false;
+
+        if (lastPoint) {
+          const timeDiff = currentTime - lastPoint.time;
+          const midiDiff = Math.abs(pitchData.midi - lastPoint.midi);
+
+          hasGap = timeDiff > GAP_THRESHOLD_SECONDS || midiDiff > MAX_MIDI_JUMP;
+        }
 
         const newPoint: PitchPoint = {
           time: currentTime,
           midi: pitchData.midi,
-          isGap: timeSinceLastPitch > GAP_THRESHOLD_MS,
+          isGap: hasGap || cleanedHistory.length === 0,
         };
 
         const updated = [...cleanedHistory, newPoint];
@@ -87,7 +91,6 @@ export function PitchLine({
         return filtered;
       }
 
-      // Remove pontos antigos e pontos à frente
       const filtered = cleanedHistory.filter(
         (p) =>
           p.time <= currentTime &&
@@ -139,8 +142,8 @@ export function PitchLine({
     >
       <defs>
         <linearGradient id="pitch-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="rgb(239, 68, 68)" stopOpacity="0.2" />
-          <stop offset="100%" stopColor="rgb(239, 68, 68)" stopOpacity="0.9" />
+          <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.9" />
         </linearGradient>
         <filter id="glow">
           <feGaussianBlur stdDeviation="2" result="coloredBlur" />
@@ -169,7 +172,7 @@ export function PitchLine({
           cx={currentTime * pxPerSecond}
           cy={(maxMidi - pitchData.midi) * pxPerOctave + 20}
           r="6"
-          fill="rgb(239, 68, 68)"
+          fill="var(--primary)"
           stroke="white"
           strokeWidth="2"
           filter="url(#glow)"

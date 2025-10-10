@@ -111,14 +111,10 @@ export function TimelineViewport({
       if (dx > 8 || dy > 8) touchMovedRef.current = true;
     }
     function onContainerTouchEnd(e: TouchEvent) {
-      // If dragging the indicator, let the indicator handlers manage seeking
       if (startDragRef.current) return;
-      // If movement happened (scrolling), do not treat as a tap/click
       if (touchMovedRef.current) return;
-      // Ignore taps that began on the indicator itself
       if (touchStartedOnIndicatorRef.current) return;
       const changed = e.changedTouches[0];
-      // Compute relative X at touch end
       const rect = container.getBoundingClientRect();
       const relX = changed.clientX - rect.left + container.scrollLeft;
       onSeek(Math.max(0, relX / pxPerSecond));
@@ -142,11 +138,10 @@ export function TimelineViewport({
     container.addEventListener('touchend', onContainerTouchEnd, {
       passive: true,
     } as any);
-    // Desktop-only: redirect vertical wheel to horizontal scroll within the timeline
     function onWheel(e: WheelEvent) {
       if (isMobile) return;
       if (!container) return;
-      if (e.ctrlKey || (e as any).metaKey) return; // do not block zoom or OS-level gestures
+      if (e.ctrlKey || (e as any).metaKey) return;
       const absY = Math.abs(e.deltaY);
       const absX = Math.abs(e.deltaX);
       if (absY > absX && absY > 0) {
@@ -189,7 +184,6 @@ export function TimelineViewport({
           />
         </div>
 
-        {/* Pitch line visualization */}
         <PitchLine
           pitchData={pitchData || null}
           currentTime={currentTime || 0}
