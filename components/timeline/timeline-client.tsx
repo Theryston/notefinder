@@ -39,7 +39,7 @@ export function TimelineClient({
   const loopRef = useRef(false);
   const speedRef = useRef(1);
   const isPlayingRef = useRef(false);
-  const centerOnceRef = useRef(false);
+  // Removed one-time centering when paused; we will only center when explicitly requested
   const lastTimeRef = useRef(0);
   const muteRef = useRef(false);
   const orientationWatchRef = useRef<NodeJS.Timeout | null>(null);
@@ -145,22 +145,11 @@ export function TimelineClient({
     setDuration(d || 0);
     setCurrentTime(t || 0);
     // Determine scroll behavior
-    let behavior: ScrollBehavior = 'none';
-    if (isPlayingRef.current) {
-      behavior = 'follow';
-    } else if (centerOnceRef.current) {
-      behavior = 'center';
-      centerOnceRef.current = false;
-    }
+    const behavior: ScrollBehavior = isPlayingRef.current ? 'follow' : 'none';
     updateProgressUi(t || 0, behavior);
 
-    // Detect external seek while paused (user scrubbing in YT controls)
-    const prev = lastTimeRef.current;
-    const dt = Math.abs((t || 0) - prev);
+    // Track last time for potential future logic; no auto-centering while paused
     lastTimeRef.current = t || 0;
-    if (!isPlayingRef.current && dt > 0.25) {
-      centerOnceRef.current = true;
-    }
     if (d && t >= d) {
       if (loopRef.current) {
         playerRef.current.seekTo(0);
@@ -326,13 +315,12 @@ export function TimelineClient({
   }, []);
 
   const seekTo = useCallback(
-    (t: number) => {
+    (t: number, behavior: ScrollBehavior = 'none') => {
       const clamped = Math.max(0, Math.min(t, duration || maxEnd));
       // Update UI immediately to avoid a brief jump back to previous position
       setCurrentTime(clamped);
-      updateProgressUi(clamped, 'center');
+      updateProgressUi(clamped, behavior);
       lastTimeRef.current = clamped;
-      centerOnceRef.current = false;
       playerRef.current?.seekTo(clamped);
     },
     [duration, maxEnd, updateProgressUi],
@@ -438,7 +426,9 @@ export function TimelineClient({
                 pxPerSecond={PX_PER_SECOND}
                 pxPerOctave={pxPerSemitone}
                 maxMidi={maxMidi}
-                onSeek={seekTo}
+                onSeek={(t) =>
+                  seekTo(t, isPlayingRef.current ? 'center' : 'none')
+                }
               />
 
               {shouldShowNext && (
