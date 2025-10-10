@@ -78,16 +78,14 @@ export function TrackOverview({ track }: { track: NonNullable<Track> }) {
                 </h1>
                 <div className="flex flex-wrap gap-2 mt-1 text-sm text-muted-foreground">
                   {artists.map((artist, index) => (
-                    <>
-                      <Link
-                        href={`/artists/${artist.id}`}
-                        key={artist.id}
-                        className="hover:text-primary"
-                      >
-                        {artist.name}
-                        {index < artists.length - 1 && <span>, </span>}
-                      </Link>
-                    </>
+                    <Link
+                      href={`/artists/${artist.id}`}
+                      key={artist.id}
+                      className="hover:text-primary"
+                    >
+                      {artist.name}
+                      {index < artists.length - 1 && <span>, </span>}
+                    </Link>
                   ))}
                 </div>
               </div>
