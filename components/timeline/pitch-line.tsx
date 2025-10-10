@@ -110,12 +110,19 @@ export function PitchLine({
     return null;
   }
 
+  const clampY = (rawY: number) => {
+    if (typeof height !== 'number' || height <= 0) return rawY;
+    const yMin = 20;
+    const yMax = Math.max(yMin, height - 20);
+    return Math.min(yMax, Math.max(yMin, rawY));
+  };
+
   const pathSegments: string[] = [];
   let currentSegment: string[] = [];
 
   pitchHistory.forEach((point, index) => {
     const x = point.time * pxPerSecond;
-    const y = (maxMidi - point.midi) * pxPerOctave + 20;
+    const y = clampY((maxMidi - point.midi) * pxPerOctave + 20);
 
     if (point.isGap || index === 0) {
       if (currentSegment.length > 0) {
@@ -170,7 +177,7 @@ export function PitchLine({
       {pitchData && pitchData.clarity >= SILENCE_THRESHOLD && (
         <circle
           cx={currentTime * pxPerSecond}
-          cy={(maxMidi - pitchData.midi) * pxPerOctave + 20}
+          cy={clampY((maxMidi - pitchData.midi) * pxPerOctave + 20)}
           r="6"
           fill="var(--primary)"
           stroke="white"
