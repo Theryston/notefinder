@@ -130,9 +130,14 @@ export function TimelineViewport({
 
         {notes.map((n: Note, i: number) => {
           const midi = typeof n._midi === 'number' ? n._midi : 0;
-          const y = (maxMidi - midi) * pxPerOctave + 20;
+          const bandTop = (maxMidi - midi) * pxPerOctave + 20;
           const x = n.start * pxPerSecond;
           const w = Math.max((n.end - n.start) * pxPerSecond, 8);
+          const noteHeight = Math.max(10, Math.min(18, pxPerOctave * 0.8));
+          const y = Math.max(
+            20,
+            Math.floor(bandTop + (pxPerOctave - noteHeight) / 2),
+          );
           const colors = [
             'bg-blue-400',
             'bg-green-400',
@@ -148,7 +153,7 @@ export function TimelineViewport({
               key={i}
               data-note-block="1"
               className={`absolute ${color} rounded text-xs flex items-center justify-center shadow z-10`}
-              style={{ left: x, top: y, width: w, height: 18 }}
+              style={{ left: x, top: y, width: w, height: noteHeight }}
             >
               {n.note}
               {n.octave}

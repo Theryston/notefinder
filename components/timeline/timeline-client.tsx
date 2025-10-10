@@ -91,6 +91,21 @@ export function TimelineClient({
     () => (maxMidi - minMidi + 1) * PX_PER_OCTAVE + 40,
     [maxMidi, minMidi],
   );
+  const semitoneSpan = useMemo(
+    () => Math.max(1, maxMidi - minMidi + 1),
+    [maxMidi, minMidi],
+  );
+
+  const [viewportHeight, setViewportHeight] = useState<number>(height);
+  const [pxPerSemitone, setPxPerSemitone] = useState<number>(PX_PER_OCTAVE);
+  const pxPerSemitoneRef = useRef(pxPerSemitone);
+  const viewportHeightRef = useRef(viewportHeight);
+  useEffect(() => {
+    pxPerSemitoneRef.current = pxPerSemitone;
+  }, [pxPerSemitone]);
+  useEffect(() => {
+    viewportHeightRef.current = viewportHeight;
+  }, [viewportHeight]);
 
   type ScrollBehavior = 'none' | 'follow' | 'center';
   const updateProgressUi = useCallback(
@@ -248,6 +263,46 @@ export function TimelineClient({
   }, []);
 
   useEffect(() => {
+    function getVisualViewportHeight() {
+      return Math.floor(
+        (window.visualViewport?.height ?? window.innerHeight) || 0,
+      );
+    }
+
+    const recompute = () => {
+      const containerH = fullscreenRef.current?.clientHeight ?? 0;
+      const targetH = isFullscreen
+        ? getVisualViewportHeight()
+        : Math.floor(containerH);
+      const fallback = height;
+      const finalTarget = targetH > 0 ? targetH : fallback;
+      const usable = Math.max(0, finalTarget - 40);
+      const perSemitone = usable > 0 ? usable / semitoneSpan : PX_PER_OCTAVE;
+      if (Math.abs(pxPerSemitoneRef.current - perSemitone) > 0.5) {
+        pxPerSemitoneRef.current = perSemitone;
+        setPxPerSemitone(perSemitone);
+      }
+      if (Math.abs(viewportHeightRef.current - finalTarget) > 1) {
+        viewportHeightRef.current = finalTarget;
+        setViewportHeight(finalTarget);
+      }
+    };
+
+    const ro = new ResizeObserver(recompute);
+    if (fullscreenRef.current) ro.observe(fullscreenRef.current);
+
+    window.addEventListener('resize', recompute);
+    window.addEventListener('orientationchange', recompute);
+    recompute();
+
+    return () => {
+      window.removeEventListener('resize', recompute);
+      window.removeEventListener('orientationchange', recompute);
+      ro.disconnect();
+    };
+  }, [isFullscreen, semitoneSpan, height]);
+
+  useEffect(() => {
     function onFsChange() {
       const el = fullscreenRef.current;
       const active =
@@ -378,10 +433,10 @@ export function TimelineClient({
                 containerRef={containerRef as React.RefObject<HTMLDivElement>}
                 progressRef={progressRef as React.RefObject<HTMLDivElement>}
                 width={width}
-                height={isFullscreen ? '100vh' : height}
+                height={viewportHeight}
                 notes={displayNotes as Note[]}
                 pxPerSecond={PX_PER_SECOND}
-                pxPerOctave={PX_PER_OCTAVE}
+                pxPerOctave={pxPerSemitone}
                 maxMidi={maxMidi}
                 onSeek={seekTo}
               />
