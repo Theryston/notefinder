@@ -34,6 +34,10 @@ export function TimelineViewport({
   onSeek: (t: number) => void;
 }) {
   const startDragRef = useRef(false);
+  const touchStartXRef = useRef(0);
+  const touchStartYRef = useRef(0);
+  const touchMovedRef = useRef(false);
+  const touchStartedOnIndicatorRef = useRef(false);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -82,8 +86,33 @@ export function TimelineViewport({
       onSeek(Math.max(0, x / pxPerSecond));
     }
     function onContainerTouchStart(e: TouchEvent) {
-      const x = getRelativeXFromTouch(e);
-      onSeek(Math.max(0, x / pxPerSecond));
+      if (!container) return;
+      const t = e.touches[0];
+      touchStartXRef.current = t.clientX;
+      touchStartYRef.current = t.clientY;
+      touchMovedRef.current = false;
+      touchStartedOnIndicatorRef.current = (indicator as HTMLElement).contains(
+        e.target as Node,
+      );
+    }
+    function onContainerTouchMove(e: TouchEvent) {
+      const t = e.touches[0];
+      const dx = Math.abs(t.clientX - touchStartXRef.current);
+      const dy = Math.abs(t.clientY - touchStartYRef.current);
+      if (dx > 8 || dy > 8) touchMovedRef.current = true;
+    }
+    function onContainerTouchEnd(e: TouchEvent) {
+      // If dragging the indicator, let the indicator handlers manage seeking
+      if (startDragRef.current) return;
+      // If movement happened (scrolling), do not treat as a tap/click
+      if (touchMovedRef.current) return;
+      // Ignore taps that began on the indicator itself
+      if (touchStartedOnIndicatorRef.current) return;
+      const changed = e.changedTouches[0];
+      // Compute relative X at touch end
+      const rect = container.getBoundingClientRect();
+      const relX = changed.clientX - rect.left + container.scrollLeft;
+      onSeek(Math.max(0, relX / pxPerSecond));
     }
 
     indicator.addEventListener('mousedown', onDown);
@@ -94,8 +123,14 @@ export function TimelineViewport({
     document.addEventListener('touchmove', onTouchMove, {
       passive: false,
     } as any);
-    container.addEventListener('mousedown', onContainerClick);
+    container.addEventListener('click', onContainerClick);
     container.addEventListener('touchstart', onContainerTouchStart, {
+      passive: true,
+    } as any);
+    container.addEventListener('touchmove', onContainerTouchMove, {
+      passive: true,
+    } as any);
+    container.addEventListener('touchend', onContainerTouchEnd, {
       passive: true,
     } as any);
     return () => {
@@ -105,8 +140,10 @@ export function TimelineViewport({
       indicator.removeEventListener('touchstart', onDown as any);
       document.removeEventListener('touchend', onUp as any);
       document.removeEventListener('touchmove', onTouchMove as any);
-      container.removeEventListener('mousedown', onContainerClick);
+      container.removeEventListener('click', onContainerClick);
       container.removeEventListener('touchstart', onContainerTouchStart as any);
+      container.removeEventListener('touchmove', onContainerTouchMove as any);
+      container.removeEventListener('touchend', onContainerTouchEnd as any);
     };
   }, [containerRef, progressRef, onSeek, pxPerSecond]);
 
