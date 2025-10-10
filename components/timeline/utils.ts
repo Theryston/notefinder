@@ -1,4 +1,4 @@
-export const NOTE_ORDER = [
+export const NOTE_ORDER: readonly string[] = [
   'C',
   'C#',
   'D',
@@ -14,7 +14,7 @@ export const NOTE_ORDER = [
 ] as const;
 
 export function toMidiFromNote(note: string, octave: number) {
-  return NOTE_ORDER.indexOf(note as any) + 12 * (octave + 1);
+  return NOTE_ORDER.indexOf(note) + 12 * (octave + 1);
 }
 
 export function fromMidiToNote(midi: number) {

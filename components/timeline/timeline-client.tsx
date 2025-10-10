@@ -33,11 +33,14 @@ export function TimelineClient({
   const rafRef = useRef<number | null>(null);
   const loopRef = useRef(false);
   const speedRef = useRef(1);
+  const isPlayingRef = useRef(false);
+  const centerOnceRef = useRef(false);
+  const lastTimeRef = useRef(0);
+  const muteRef = useRef(false);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [transpose, setTranspose] = useState(0);
-  const [loop, setLoop] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
@@ -81,21 +84,33 @@ export function TimelineClient({
     [maxMidi, minMidi],
   );
 
-  const updateProgressUi = useCallback((t: number) => {
-    if (!progressRef.current || !containerRef.current) return;
-    const left = t * PX_PER_SECOND;
-    progressRef.current.style.left = `${left}px`;
+  type ScrollBehavior = 'none' | 'follow' | 'center';
+  const updateProgressUi = useCallback(
+    (t: number, behavior: ScrollBehavior) => {
+      if (!progressRef.current || !containerRef.current) return;
+      const left = t * PX_PER_SECOND;
+      progressRef.current.style.left = `${left}px`;
 
-    const container = containerRef.current;
-    const viewLeft = container.scrollLeft;
-    const thresholdLeft = viewLeft + container.clientWidth * 0.2;
-    const thresholdRight = viewLeft + container.clientWidth * 0.8;
-    if (left < thresholdLeft) {
-      container.scrollLeft = Math.max(0, left - container.clientWidth * 0.4);
-    } else if (left > thresholdRight) {
-      container.scrollLeft = left - container.clientWidth * 0.6;
-    }
-  }, []);
+      const container = containerRef.current;
+      if (behavior === 'follow') {
+        const viewLeft = container.scrollLeft;
+        const thresholdLeft = viewLeft + container.clientWidth * 0.2;
+        const thresholdRight = viewLeft + container.clientWidth * 0.8;
+        if (left < thresholdLeft) {
+          container.scrollLeft = Math.max(
+            0,
+            left - container.clientWidth * 0.4,
+          );
+        } else if (left > thresholdRight) {
+          container.scrollLeft = left - container.clientWidth * 0.6;
+        }
+      } else if (behavior === 'center') {
+        const targetScroll = Math.max(0, left - container.clientWidth / 2);
+        container.scrollLeft = targetScroll;
+      }
+    },
+    [],
+  );
 
   const tick = useCallback(() => {
     if (!playerRef.current) {
@@ -106,7 +121,23 @@ export function TimelineClient({
     const d = playerRef.current.getDuration();
     setDuration(d || 0);
     setCurrentTime(t || 0);
-    updateProgressUi(t || 0);
+    // Determine scroll behavior
+    let behavior: ScrollBehavior = 'none';
+    if (isPlayingRef.current) {
+      behavior = 'follow';
+    } else if (centerOnceRef.current) {
+      behavior = 'center';
+      centerOnceRef.current = false;
+    }
+    updateProgressUi(t || 0, behavior);
+
+    // Detect external seek while paused (user scrubbing in YT controls)
+    const prev = lastTimeRef.current;
+    const dt = Math.abs((t || 0) - prev);
+    lastTimeRef.current = t || 0;
+    if (!isPlayingRef.current && dt > 0.25) {
+      centerOnceRef.current = true;
+    }
     if (d && t >= d) {
       if (loopRef.current) {
         playerRef.current.seekTo(0);
@@ -138,10 +169,6 @@ export function TimelineClient({
   }, []);
 
   useEffect(() => {
-    loopRef.current = loop;
-  }, [loop]);
-
-  useEffect(() => {
     speedRef.current = speed;
     playerRef.current?.setPlaybackRate(speed);
   }, [speed]);
@@ -164,12 +191,21 @@ export function TimelineClient({
 
   const handlePlay = useCallback(() => setIsPlaying(true), []);
   const handlePause = useCallback(() => setIsPlaying(false), []);
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
 
   const seekTo = useCallback(
     (t: number) => {
-      playerRef.current?.seekTo(Math.max(0, Math.min(t, duration || maxEnd)));
+      const clamped = Math.max(0, Math.min(t, duration || maxEnd));
+      // Update UI immediately to avoid a brief jump back to previous position
+      setCurrentTime(clamped);
+      updateProgressUi(clamped, 'center');
+      lastTimeRef.current = clamped;
+      centerOnceRef.current = false;
+      playerRef.current?.seekTo(clamped);
     },
-    [duration, maxEnd],
+    [duration, maxEnd, updateProgressUi],
   );
 
   const nextStart = useMemo(() => {
@@ -193,21 +229,20 @@ export function TimelineClient({
     return Math.max(0, nextStart - NEXT_NOTE_PRE_ROLL_SECONDS);
   }, [nextStart]);
 
+  const handleMute = useCallback(() => {
+    muteRef.current = !muteRef.current;
+
+    if (muteRef.current) {
+      playerRef.current?.mute();
+    } else {
+      playerRef.current?.unMute();
+    }
+  }, []);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_260px] gap-4 items-start">
         <div className="space-y-3">
-          <div className="rounded-lg border bg-card p-3">
-            <div className="aspect-video w-full">
-              <YouTubeRoot
-                ytId={ytId}
-                onReady={attachPlayer}
-                onPlay={handlePlay}
-                onPause={handlePause}
-              />
-            </div>
-          </div>
-
           <div className="relative rounded-lg border bg-card p-3">
             <TimelineViewport
               containerRef={containerRef as React.RefObject<HTMLDivElement>}
@@ -218,6 +253,7 @@ export function TimelineClient({
               pxPerSecond={PX_PER_SECOND}
               pxPerOctave={PX_PER_OCTAVE}
               maxMidi={maxMidi}
+              onSeek={seekTo}
             />
 
             {shouldShowNext && (
@@ -234,7 +270,15 @@ export function TimelineClient({
           </div>
         </div>
 
-        <div className="rounded-lg border bg-card p-3">
+        <div className="rounded-lg border bg-card p-3 flex flex-col gap-3">
+          <div className="aspect-video w-full">
+            <YouTubeRoot
+              ytId={ytId}
+              onReady={attachPlayer}
+              onPlay={handlePlay}
+              onPause={handlePause}
+            />
+          </div>
           <TimelineControls
             isPlaying={isPlaying}
             onPlayPause={handlePlayPause}
@@ -245,11 +289,10 @@ export function TimelineClient({
             onTransposeInc={() => setTranspose((t) => t + 1)}
             onTransposeDec={() => setTranspose((t) => t - 1)}
             estimatedKey={estimatedKey}
-            loop={loop}
-            onToggleLoop={setLoop}
             currentTime={currentTime}
             duration={duration || Math.max(duration, maxEnd)}
-            onSeekTo={seekTo}
+            mute={muteRef.current}
+            onMute={handleMute}
           />
         </div>
       </div>

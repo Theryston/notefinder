@@ -1,5 +1,8 @@
 'use client';
 
+import { PauseIcon, PlayIcon, Volume2Icon, VolumeOffIcon } from 'lucide-react';
+import { Button } from '../ui/button';
+
 type TimelineControlsProps = {
   isPlaying: boolean;
   isLoading?: boolean;
@@ -14,11 +17,10 @@ type TimelineControlsProps = {
     mode: 'maior' | 'menor';
     label: string;
   } | null;
-  loop: boolean;
-  onToggleLoop: (checked: boolean) => void;
   currentTime: number;
   duration: number;
-  onSeekTo: (t: number) => void;
+  mute: boolean;
+  onMute: () => void;
 };
 
 export function TimelineControls(props: TimelineControlsProps) {
@@ -32,11 +34,10 @@ export function TimelineControls(props: TimelineControlsProps) {
     onTransposeInc,
     onTransposeDec,
     estimatedKey,
-    loop,
-    onToggleLoop,
     currentTime,
     duration,
-    onSeekTo,
+    mute,
+    onMute,
   } = props;
 
   const percent =
@@ -44,16 +45,34 @@ export function TimelineControls(props: TimelineControlsProps) {
 
   return (
     <div className="w-full space-y-3">
-      <button
-        onClick={onPlayPause}
-        disabled={!!isLoading}
-        aria-busy={!!isLoading}
-        className={`w-full px-4 py-2 rounded-full bg-primary text-primary-foreground shadow-sm ${
-          isLoading ? 'opacity-60 cursor-not-allowed' : 'hover:opacity-90'
-        }`}
-      >
-        {isLoading ? 'Carregando…' : isPlaying ? 'Pausar' : 'Reproduzir'}
-      </button>
+      <div className="grid grid-cols-[1fr_auto] gap-2">
+        <Button onClick={onPlayPause} isLoading={isLoading} className="w-full">
+          {isLoading ? (
+            'Carregando…'
+          ) : isPlaying ? (
+            <>
+              <PauseIcon className="w-4 h-4" />
+              Pausar
+            </>
+          ) : (
+            <>
+              <PlayIcon className="w-4 h-4" />
+              Reproduzir
+            </>
+          )}
+        </Button>
+        <Button onClick={onMute} size="icon">
+          {mute ? (
+            <>
+              <VolumeOffIcon className="w-4 h-4" />
+            </>
+          ) : (
+            <>
+              <Volume2Icon className="w-4 h-4" />
+            </>
+          )}
+        </Button>
+      </div>
 
       <div className="space-y-2">
         <label className="text-xs text-muted-foreground">Progresso</label>
@@ -103,15 +122,6 @@ export function TimelineControls(props: TimelineControlsProps) {
           +
         </button>
       </div>
-
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={loop}
-          onChange={(e) => onToggleLoop(e.target.checked)}
-        />
-        Loop
-      </label>
     </div>
   );
 }

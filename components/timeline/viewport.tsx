@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 type Note = {
   note: string;
@@ -19,6 +21,7 @@ export function TimelineViewport({
   pxPerSecond,
   pxPerOctave,
   maxMidi,
+  onSeek,
 }: {
   containerRef: React.RefObject<HTMLDivElement>;
   progressRef: React.RefObject<HTMLDivElement>;
@@ -28,9 +31,8 @@ export function TimelineViewport({
   pxPerSecond: number;
   pxPerOctave: number;
   maxMidi: number;
+  onSeek: (t: number) => void;
 }) {
-  // Local drag state purely for cursor feedback; seeking is handled by parent
-  const [dragging, setDragging] = useState(false);
   const startDragRef = useRef(false);
 
   useEffect(() => {
@@ -38,14 +40,22 @@ export function TimelineViewport({
     const indicator = progressRef.current;
     if (!container || !indicator) return;
 
+    function getRelativeXFromMouse(e: MouseEvent) {
+      const rect = container.getBoundingClientRect();
+      return e.clientX - rect.left + container.scrollLeft;
+    }
+    function getRelativeXFromTouch(e: TouchEvent) {
+      const rect = container.getBoundingClientRect();
+      const t = e.touches[0];
+      return t.clientX - rect.left + container.scrollLeft;
+    }
+
     function startDrag() {
       startDragRef.current = true;
-      setDragging(true);
       (indicator as HTMLDivElement).style.cursor = 'grabbing';
     }
     function stopDrag() {
       startDragRef.current = false;
-      setDragging(false);
       (indicator as HTMLDivElement).style.cursor = 'pointer';
     }
     function onDown() {
@@ -54,17 +64,51 @@ export function TimelineViewport({
     function onUp() {
       if (startDragRef.current) stopDrag();
     }
+    function onMove(e: MouseEvent) {
+      if (!startDragRef.current) return;
+      const x = getRelativeXFromMouse(e);
+      onSeek(Math.max(0, x / pxPerSecond));
+      e.preventDefault();
+    }
+    function onTouchMove(e: TouchEvent) {
+      if (!startDragRef.current) return;
+      const x = getRelativeXFromTouch(e);
+      onSeek(Math.max(0, x / pxPerSecond));
+      e.preventDefault();
+    }
+    function onContainerClick(e: MouseEvent) {
+      if (e.target === indicator) return;
+      const x = getRelativeXFromMouse(e);
+      onSeek(Math.max(0, x / pxPerSecond));
+    }
+    function onContainerTouchStart(e: TouchEvent) {
+      const x = getRelativeXFromTouch(e);
+      onSeek(Math.max(0, x / pxPerSecond));
+    }
+
     indicator.addEventListener('mousedown', onDown);
     document.addEventListener('mouseup', onUp);
-    indicator.addEventListener('touchstart', onDown, { passive: true });
-    document.addEventListener('touchend', onUp, { passive: true });
+    document.addEventListener('mousemove', onMove);
+    indicator.addEventListener('touchstart', onDown, { passive: true } as any);
+    document.addEventListener('touchend', onUp, { passive: true } as any);
+    document.addEventListener('touchmove', onTouchMove, {
+      passive: false,
+    } as any);
+    container.addEventListener('mousedown', onContainerClick);
+    container.addEventListener('touchstart', onContainerTouchStart, {
+      passive: true,
+    } as any);
     return () => {
       indicator.removeEventListener('mousedown', onDown);
       document.removeEventListener('mouseup', onUp);
-      indicator.removeEventListener('touchstart', onDown);
-      document.removeEventListener('touchend', onUp);
+      document.removeEventListener('mousemove', onMove);
+      indicator.removeEventListener('touchstart', onDown as any);
+      document.removeEventListener('touchend', onUp as any);
+      document.removeEventListener('touchmove', onTouchMove as any);
+      container.removeEventListener('mousedown', onContainerClick);
+      container.removeEventListener('touchstart', onContainerTouchStart as any);
     };
-  }, [containerRef, progressRef]);
+  }, [containerRef, progressRef, onSeek, pxPerSecond]);
 
   return (
     <div
