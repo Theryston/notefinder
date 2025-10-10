@@ -45,13 +45,8 @@ export function TrackOverview({ track }: { track: NonNullable<Track> }) {
 
   const artists = track.trackArtists?.map((ta) => ta.artist) ?? [];
 
-  const views = track._count?.views ?? 0;
   const isExplicit = Boolean(track.isExplicit);
   const year = track.year ?? undefined;
-  const durationReadable = formatDuration(
-    track.durationSeconds,
-    track.duration,
-  );
 
   return (
     <section className="w-full">
@@ -59,7 +54,7 @@ export function TrackOverview({ track }: { track: NonNullable<Track> }) {
         <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-primary/10 via-transparent to-primary/10" />
 
         <div className="p-6 sm:p-8">
-          <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-[150px_1fr] items-start">
+          <div className="grid grid-cols-[150px_1fr] gap-6 sm:gap-8 items-start">
             <div className="relative rounded-xl overflow-hidden border">
               <Image
                 src={coverUrl}
@@ -103,70 +98,81 @@ export function TrackOverview({ track }: { track: NonNullable<Track> }) {
                 ) : null}
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div className="rounded-lg border bg-card p-3">
-                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                    Duração
-                  </div>
-                  <div className="mt-0.5 text-sm font-medium">
-                    {durationReadable}
-                  </div>
-                </div>
-                <div className="rounded-lg border bg-card p-3">
-                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                    Visualizações
-                  </div>
-                  <div className="mt-0.5 text-sm font-medium">
-                    {formatViews(views)}
-                  </div>
-                </div>
-                {!!track.album?.name && (
-                  <div className="rounded-lg border bg-card p-3">
-                    <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                      Álbum
-                    </div>
-                    <Link
-                      href={`/albums/${track.album.id}`}
-                      className="mt-0.5 text-sm font-medium hover:text-primary"
-                    >
-                      {track.album.name}
-                    </Link>
-                  </div>
-                )}
-                {!!track.creator.username && (
-                  <div className="rounded-lg border bg-card p-3">
-                    <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                      Adicionado por
-                    </div>
-                    <Link
-                      href={`/users/${track.creator.username}`}
-                      className="mt-0.5 text-sm font-medium hover:text-primary"
-                    >
-                      {track.creator.username}
-                    </Link>
-                  </div>
-                )}
-                <div className="rounded-lg border bg-card p-3">
-                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                    Notas detectadas
-                  </div>
-                  <div className="mt-0.5 text-sm font-medium">
-                    {track.notes.length}
-                  </div>
-                </div>
-                <div className="rounded-lg border bg-card p-3">
-                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                    Adicionado em
-                  </div>
-                  <div className="mt-0.5 text-sm font-medium">
-                    {moment(track.createdAt).format('DD/MM/YYYY')}
-                  </div>
-                </div>
+              <div className="w-full h-full hidden md:block">
+                <CardsInfo track={track} />
               </div>
             </div>
+          </div>
+          <div className="mt-4 w-full h-full block md:hidden">
+            <CardsInfo track={track} />
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function CardsInfo({ track }: { track: NonNullable<Track> }) {
+  const views = track._count?.views ?? 0;
+  const durationReadable = formatDuration(
+    track.durationSeconds,
+    track.duration,
+  );
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="rounded-lg border bg-card p-3">
+        <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+          Duração
+        </div>
+        <div className="mt-0.5 text-sm font-medium">{durationReadable}</div>
+      </div>
+      <div className="rounded-lg border bg-card p-3">
+        <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+          Visualizações
+        </div>
+        <div className="mt-0.5 text-sm font-medium">{formatViews(views)}</div>
+      </div>
+      {!!track.album?.name && (
+        <div className="rounded-lg border bg-card p-3">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+            Álbum
+          </div>
+          <Link
+            href={`/albums/${track.album.id}`}
+            className="mt-0.5 text-sm font-medium hover:text-primary"
+          >
+            {track.album.name}
+          </Link>
+        </div>
+      )}
+      {!!track.creator.username && (
+        <div className="rounded-lg border bg-card p-3">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+            Adicionado por
+          </div>
+          <Link
+            href={`/users/${track.creator.username}`}
+            className="mt-0.5 text-sm font-medium hover:text-primary"
+          >
+            {track.creator.username}
+          </Link>
+        </div>
+      )}
+      <div className="rounded-lg border bg-card p-3">
+        <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+          Notas detectadas
+        </div>
+        <div className="mt-0.5 text-sm font-medium">{track.notes.length}</div>
+      </div>
+      <div className="rounded-lg border bg-card p-3">
+        <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+          Adicionado em
+        </div>
+        <div className="mt-0.5 text-sm font-medium">
+          {moment(track.createdAt).format('DD/MM/YYYY')}
+        </div>
+      </div>
+    </div>
   );
 }

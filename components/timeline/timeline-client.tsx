@@ -6,6 +6,10 @@ import { YouTubeRoot, YouTubeApi } from './youtube-player';
 import { TimelineViewport } from './viewport';
 import { TimelineControls } from './controls';
 import { estimateKey, fromMidiToNote, toMidiFromNote } from './utils';
+import { MaximizeIcon, XIcon } from 'lucide-react';
+import screenfull from 'screenfull';
+import { isMobile } from 'react-device-detect';
+import { cn } from '@/lib/utils';
 
 type Note = {
   note: string;
@@ -29,6 +33,7 @@ export function TimelineClient({
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef<HTMLDivElement | null>(null);
+  const fullscreenRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<YouTubeApi | null>(null);
   const rafRef = useRef<number | null>(null);
   const loopRef = useRef(false);
@@ -37,8 +42,11 @@ export function TimelineClient({
   const centerOnceRef = useRef(false);
   const lastTimeRef = useRef(0);
   const muteRef = useRef(false);
+  const orientationWatchRef = useRef<NodeJS.Timeout | null>(null);
+  const [isPortrait, setIsPortrait] = useState(false);
 
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [transpose, setTranspose] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -195,6 +203,73 @@ export function TimelineClient({
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
 
+  const requestFullscreen = useCallback(async () => {
+    if (!fullscreenRef.current) return;
+
+    await screenfull.request(fullscreenRef.current, {
+      navigationUI: 'hide',
+    });
+  }, []);
+
+  const exitFullscreen = useCallback(async () => {
+    await screenfull.exit();
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    if (isFullscreen) exitFullscreen();
+    else requestFullscreen();
+  }, [isFullscreen, exitFullscreen, requestFullscreen]);
+
+  useEffect(() => {
+    const handleOrientation = async () => {
+      try {
+        const screen = window.screen as { orientation: ScreenOrientation };
+
+        if (screen.orientation) {
+          if (screen.orientation.type.includes('portrait')) {
+            await (
+              screen.orientation as unknown as {
+                lock: (type: string) => Promise<void>;
+              }
+            ).lock('landscape');
+          } else {
+            screen.orientation.unlock();
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao virar a tela', error);
+      }
+    };
+
+    screenfull.onchange(() => {
+      if (!screenfull.isFullscreen || !isMobile) return;
+      handleOrientation();
+    });
+  }, []);
+
+  useEffect(() => {
+    function onFsChange() {
+      const el = fullscreenRef.current;
+      const active =
+        document.fullscreenElement === el ||
+        (document as unknown as { webkitFullscreenElement?: Element })
+          .webkitFullscreenElement === el;
+      setIsFullscreen(Boolean(active));
+    }
+    document.addEventListener('fullscreenchange', onFsChange);
+    document.addEventListener(
+      'webkitfullscreenchange',
+      onFsChange as EventListener,
+    );
+    return () => {
+      document.removeEventListener('fullscreenchange', onFsChange);
+      document.removeEventListener(
+        'webkitfullscreenchange',
+        onFsChange as EventListener,
+      );
+    };
+  }, []);
+
   const seekTo = useCallback(
     (t: number) => {
       const clamped = Math.max(0, Math.min(t, duration || maxEnd));
@@ -239,63 +314,180 @@ export function TimelineClient({
     }
   }, []);
 
+  useEffect(() => {
+    const handleOrientation = () =>
+      setIsPortrait(screen.orientation.type.includes('portrait'));
+    if (orientationWatchRef.current) clearInterval(orientationWatchRef.current);
+    orientationWatchRef.current = setInterval(handleOrientation, 1000);
+
+    return () => {
+      if (orientationWatchRef.current)
+        clearInterval(orientationWatchRef.current);
+      orientationWatchRef.current = null;
+    };
+  }, []);
+
+  /*  useEffect(() => {
+    if (!isMobile) return;
+
+    if (isPortrait && isFullscreen) {
+      exitFullscreen();
+      return;
+    } else {
+      requestFullscreen();
+    }
+  }, [isPortrait, isFullscreen, requestFullscreen, exitFullscreen]); */
+
+  // if (isMobile && isPortrait) {
+  //   return (
+  //     <div className="flex flex-col gap-4">
+  //       <p className="text-sm text-muted-foreground text-center">
+  //         Por favor, vire a tela do seu celular para ver as notas da música!
+  //       </p>
+  //       <Button variant="outline" onClick={requestFullscreen}>
+  //         Vire a tela
+  //       </Button>
+  //     </div>
+  //   );
+  // }
+
+  const shouldShowAlert = useMemo(() => {
+    return isMobile && (!isFullscreen || isPortrait);
+  }, [isFullscreen, isPortrait]);
+
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_260px] gap-4 items-start">
-        <div className="space-y-3">
-          <div className="relative rounded-lg border bg-card">
-            <TimelineViewport
-              containerRef={containerRef as React.RefObject<HTMLDivElement>}
-              progressRef={progressRef as React.RefObject<HTMLDivElement>}
-              width={width}
-              height={height}
-              notes={displayNotes as Note[]}
-              pxPerSecond={PX_PER_SECOND}
-              pxPerOctave={PX_PER_OCTAVE}
-              maxMidi={maxMidi}
-              onSeek={seekTo}
-            />
+    <>
+      <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_260px] gap-4 items-start">
+          <div className="space-y-3">
+            <div
+              ref={fullscreenRef}
+              className={cn(
+                'relative rounded-lg border bg-card',
+                shouldShowAlert && 'h-80 overflow-hidden',
+              )}
+            >
+              {shouldShowAlert && (
+                <div className="flex flex-col p-4 gap-4 absolute -top-4 -left-4 -right-4 -bottom-4 z-50 bg-background/60 backdrop-blur flex justify-center items-center">
+                  <p className="text-sm text-muted-foreground text-center">
+                    {!isFullscreen ? (
+                      'Por favor, expanda a linha do tempo para ver as notas da música!'
+                    ) : (
+                      <>
+                        Por favor, coloque seu celular na <b>horizontal</b> para
+                        ver as notas da música!
+                      </>
+                    )}
+                  </p>
+                  {!isFullscreen && (
+                    <Button variant="outline" onClick={requestFullscreen}>
+                      Expandir linha do tempo
+                    </Button>
+                  )}
+                </div>
+              )}
 
-            {shouldShowNext && (
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => seekTo(nextTarget)}
-                >
-                  próximas notas -&gt;
-                </Button>
+              <Button
+                aria-label={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
+                variant="outline"
+                onClick={toggleFullscreen}
+                className="absolute top-2 right-2 z-30"
+                size="icon"
+                title={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
+              >
+                {isFullscreen ? <XIcon /> : <MaximizeIcon />}
+              </Button>
+
+              <TimelineViewport
+                containerRef={containerRef as React.RefObject<HTMLDivElement>}
+                progressRef={progressRef as React.RefObject<HTMLDivElement>}
+                width={width}
+                height={isFullscreen ? '100vh' : height}
+                notes={displayNotes as Note[]}
+                pxPerSecond={PX_PER_SECOND}
+                pxPerOctave={PX_PER_OCTAVE}
+                maxMidi={maxMidi}
+                onSeek={seekTo}
+              />
+
+              {shouldShowNext && (
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => seekTo(nextTarget)}
+                  >
+                    próximas notas -&gt;
+                  </Button>
+                </div>
+              )}
+
+              {isFullscreen && (
+                <div className="pointer-events-auto absolute top-4 left-4 z-30 w-1/3">
+                  <div className="rounded-xl border bg-card p-3 shadow flex flex-col gap-3 w-full">
+                    <div
+                      className={cn(
+                        'aspect-video w-full',
+                        isFullscreen && 'w-full h-20',
+                      )}
+                    >
+                      <YouTubeRoot
+                        ytId={ytId}
+                        onReady={attachPlayer}
+                        onPlay={handlePlay}
+                        onPause={handlePause}
+                      />
+                    </div>
+                    <TimelineControls
+                      isPlaying={isPlaying}
+                      onPlayPause={handlePlayPause}
+                      isLoading={false}
+                      speed={speed}
+                      onSpeedChange={handleSpeedChange}
+                      transpose={transpose}
+                      onTransposeInc={() => setTranspose((t) => t + 1)}
+                      onTransposeDec={() => setTranspose((t) => t - 1)}
+                      estimatedKey={estimatedKey}
+                      currentTime={currentTime}
+                      duration={duration || Math.max(duration, maxEnd)}
+                      mute={muteRef.current}
+                      onMute={handleMute}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {!isFullscreen && (
+            <div className="rounded-lg border bg-card p-3 flex flex-col gap-3">
+              <div className="aspect-video w-full">
+                <YouTubeRoot
+                  ytId={ytId}
+                  onReady={attachPlayer}
+                  onPlay={handlePlay}
+                  onPause={handlePause}
+                />
               </div>
-            )}
-          </div>
-        </div>
-
-        <div className="rounded-lg border bg-card p-3 flex flex-col gap-3">
-          <div className="aspect-video w-full">
-            <YouTubeRoot
-              ytId={ytId}
-              onReady={attachPlayer}
-              onPlay={handlePlay}
-              onPause={handlePause}
-            />
-          </div>
-          <TimelineControls
-            isPlaying={isPlaying}
-            onPlayPause={handlePlayPause}
-            isLoading={false}
-            speed={speed}
-            onSpeedChange={handleSpeedChange}
-            transpose={transpose}
-            onTransposeInc={() => setTranspose((t) => t + 1)}
-            onTransposeDec={() => setTranspose((t) => t - 1)}
-            estimatedKey={estimatedKey}
-            currentTime={currentTime}
-            duration={duration || Math.max(duration, maxEnd)}
-            mute={muteRef.current}
-            onMute={handleMute}
-          />
+              <TimelineControls
+                isPlaying={isPlaying}
+                onPlayPause={handlePlayPause}
+                isLoading={false}
+                speed={speed}
+                onSpeedChange={handleSpeedChange}
+                transpose={transpose}
+                onTransposeInc={() => setTranspose((t) => t + 1)}
+                onTransposeDec={() => setTranspose((t) => t - 1)}
+                estimatedKey={estimatedKey}
+                currentTime={currentTime}
+                duration={duration || Math.max(duration, maxEnd)}
+                mute={muteRef.current}
+                onMute={handleMute}
+              />
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </>
   );
 }
