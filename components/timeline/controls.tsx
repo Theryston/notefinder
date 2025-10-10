@@ -1,6 +1,13 @@
 'use client';
 
-import { PauseIcon, PlayIcon, Volume2Icon, VolumeOffIcon } from 'lucide-react';
+import {
+  PauseIcon,
+  PlayIcon,
+  Volume2Icon,
+  VolumeOffIcon,
+  MicIcon,
+  MicOffIcon,
+} from 'lucide-react';
 import { Button } from '../ui/button';
 
 type TimelineControlsProps = {
@@ -21,6 +28,8 @@ type TimelineControlsProps = {
   duration: number;
   mute: boolean;
   onMute: () => void;
+  micActive: boolean;
+  onMicToggle: () => void;
 };
 
 export function TimelineControls(props: TimelineControlsProps) {
@@ -38,6 +47,8 @@ export function TimelineControls(props: TimelineControlsProps) {
     duration,
     mute,
     onMute,
+    micActive,
+    onMicToggle,
   } = props;
 
   const percent =
@@ -45,7 +56,7 @@ export function TimelineControls(props: TimelineControlsProps) {
 
   return (
     <div className="w-full space-y-3">
-      <div className="grid grid-cols-[1fr_auto] gap-2">
+      <div className="grid grid-cols-[1fr_auto_auto] gap-2">
         <Button onClick={onPlayPause} isLoading={isLoading} className="w-full">
           {isLoading ? (
             'Carregando…'
@@ -69,6 +80,21 @@ export function TimelineControls(props: TimelineControlsProps) {
           ) : (
             <>
               <Volume2Icon className="w-4 h-4" />
+            </>
+          )}
+        </Button>
+        <Button
+          onClick={onMicToggle}
+          size="icon"
+          variant={micActive ? 'default' : 'outline'}
+        >
+          {micActive ? (
+            <>
+              <MicIcon className="w-4 h-4" />
+            </>
+          ) : (
+            <>
+              <MicOffIcon className="w-4 h-4" />
             </>
           )}
         </Button>

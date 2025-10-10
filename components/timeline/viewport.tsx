@@ -4,6 +4,8 @@
 
 import React, { useEffect, useRef } from 'react';
 import { isMobile } from 'react-device-detect';
+import type { PitchData } from './use-pitch-detection';
+import { PitchLine } from './pitch-line';
 
 type Note = {
   note: string;
@@ -23,6 +25,9 @@ export function TimelineViewport({
   pxPerOctave,
   maxMidi,
   onSeek,
+  pitchData,
+  currentTime,
+  micActive,
 }: {
   containerRef: React.RefObject<HTMLDivElement>;
   progressRef: React.RefObject<HTMLDivElement>;
@@ -33,6 +38,9 @@ export function TimelineViewport({
   pxPerOctave: number;
   maxMidi: number;
   onSeek: (t: number) => void;
+  pitchData?: PitchData | null;
+  currentTime?: number;
+  micActive?: boolean;
 }) {
   const startDragRef = useRef(false);
   const touchStartXRef = useRef(0);
@@ -180,6 +188,18 @@ export function TimelineViewport({
             style={{ pointerEvents: 'auto' }}
           />
         </div>
+
+        {/* Pitch line visualization */}
+        <PitchLine
+          pitchData={pitchData || null}
+          currentTime={currentTime || 0}
+          pxPerSecond={pxPerSecond}
+          pxPerOctave={pxPerOctave}
+          maxMidi={maxMidi}
+          isActive={!!micActive}
+          width={width}
+          height={height}
+        />
 
         {notes.map((n: Note, i: number) => {
           const midi = typeof n._midi === 'number' ? n._midi : 0;

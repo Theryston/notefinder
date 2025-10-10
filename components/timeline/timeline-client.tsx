@@ -10,6 +10,7 @@ import { MaximizeIcon, XIcon } from 'lucide-react';
 import screenfull from 'screenfull';
 import { isMobile } from 'react-device-detect';
 import { cn } from '@/lib/utils';
+import { usePitchDetection } from './use-pitch-detection';
 
 type Note = {
   note: string;
@@ -44,6 +45,9 @@ export function TimelineClient({
   const muteRef = useRef(false);
   const orientationWatchRef = useRef<NodeJS.Timeout | null>(null);
   const [isPortrait, setIsPortrait] = useState(false);
+
+  // Pitch detection
+  const { isActive: micActive, currentPitch, toggle: toggleMic } = usePitchDetection();
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -462,6 +466,9 @@ export function TimelineClient({
                 onSeek={(t) =>
                   seekTo(t, isPlayingRef.current ? 'center' : 'none')
                 }
+                pitchData={currentPitch}
+                currentTime={currentTime}
+                micActive={micActive}
               />
 
               {shouldShowNext && (
@@ -520,6 +527,8 @@ export function TimelineClient({
                       duration={duration || Math.max(duration, maxEnd)}
                       mute={muteRef.current}
                       onMute={handleMute}
+                      micActive={micActive}
+                      onMicToggle={toggleMic}
                     />
                   </div>
                 </div>
@@ -551,6 +560,8 @@ export function TimelineClient({
                 duration={duration || Math.max(duration, maxEnd)}
                 mute={muteRef.current}
                 onMute={handleMute}
+                micActive={micActive}
+                onMicToggle={toggleMic}
               />
             </div>
           )}
