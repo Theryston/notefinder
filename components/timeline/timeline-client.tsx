@@ -327,30 +327,6 @@ export function TimelineClient({
     };
   }, []);
 
-  /*  useEffect(() => {
-    if (!isMobile) return;
-
-    if (isPortrait && isFullscreen) {
-      exitFullscreen();
-      return;
-    } else {
-      requestFullscreen();
-    }
-  }, [isPortrait, isFullscreen, requestFullscreen, exitFullscreen]); */
-
-  // if (isMobile && isPortrait) {
-  //   return (
-  //     <div className="flex flex-col gap-4">
-  //       <p className="text-sm text-muted-foreground text-center">
-  //         Por favor, vire a tela do seu celular para ver as notas da música!
-  //       </p>
-  //       <Button variant="outline" onClick={requestFullscreen}>
-  //         Vire a tela
-  //       </Button>
-  //     </div>
-  //   );
-  // }
-
   const shouldShowAlert = useMemo(() => {
     return isMobile && (!isFullscreen || isPortrait);
   }, [isFullscreen, isPortrait]);
