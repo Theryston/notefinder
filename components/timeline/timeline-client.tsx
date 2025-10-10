@@ -423,12 +423,18 @@ export function TimelineClient({
               )}
 
               {isFullscreen && (
-                <div className="pointer-events-auto absolute top-4 left-4 z-30 w-1/3">
+                <div
+                  className={cn(
+                    'pointer-events-auto absolute top-4 left-4 z-30',
+                    isMobile && 'w-1/3',
+                    !isMobile && 'w-1/6',
+                  )}
+                >
                   <div className="rounded-xl border bg-card p-3 shadow flex flex-col gap-3 w-full">
                     <div
                       className={cn(
                         'aspect-video w-full',
-                        isFullscreen && 'w-full h-20',
+                        isFullscreen && isMobile && 'h-20',
                       )}
                     >
                       <YouTubeRoot
@@ -459,7 +465,7 @@ export function TimelineClient({
             </div>
           </div>
 
-          {!isFullscreen && (
+          {!isFullscreen && !shouldShowAlert && (
             <div className="rounded-lg border bg-card p-3 flex flex-col gap-3">
               <div className="aspect-video w-full">
                 <YouTubeRoot
