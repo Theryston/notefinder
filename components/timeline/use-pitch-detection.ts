@@ -12,7 +12,20 @@ export type PitchData = {
   timestamp: number;
 };
 
-const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const NOTE_NAMES = [
+  'C',
+  'C#',
+  'D',
+  'D#',
+  'E',
+  'F',
+  'F#',
+  'G',
+  'G#',
+  'A',
+  'A#',
+  'B',
+];
 
 function frequencyToMidi(frequency: number): number {
   return 69 + 12 * Math.log2(frequency / 440);
@@ -49,10 +62,14 @@ export function usePitchDetection() {
     const buffer = bufferRef.current;
 
     // Get time domain data
-    analyser.getFloatTimeDomainData(buffer);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    analyser.getFloatTimeDomainData(buffer as any);
 
     // Detect pitch
-    const [frequency, clarity] = detector.findPitch(buffer, analyser.context.sampleRate);
+    const [frequency, clarity] = detector.findPitch(
+      buffer,
+      analyser.context.sampleRate,
+    );
 
     // Only process if we have a clear pitch detection
     // Clarity threshold of 0.9 helps filter out noise
@@ -119,7 +136,7 @@ export function usePitchDetection() {
       setError(
         err instanceof Error
           ? err.message
-          : 'Não foi possível acessar o microfone'
+          : 'Não foi possível acessar o microfone',
       );
       setIsActive(false);
     }
