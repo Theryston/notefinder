@@ -72,7 +72,11 @@ export function TimelineControls(props: TimelineControlsProps) {
             </>
           )}
         </Button>
-        <Button onClick={onMute} size="icon">
+        <Button
+          onClick={onMute}
+          size="icon"
+          variant={mute ? 'outline' : 'default'}
+        >
           {mute ? (
             <>
               <VolumeOffIcon className="w-4 h-4" />
