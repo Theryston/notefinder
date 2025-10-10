@@ -3,6 +3,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
+import { isMobile } from 'react-device-detect';
 
 type Note = {
   note: string;
@@ -133,6 +134,20 @@ export function TimelineViewport({
     container.addEventListener('touchend', onContainerTouchEnd, {
       passive: true,
     } as any);
+    // Desktop-only: redirect vertical wheel to horizontal scroll within the timeline
+    function onWheel(e: WheelEvent) {
+      if (isMobile) return;
+      if (!container) return;
+      if (e.ctrlKey || (e as any).metaKey) return; // do not block zoom or OS-level gestures
+      const absY = Math.abs(e.deltaY);
+      const absX = Math.abs(e.deltaX);
+      if (absY > absX && absY > 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        container.scrollLeft += e.deltaY;
+      }
+    }
+    container.addEventListener('wheel', onWheel, { passive: false } as any);
     return () => {
       indicator.removeEventListener('mousedown', onDown);
       document.removeEventListener('mouseup', onUp);
@@ -144,6 +159,7 @@ export function TimelineViewport({
       container.removeEventListener('touchstart', onContainerTouchStart as any);
       container.removeEventListener('touchmove', onContainerTouchMove as any);
       container.removeEventListener('touchend', onContainerTouchEnd as any);
+      container.removeEventListener('wheel', onWheel as any);
     };
   }, [containerRef, progressRef, onSeek, pxPerSecond]);
 
