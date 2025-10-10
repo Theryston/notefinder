@@ -2,7 +2,8 @@
 
 import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 export const createTrackView = async (formData: FormData) => {
   const trackId = formData.get('trackId');
@@ -25,4 +26,6 @@ export const revalidateTrack = async (formData: FormData) => {
   if (!trackId) return;
 
   revalidateTag(`track_${trackId}`);
+  revalidatePath(`/tracks/${trackId}`);
+  redirect(`/tracks/${trackId}`);
 };

@@ -220,12 +220,18 @@ export function ProcessingTrack({
             )}
 
             <div className="mt-6 flex flex-wrap justify-center w-full">
-              <Button asChild variant="default">
-                <Link href="/">
-                  <PlayIcon />
-                  Explorar outras músicas
-                </Link>
-              </Button>
+              {status === 'COMPLETED' ? (
+                <Button asChild variant="default">
+                  <Link href={`/tracks/${id}`}>Ver música</Link>
+                </Button>
+              ) : (
+                <Button asChild variant="default">
+                  <Link href="/">
+                    <PlayIcon />
+                    Explorar outras músicas
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>

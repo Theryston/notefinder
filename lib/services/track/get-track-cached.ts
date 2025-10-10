@@ -1,26 +1,23 @@
 import prisma from '@/lib/prisma';
-import { unstable_cache as cache } from 'next/cache';
 
 type GetTrackCached = {
   id: string;
 };
 
 export async function getTrackCached({ id }: GetTrackCached) {
-  const cached = cache(
-    async () => {
-      return await prisma.track.findFirst({
-        where: { id },
-        include: {
-          notes: true,
-          thumbnails: true,
-        },
-      });
+  return await prisma.track.findFirst({
+    where: { id },
+    include: {
+      notes: true,
+      thumbnails: true,
+      album: true,
+      creator: true,
+      trackArtists: { include: { artist: true } },
+      _count: { select: { views: true } },
     },
-    [id],
-    { revalidate: false, tags: [`track_${id}`] },
-  );
-
-  const track = await cached();
-
-  return track;
+    cacheStrategy: {
+      swr: 60 * 60 * 24,
+      tags: [`track_${id}`],
+    },
+  });
 }
