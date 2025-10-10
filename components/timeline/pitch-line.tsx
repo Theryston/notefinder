@@ -6,10 +6,13 @@ import type { PitchData } from './use-pitch-detection';
 type PitchPoint = {
   time: number;
   midi: number;
+  isGap?: boolean;
 };
 
 const TRAIL_DURATION_SECONDS = 3; // How long the trail lasts
 const MAX_POINTS = 100; // Maximum number of points to keep
+const SILENCE_THRESHOLD = 0.95; // Clarity threshold for valid pitch
+const GAP_THRESHOLD_MS = 500; // Se ficar mais de 500ms sem som, considera um gap
 
 export function PitchLine({
   pitchData,
@@ -32,45 +35,68 @@ export function PitchLine({
 }) {
   const [pitchHistory, setPitchHistory] = useState<PitchPoint[]>([]);
   const lastUpdateRef = useRef<number>(0);
+  const lastValidPitchTimeRef = useRef<number>(0);
+  const lastCurrentTimeRef = useRef<number>(0);
 
-  // Add new pitch data to history
   useEffect(() => {
     if (!isActive) {
       setPitchHistory([]);
+      lastValidPitchTimeRef.current = 0;
+      lastCurrentTimeRef.current = 0;
       return;
     }
 
-    if (pitchData && currentTime !== undefined) {
-      const now = performance.now();
-      // Throttle updates to every 50ms for smoother rendering
-      if (now - lastUpdateRef.current < 50) return;
-      lastUpdateRef.current = now;
+    const now = performance.now();
 
-      setPitchHistory((prev) => {
+    if (now - lastUpdateRef.current < 50) return;
+    lastUpdateRef.current = now;
+
+    setPitchHistory((prev) => {
+      if (currentTime === undefined) return prev;
+
+      // Detecta se houve um "seek" para trás na timeline
+      const hasSeekBackwards = currentTime < lastCurrentTimeRef.current - 0.5; // 0.5s de tolerância
+      lastCurrentTimeRef.current = currentTime;
+
+      // Se voltou na timeline, remove todos os pontos que estão à frente
+      let cleanedHistory = prev;
+      if (hasSeekBackwards) {
+        cleanedHistory = prev.filter((p) => p.time <= currentTime);
+      }
+
+      if (pitchData && pitchData.clarity >= SILENCE_THRESHOLD) {
+        const timeSinceLastPitch = now - lastValidPitchTimeRef.current;
+        lastValidPitchTimeRef.current = now;
+
         const newPoint: PitchPoint = {
           time: currentTime,
           midi: pitchData.midi,
+          isGap: timeSinceLastPitch > GAP_THRESHOLD_MS,
         };
 
-        // Add new point
-        const updated = [...prev, newPoint];
+        const updated = [...cleanedHistory, newPoint];
 
-        // Remove points older than TRAIL_DURATION_SECONDS
         const filtered = updated.filter(
-          (p) => currentTime - p.time < TRAIL_DURATION_SECONDS
+          (p) => currentTime - p.time < TRAIL_DURATION_SECONDS,
         );
 
-        // Keep only the most recent MAX_POINTS
         if (filtered.length > MAX_POINTS) {
           return filtered.slice(-MAX_POINTS);
         }
 
         return filtered;
-      });
-    }
+      }
+
+      // Remove pontos antigos e pontos à frente
+      const filtered = cleanedHistory.filter(
+        (p) =>
+          p.time <= currentTime &&
+          currentTime - p.time < TRAIL_DURATION_SECONDS,
+      );
+      return filtered;
+    });
   }, [pitchData, currentTime, isActive]);
 
-  // Clear history when inactive
   useEffect(() => {
     if (!isActive) {
       setPitchHistory([]);
@@ -81,36 +107,28 @@ export function PitchLine({
     return null;
   }
 
-  // Convert pitch points to SVG path
-  const pathData = pitchHistory
-    .map((point, index) => {
-      const x = point.time * pxPerSecond;
-      const y = (maxMidi - point.midi) * pxPerOctave + 20;
+  const pathSegments: string[] = [];
+  let currentSegment: string[] = [];
 
-      if (index === 0) {
-        return `M ${x} ${y}`;
+  pitchHistory.forEach((point, index) => {
+    const x = point.time * pxPerSecond;
+    const y = (maxMidi - point.midi) * pxPerOctave + 20;
+
+    if (point.isGap || index === 0) {
+      if (currentSegment.length > 0) {
+        pathSegments.push(currentSegment.join(' '));
       }
+      currentSegment = [`M ${x} ${y}`];
+    } else if (index === 1 && !point.isGap) {
+      currentSegment.push(`L ${x} ${y}`);
+    } else if (!point.isGap) {
+      currentSegment.push(`L ${x} ${y}`);
+    }
+  });
 
-      // Use quadratic bezier curves for smooth line
-      if (index === 1) {
-        return `L ${x} ${y}`;
-      }
-
-      const prevPoint = pitchHistory[index - 1];
-      const prevX = prevPoint.time * pxPerSecond;
-      const prevY = (maxMidi - prevPoint.midi) * pxPerOctave + 20;
-
-      // Control point for smooth curve
-      const cpX = (prevX + x) / 2;
-      const cpY = (prevY + y) / 2;
-
-      return `Q ${prevX} ${prevY}, ${x} ${y}`;
-    })
-    .join(' ');
-
-  // Calculate opacity gradient based on age
-  const oldestTime = pitchHistory[0]?.time || currentTime;
-  const timeSpan = currentTime - oldestTime;
+  if (currentSegment.length > 0) {
+    pathSegments.push(currentSegment.join(' '));
+  }
 
   return (
     <svg
@@ -133,19 +151,20 @@ export function PitchLine({
         </filter>
       </defs>
 
-      {/* Draw the pitch line with glow effect */}
-      <path
-        d={pathData}
-        fill="none"
-        stroke="url(#pitch-gradient)"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        filter="url(#glow)"
-      />
+      {pathSegments.map((segment, index) => (
+        <path
+          key={index}
+          d={segment}
+          fill="none"
+          stroke="url(#pitch-gradient)"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          filter="url(#glow)"
+        />
+      ))}
 
-      {/* Draw current pitch indicator (circle at the end) */}
-      {pitchData && (
+      {pitchData && pitchData.clarity >= SILENCE_THRESHOLD && (
         <circle
           cx={currentTime * pxPerSecond}
           cy={(maxMidi - pitchData.midi) * pxPerOctave + 20}
