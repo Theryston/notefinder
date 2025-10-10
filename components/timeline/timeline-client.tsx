@@ -51,6 +51,12 @@ export function TimelineClient({
   const [transpose, setTranspose] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(true);
+  const isFollowingRef = useRef(true);
+  useEffect(() => {
+    isFollowingRef.current = isFollowing;
+  }, [isFollowing]);
+  const lastProgrammaticScrollAtRef = useRef(0);
 
   const displayNotes = useMemo(() => {
     const mapped = (notes || []).map((n) => {
@@ -120,15 +126,18 @@ export function TimelineClient({
         const thresholdLeft = viewLeft + container.clientWidth * 0.2;
         const thresholdRight = viewLeft + container.clientWidth * 0.8;
         if (left < thresholdLeft) {
+          lastProgrammaticScrollAtRef.current = performance.now();
           container.scrollLeft = Math.max(
             0,
             left - container.clientWidth * 0.4,
           );
         } else if (left > thresholdRight) {
+          lastProgrammaticScrollAtRef.current = performance.now();
           container.scrollLeft = left - container.clientWidth * 0.6;
         }
       } else if (behavior === 'center') {
         const targetScroll = Math.max(0, left - container.clientWidth / 2);
+        lastProgrammaticScrollAtRef.current = performance.now();
         container.scrollLeft = targetScroll;
       }
     },
@@ -145,7 +154,8 @@ export function TimelineClient({
     setDuration(d || 0);
     setCurrentTime(t || 0);
     // Determine scroll behavior
-    const behavior: ScrollBehavior = isPlayingRef.current ? 'follow' : 'none';
+    const behavior: ScrollBehavior =
+      isPlayingRef.current && isFollowingRef.current ? 'follow' : 'none';
     updateProgressUi(t || 0, behavior);
 
     // Track last time for potential future logic; no auto-centering while paused
@@ -184,6 +194,29 @@ export function TimelineClient({
     speedRef.current = speed;
     playerRef.current?.setPlaybackRate(speed);
   }, [speed]);
+
+  // Detect user horizontal scrolls while playing to disable auto-follow
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    function onScroll() {
+      if (!isPlayingRef.current) return;
+      const now = performance.now();
+      if (now - lastProgrammaticScrollAtRef.current < 150) return;
+      if (isFollowingRef.current) setIsFollowing(false);
+    }
+    container.addEventListener('scroll', onScroll, {
+      passive: true,
+    } as AddEventListenerOptions);
+    return () => {
+      container.removeEventListener('scroll', onScroll as EventListener);
+    };
+  }, []);
+
+  const handleResync = useCallback(() => {
+    setIsFollowing(true);
+    updateProgressUi(currentTime, 'center');
+  }, [currentTime, updateProgressUi]);
 
   const handlePlayPause = useCallback(() => {
     if (!playerRef.current) return;
@@ -432,13 +465,21 @@ export function TimelineClient({
               />
 
               {shouldShowNext && (
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10">
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-50">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => seekTo(nextTarget)}
                   >
                     próximas notas -&gt;
+                  </Button>
+                </div>
+              )}
+
+              {isPlaying && !isFollowing && (
+                <div className="absolute bottom-14 left-1/2 -translate-x-1/2 z-50">
+                  <Button size="sm" variant="outline" onClick={handleResync}>
+                    sincronizar com a agulha
                   </Button>
                 </div>
               )}
