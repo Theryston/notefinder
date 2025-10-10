@@ -119,7 +119,7 @@ export function TimelineViewport({
       <div className="relative" style={{ width, height }}>
         <div
           ref={progressRef}
-          className="absolute top-0 bottom-0 w-0.5 bg-primary cursor-grab"
+          className="absolute top-0 bottom-0 w-0.5 bg-primary cursor-grab z-20"
           style={{ pointerEvents: 'auto' }}
         >
           <div
@@ -147,7 +147,7 @@ export function TimelineViewport({
             <div
               key={i}
               data-note-block="1"
-              className={`absolute ${color} rounded text-xs flex items-center justify-center shadow`}
+              className={`absolute ${color} rounded text-xs flex items-center justify-center shadow z-10`}
               style={{ left: x, top: y, width: w, height: 18 }}
             >
               {n.note}

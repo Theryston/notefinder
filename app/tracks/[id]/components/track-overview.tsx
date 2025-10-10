@@ -163,17 +163,6 @@ export function TrackOverview({ track }: { track: NonNullable<Track> }) {
                   </div>
                 </div>
               </div>
-
-              <div className="pt-2">
-                <Button asChild variant="outline">
-                  <Link
-                    href={`https://www.youtube.com/watch?v=${track.ytId}`}
-                    target="_blank"
-                  >
-                    Ouvir no YT Music
-                  </Link>
-                </Button>
-              </div>
             </div>
           </div>
         </div>

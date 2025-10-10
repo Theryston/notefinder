@@ -243,7 +243,7 @@ export function TimelineClient({
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_260px] gap-4 items-start">
         <div className="space-y-3">
-          <div className="relative rounded-lg border bg-card p-3">
+          <div className="relative rounded-lg border bg-card">
             <TimelineViewport
               containerRef={containerRef as React.RefObject<HTMLDivElement>}
               progressRef={progressRef as React.RefObject<HTMLDivElement>}
