@@ -4,6 +4,25 @@ import { notFound } from 'next/navigation';
 import { ProcessingTrack } from './components/processing-track';
 import { TrackContent } from './components/track-content';
 import { auth } from '@/auth';
+import prisma from '@/lib/prisma';
+import { MAX_STATIC_PAGES } from '@/lib/constants';
+
+export const dynamic = 'force-static';
+export const dynamicParams = true;
+export const revalidate = 10;
+
+export async function generateStaticParams() {
+  const tracks = await prisma.track.findMany({
+    take: MAX_STATIC_PAGES,
+    select: { id: true },
+    orderBy: { createdAt: 'desc' },
+    where: { status: 'COMPLETED' },
+  });
+
+  return tracks.map((track) => ({
+    id: track.id,
+  }));
+}
 
 export async function generateMetadata({
   params,
