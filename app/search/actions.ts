@@ -121,7 +121,7 @@ export const onAddNotes = async (
       });
     }
 
-    revalidateTag(`track_${track.ytId}`);
+    revalidateTag(`track_video_${track.ytId}`);
     revalidateTag(`user_${track.creator.username}`);
     redirect(`/tracks/${track.id}`);
   } catch (error) {
