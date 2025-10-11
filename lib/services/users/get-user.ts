@@ -37,6 +37,7 @@ export const getUserByUsernameWithCache = async (username: string) => {
         },
       },
       trackViews: {
+        distinct: ['trackId'],
         orderBy: { createdAt: 'desc' },
         take: 10,
         include: {
