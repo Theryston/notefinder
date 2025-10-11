@@ -132,11 +132,7 @@ export const getTopViewedToday = async (
     _count: {
       trackId: true,
     },
-    orderBy: {
-      _count: {
-        trackId: 'desc',
-      },
-    },
+    orderBy: { _count: { trackId: 'desc' } },
     take,
   });
 
