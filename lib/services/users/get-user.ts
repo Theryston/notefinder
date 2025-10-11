@@ -6,12 +6,12 @@ import {
 } from 'next/cache';
 
 export const getUserByIdWithCache = async (id: string) => {
+  'use cache: remote';
+  cacheLife('max');
+  cacheTag(`user_${id}`);
+
   return await prisma.user.findFirst({
     where: { id },
-    cacheStrategy: {
-      swr: 60 * 60 * 24,
-      tags: [`user_${id}`],
-    },
   });
 };
 

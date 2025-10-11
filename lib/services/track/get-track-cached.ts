@@ -113,7 +113,10 @@ export const getTopViewedToday = async (
 ): Promise<MinimalTrack[]> => {
   'use cache: remote';
   cacheLife('max');
-  cacheTag(`tracks_top_viewed_today_${take}_${ignoreIds.join(',')}`);
+  cacheTag(
+    `tracks_top_viewed_today_${take}`,
+    ...ignoreIds.map((id) => `track_${id}`),
+  );
 
   const endOfDay = moment().endOf('day');
   const startOfDay = moment().startOf('day');
@@ -156,4 +159,23 @@ export const getTopViewedToday = async (
   return tracks.sort(
     (a, b) => (viewsByTrackId[b.id] ?? 0) - (viewsByTrackId[a.id] ?? 0),
   );
+};
+
+export const getTracksByVideoIds = async (videoIds: string[]) => {
+  'use cache: remote';
+  cacheLife('max');
+  cacheTag('existing_tracks', ...videoIds.map((id) => `track_video_${id}`));
+
+  return await prisma.track.findMany({
+    where: {
+      ytId: { in: videoIds },
+    },
+    include: {
+      trackArtists: {
+        include: {
+          artist: true,
+        },
+      },
+    },
+  });
 };

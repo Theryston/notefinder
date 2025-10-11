@@ -2,9 +2,8 @@ import { cn, getFullHeight } from '@/lib/utils';
 import { NotefinderYtmusicSearchResponse } from '@/lib/services/notefinder-ytmusic/types';
 import { Artist, Track } from '@prisma/client';
 import { notefinderYtmusicSearch } from '@/lib/services/notefinder-ytmusic/ytmusic-search';
-import prisma from '@/lib/prisma';
 import { CustomTrackItem } from './custom-track-item';
-import { unstable_cache as cache } from 'next/cache';
+import { getTracksByVideoIds } from '@/lib/services/track/get-track-cached';
 
 export async function SearchContent({ query }: { query: string }) {
   let tracks: (NotefinderYtmusicSearchResponse & {
@@ -12,45 +11,14 @@ export async function SearchContent({ query }: { query: string }) {
   })[] = [];
 
   if (query.length > 0) {
-    const getExternalTracks = cache(
-      async (q: string) =>
-        notefinderYtmusicSearch({
-          query: q,
-          limit: 30,
-        }),
-      [query],
-      {
-        revalidate: false,
-        tags: [`search_${query}`],
-      },
-    );
-
-    const externalTracks = await getExternalTracks(query);
+    const externalTracks = await notefinderYtmusicSearch({
+      query: query,
+      limit: 30,
+    });
 
     const videoIds = externalTracks.map((track) => track.videoId);
 
-    const getExistingTracks = cache(
-      async (vids: string[]) =>
-        prisma.track.findMany({
-          where: {
-            ytId: { in: vids },
-          },
-          include: {
-            trackArtists: {
-              include: {
-                artist: true,
-              },
-            },
-          },
-        }),
-      ['existing_tracks', ...videoIds.sort()],
-      {
-        revalidate: false,
-        tags: videoIds.map((id) => `track_${id}`),
-      },
-    );
-
-    const alreadyExists = await getExistingTracks(videoIds);
+    const alreadyExists = await getTracksByVideoIds(videoIds);
 
     tracks = externalTracks.map((track) => {
       const existingTrack = alreadyExists.find((t) => t.ytId === track.videoId);
