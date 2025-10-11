@@ -10,11 +10,6 @@ export function UserOverview({ user }: { user: NonNullable<User> }) {
   const avatarAlt = name || 'Avatar';
   const firstChar = (user.name || user.username || 'U').charAt(0).toUpperCase();
 
-  const completedTracks = user.tracks.filter((t) => t.status === 'COMPLETED');
-  const processingTracks = user.tracks.filter((t) => t.status !== 'COMPLETED');
-  const favoriteCount = user.userFavoriteTracks.length;
-  const recentViewsCount = user.trackViews.length;
-
   return (
     <section className="w-full">
       <div className="relative overflow-hidden rounded-2xl border bg-background/60 shadow-sm backdrop-blur">
