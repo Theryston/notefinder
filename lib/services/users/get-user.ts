@@ -1,5 +1,11 @@
-import { MINIMAL_TRACK_INCLUDE } from '@/lib/constants';
+import { MINIMAL_TRACK_INCLUDE, MinimalTrack } from '@/lib/constants';
 import prisma from '@/lib/prisma';
+import {
+  TrackView,
+  User,
+  UserFavoriteTrack,
+  UserSectionVisibility,
+} from '@prisma/client';
 import {
   unstable_cacheTag as cacheTag,
   unstable_cacheLife as cacheLife,
@@ -15,12 +21,27 @@ export const getUserByIdWithCache = async (id: string) => {
   });
 };
 
-export const getUserByUsernameWithCache = async (username: string) => {
+export const getUserByUsernameWithCache = async (
+  username: string,
+): Promise<
+  User & {
+    tracks: MinimalTrack[];
+    userSectionVisibility: UserSectionVisibility[];
+    userFavoriteTracks: UserFavoriteTrack[];
+    trackViews: TrackView[];
+    _count: {
+      tracks: number;
+      userFavoriteTracks: number;
+      trackViews: number;
+    };
+  }
+> => {
   'use cache: remote';
   cacheLife('max');
   cacheTag(`user_${username}`);
 
-  return await prisma.user.findFirst({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const user: any = await prisma.user.findFirst({
     where: { username },
     include: {
       tracks: {
@@ -55,6 +76,8 @@ export const getUserByUsernameWithCache = async (username: string) => {
       },
     },
   });
+
+  return user ?? null;
 };
 
 export const getUserById = async (id: string) => {
