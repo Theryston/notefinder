@@ -4,6 +4,8 @@ import { TrackList } from '@/components/track-list';
 import { getUserByUsernameWithCache } from '@/lib/services/users/get-user';
 import { canShowSession, dbTrackToTrackItem } from '@/lib/utils';
 import { notFound } from 'next/navigation';
+import { UserOverview } from './components/overview';
+import { ToggleView } from './components/toggle-view';
 
 export async function generateMetadata({
   params,
@@ -37,6 +39,8 @@ export default async function Profile({
 
   if (!user) notFound();
 
+  const isMe = session?.user?.id === user.id;
+
   const sections: React.ReactNode[] = [];
 
   const processingTracks = user.tracks.filter(
@@ -62,7 +66,9 @@ export default async function Profile({
     sections.push(
       <TrackList
         key="processing-tracks"
+        title="Músicas em processamento"
         tracks={processingTracks.map(dbTrackToTrackItem)}
+        customAction={isMe && <ToggleView sectionKey="PROCESSING_TRACKS" />}
       />,
     );
   }
@@ -79,7 +85,9 @@ export default async function Profile({
     sections.push(
       <TrackList
         key="favorite-tracks"
+        title="Músicas favoritas"
         tracks={favoriteTracks.map(dbTrackToTrackItem)}
+        customAction={isMe && <ToggleView sectionKey="FAVORITE_TRACKS" />}
       />,
     );
   }
@@ -96,7 +104,9 @@ export default async function Profile({
     sections.push(
       <TrackList
         key="completed-tracks"
+        title="Processadas recentemente"
         tracks={completedTracks.map(dbTrackToTrackItem)}
+        customAction={isMe && <ToggleView sectionKey="ADDED_TRACKS" />}
       />,
     );
   }
@@ -113,10 +123,25 @@ export default async function Profile({
     sections.push(
       <TrackList
         key="recent-views"
+        title="Vistas recentemente"
         tracks={recentViews.map(dbTrackToTrackItem)}
+        customAction={isMe && <ToggleView sectionKey="RECENT_VIEWS" />}
       />,
     );
   }
 
-  return <Container pathname="/profile">{sections}</Container>;
+  return (
+    <Container pathname="/profile">
+      <div className="flex flex-col gap-4">
+        <UserOverview user={user} />
+        {sections.length === 0 && (
+          <div className="mt-4 text-center text-sm text-muted-foreground">
+            Parece que {isMe ? 'você' : user.name} não tem informações{' '}
+            {isMe ? 'para mostrar' : 'públicas para mostrar'} 🥲
+          </div>
+        )}
+        {sections}
+      </div>
+    </Container>
+  );
 }

@@ -19,7 +19,7 @@ export const getUserByUsernameWithCache = async (username: string) => {
         include: {
           tracks: {
             orderBy: { createdAt: 'desc' },
-            take: 30,
+            take: 10,
             include: {
               trackArtists: {
                 include: { artist: true },
@@ -42,7 +42,7 @@ export const getUserByUsernameWithCache = async (username: string) => {
           },
           trackViews: {
             orderBy: { createdAt: 'desc' },
-            take: 30,
+            take: 10,
             include: {
               track: {
                 include: {
@@ -52,6 +52,13 @@ export const getUserByUsernameWithCache = async (username: string) => {
                   thumbnails: true,
                 },
               },
+            },
+          },
+          _count: {
+            select: {
+              tracks: true,
+              userFavoriteTracks: true,
+              trackViews: true,
             },
           },
         },

@@ -88,6 +88,7 @@ export function dbTrackToTrackItem(
     id: track.id,
     title: track.title ?? '',
     videoId: track.ytId,
+    status: track.status,
     artists: track.trackArtists.map((artist) => ({
       name: artist.artist.name,
       id: artist.artist.id,

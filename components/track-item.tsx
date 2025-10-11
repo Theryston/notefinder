@@ -3,6 +3,8 @@ import { cn, getBiggestOne } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PlayIcon } from 'lucide-react';
+import { TrackStatus } from '@prisma/client';
+import { STATUS_INFO } from '@/lib/constants';
 
 export type Track = {
   id?: string;
@@ -12,6 +14,7 @@ export type Track = {
     url: string;
     width: number;
   }[];
+  status?: TrackStatus;
   videoId: string;
 };
 
@@ -48,7 +51,7 @@ export function TrackItem({
 
   return (
     <div
-      key={`${track.artists[0].name}-${track.title}`}
+      key={`${track.artists[0].name}-${track.title}-${Math.random()}`}
       className={cn('w-full h-full relative rounded-md p-2 group', {
         'flex gap-2': format === 'line',
         'hover:bg-primary/10': !!href,
@@ -73,7 +76,7 @@ export function TrackItem({
           onGoToTrack={onGoToTrack}
         />
       )}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 w-full">
         <TrackDetails track={track} href={href} onGoToTrack={onGoToTrack} />
         {appendFooter}
       </div>
@@ -91,21 +94,40 @@ function TrackDetails({
   onGoToTrack?: () => void;
 }) {
   const firstArtist = track.artists[0];
+  const statusInfo =
+    track.status && track.status !== 'COMPLETED'
+      ? STATUS_INFO[track.status]
+      : null;
 
   return (
     <>
-      {href ? (
-        <Link href={href} className="font-medium hover:text-primary">
-          {track.title}
-        </Link>
-      ) : (
-        <div
-          className="font-medium hover:text-primary cursor-pointer"
-          onClick={onGoToTrack}
-        >
-          {track.title}
-        </div>
-      )}
+      <div className="flex gap-1 items-center w-full justify-between flex-wrap">
+        {href ? (
+          <Link href={href} className="font-medium hover:text-primary">
+            {track.title}
+          </Link>
+        ) : (
+          <div
+            className="font-medium hover:text-primary cursor-pointer"
+            onClick={onGoToTrack}
+          >
+            {track.title}
+          </div>
+        )}
+        {statusInfo && (
+          <span
+            className={[
+              'text-xs px-2 py-0.5 rounded-full font-medium',
+              track.status === 'ERROR'
+                ? 'bg-destructive/10 text-destructive border border-destructive/20'
+                : 'bg-primary/10 text-primary border border-primary/20',
+            ].join(' ')}
+            style={{ marginLeft: 6 }}
+          >
+            {statusInfo.title}
+          </span>
+        )}
+      </div>
       {firstArtist.id ? (
         <Link
           href={`/artists/${firstArtist.id}`}
@@ -140,23 +162,24 @@ function TrackImage({
   onGoToTrack?: () => void;
 }) {
   return (
-    <div className="relative">
+    <div
+      className={cn('relative rounded-md overflow-hidden flex-shrink-0', {
+        'size-20': format === 'line',
+      })}
+    >
+      <Image
+        src={`https://image.coollabs.io/image/${biggestThumbnail.url}`}
+        alt={track.title}
+        fill
+        className="object-cover"
+        unoptimized
+      />
       <div
-        className="group-hover:opacity-100 opacity-0 transition-opacity duration-300 bg-black/50 absolute -top-0 -left-0 -right-0 -bottom-0 z-20 rounded-md flex items-center justify-center cursor-pointer"
+        className="group-hover:opacity-100 opacity-0 transition-opacity duration-300 bg-black/50 absolute inset-0 z-20 flex items-center justify-center cursor-pointer"
         onClick={onGoToTrack}
       >
         <PlayIcon className="size-6 text-white" />
       </div>
-      <Image
-        src={`https://image.coollabs.io/image/${biggestThumbnail.url}`}
-        alt={track.title}
-        width={500}
-        height={500}
-        className={cn('rounded-md z-10', {
-          'w-20 h-20 object-cover': format === 'line',
-        })}
-        unoptimized
-      />
     </div>
   );
 }
