@@ -4,6 +4,7 @@ import { getTrackCached } from '@/lib/services/track/get-track-cached';
 import { getBiggestOne } from '@/lib/utils';
 import moment from 'moment';
 import { TrackActions } from './track-actions';
+import { auth } from '@/auth';
 
 type Track = Awaited<ReturnType<typeof getTrackCached>>;
 
@@ -33,7 +34,8 @@ function formatViews(views?: number | null) {
   return '—';
 }
 
-export function TrackOverview({ track }: { track: NonNullable<Track> }) {
+export async function TrackOverview({ track }: { track: NonNullable<Track> }) {
+  const session = await auth();
   const thumbnails = track.thumbnails ?? [];
   const biggest = thumbnails.length
     ? (getBiggestOne(thumbnails, 'width') as (typeof thumbnails)[number])
@@ -85,7 +87,11 @@ export function TrackOverview({ track }: { track: NonNullable<Track> }) {
                     ))}
                   </div>
                 </div>
-                <TrackActions trackTitle={track.title} trackId={track.id} />
+                <TrackActions
+                  isLoggedIn={!!session}
+                  trackTitle={track.title}
+                  trackId={track.id}
+                />
               </div>
 
               <div className="flex flex-wrap items-center gap-2">

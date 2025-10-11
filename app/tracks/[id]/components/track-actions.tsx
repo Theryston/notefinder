@@ -15,9 +15,11 @@ import { toast } from 'sonner';
 import { handleFavoriteTrack } from '../actions';
 
 export function TrackActions({
+  isLoggedIn,
   trackTitle,
   trackId,
 }: {
+  isLoggedIn: boolean;
   trackTitle: string | null;
   trackId: string;
 }) {
@@ -30,13 +32,14 @@ export function TrackActions({
   const [isOpenShareModal, setIsOpenShareModal] = useState(false);
 
   useEffect(() => {
+    if (!isLoggedIn) return;
     if (hasDoneInitialFetch.current) return;
     hasDoneInitialFetch.current = true;
     const formData = new FormData();
     formData.append('trackId', trackId);
     formData.append('ignoreAction', 'true');
     handleFavorite(formData);
-  }, [handleFavorite, trackId]);
+  }, [handleFavorite, trackId, isLoggedIn]);
 
   useEffect(() => {
     setIsFavorite(state?.isFavorite);
@@ -44,16 +47,23 @@ export function TrackActions({
 
   return (
     <div className="flex flex-wrap gap-2 h-fit w-fit">
-      <form action={handleFavorite}>
-        <input type="hidden" name="trackId" value={trackId} />
-        <Button size="icon" variant="ghost" isLoading={isPending} type="submit">
-          {isFavorite ? (
-            <HeartIcon fill="#fff" className="size-4" />
-          ) : (
-            <HeartIcon className="size-4" />
-          )}
-        </Button>
-      </form>
+      {isLoggedIn && (
+        <form action={handleFavorite}>
+          <input type="hidden" name="trackId" value={trackId} />
+          <Button
+            size="icon"
+            variant="ghost"
+            isLoading={isPending}
+            type="submit"
+          >
+            {isFavorite ? (
+              <HeartIcon fill="#fff" className="size-4" />
+            ) : (
+              <HeartIcon className="size-4" />
+            )}
+          </Button>
+        </form>
+      )}
 
       <Button
         size="icon"
