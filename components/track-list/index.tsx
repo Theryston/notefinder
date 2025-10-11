@@ -16,11 +16,13 @@ export type PaginationType = {
 };
 
 export function TrackList({
+  itemVariant = 'default',
   tracks: initialTracks,
   title,
   customAction,
   pagination,
 }: {
+  itemVariant?: 'default' | 'numbered';
   tracks: Track[];
   title?: string;
   customAction?: React.ReactNode;
@@ -61,6 +63,8 @@ export function TrackList({
     }
   };
 
+  if (tracks.length === 0) return null;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2">
@@ -69,11 +73,18 @@ export function TrackList({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {tracks.map((track) => (
+        {tracks.map((track, index) => (
           <TrackItem
             key={track.videoId}
             track={track}
             href={`/tracks/${track.id}`}
+            customThumbnail={
+              itemVariant === 'numbered' && (
+                <div className="text-xl font-bold size-20 flex items-center justify-center">
+                  {(index + 1).toString().padStart(2, '0')}
+                </div>
+              )
+            }
           />
         ))}
       </div>
