@@ -5,7 +5,10 @@ import {
 } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
-import { unstable_cache as cache } from 'next/cache';
+import {
+  unstable_cacheTag as cacheTag,
+  unstable_cacheLife as cacheLife,
+} from 'next/cache';
 import moment from 'moment';
 
 type GetTrackCached = {
@@ -13,18 +16,14 @@ type GetTrackCached = {
 };
 
 export async function getTrackCached({ id }: GetTrackCached) {
-  const fetch = cache(
-    async () => {
-      return await prisma.track.findFirst({
-        where: { id },
-        include: FULL_TRACK_INCLUDE,
-      });
-    },
-    [`track_${id}`],
-    { revalidate: false, tags: [`track_${id}`] },
-  );
+  'use cache: remote';
+  cacheLife('max');
+  cacheTag(`track_${id}`);
 
-  return await fetch();
+  return await prisma.track.findFirst({
+    where: { id },
+    include: FULL_TRACK_INCLUDE,
+  });
 }
 
 export type GetTrackCustomWhereWithCacheConditions = {
@@ -38,7 +37,6 @@ export type GetTrackCustomWhereWithCache = {
   cacheTags?: string[];
   take?: number;
   page?: number;
-  revalidate?: number;
 };
 
 export const getTrackCustomWhereWithCache = async ({
@@ -47,11 +45,13 @@ export const getTrackCustomWhereWithCache = async ({
   take = 10,
   page = 1,
   orderBy = 'default',
-  revalidate = 60 * 60 * 12,
 }: GetTrackCustomWhereWithCache): Promise<{
   tracks: MinimalTrack[];
   total: number;
 }> => {
+  'use cache: remote';
+  cacheLife('max');
+
   const skip = (page - 1) * take;
   const tags = [
     ...cacheTags,
@@ -62,6 +62,8 @@ export const getTrackCustomWhereWithCache = async ({
         `tracks_condition_${condition.key}_${(Array.isArray(condition.value) ? condition.value.join(',') : condition.value)?.slice(0, 50)}`,
     ),
   ];
+
+  tags.forEach((tag) => cacheTag(tag));
 
   const where: Prisma.TrackWhereInput = {};
 
@@ -88,29 +90,21 @@ export const getTrackCustomWhereWithCache = async ({
     }
   }
 
-  const fetch = cache(
-    async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const tracks: any = await prisma.track.findMany({
-        where,
-        include: MINIMAL_TRACK_INCLUDE,
-        orderBy:
-          orderBy === 'default'
-            ? [{ score: 'desc' }, { createdAt: 'desc' }]
-            : { createdAt: 'desc' },
-        take,
-        skip,
-      });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tracks: any = await prisma.track.findMany({
+    where,
+    include: MINIMAL_TRACK_INCLUDE,
+    orderBy:
+      orderBy === 'default'
+        ? [{ score: 'desc' }, { createdAt: 'desc' }]
+        : { createdAt: 'desc' },
+    take,
+    skip,
+  });
 
-      const total = await prisma.track.count({ where });
+  const total = await prisma.track.count({ where });
 
-      return { tracks, total };
-    },
-    tags,
-    { revalidate, tags },
-  );
-
-  return await fetch();
+  return { tracks, total };
 };
 
 export const getTopViewedToday = async (

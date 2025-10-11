@@ -8,7 +8,6 @@ import {
 } from '@/lib/services/track/get-track-cached';
 import { dbTrackToTrackItem } from '@/lib/utils';
 import { SearchIcon } from 'lucide-react';
-import { unstable_cache as cache } from 'next/cache';
 import Link from 'next/link';
 
 export default async function Home() {
@@ -41,20 +40,10 @@ export default async function Home() {
 
   previousExploreTracksIds = exploreTracks.map((track) => track.id);
 
-  const topViewed = cache(
-    async () =>
-      await getTopViewedToday(
-        take,
-        exploreTracks.map((track) => track.id),
-      ),
-    ['tracks_top_viewed_today'],
-    {
-      revalidate: 60 * 5,
-      tags: ['tracks_top_viewed_today'],
-    },
+  const topViewedTracks = await getTopViewedToday(
+    take,
+    exploreTracks.map((track) => track.id),
   );
-
-  const topViewedTracks = await topViewed();
 
   if (topViewedTracks.length > 0) {
     sections.push(
@@ -81,7 +70,6 @@ export default async function Home() {
     page,
     cacheTags: ['tracks_new'],
     orderBy: 'createdAt',
-    revalidate: 60 * 60,
   });
 
   if (newTracks.length > 0) {
