@@ -1,9 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { getTrackCached } from '@/lib/services/track/get-track-cached';
-import { cn, getBiggestOne } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { getBiggestOne } from '@/lib/utils';
 import moment from 'moment';
+import { TrackActions } from './track-actions';
 
 type Track = Awaited<ReturnType<typeof getTrackCached>>;
 
@@ -67,22 +67,25 @@ export function TrackOverview({ track }: { track: NonNullable<Track> }) {
             </div>
 
             <div className="flex flex-col gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-                  {track.title ?? 'Sem título'}
-                </h1>
-                <div className="flex flex-wrap gap-2 mt-1 text-sm text-muted-foreground">
-                  {artists.map((artist, index) => (
-                    <Link
-                      href={`/artists/${artist.id}`}
-                      key={artist.id}
-                      className="hover:text-primary"
-                    >
-                      {artist.name}
-                      {index < artists.length - 1 && <span>, </span>}
-                    </Link>
-                  ))}
+              <div className="flex flex-col md:flex-row gap-1 md:justify-between">
+                <div className="flex flex-col gap-1">
+                  <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
+                    {track.title ?? 'Sem título'}
+                  </h1>
+                  <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                    {artists.map((artist, index) => (
+                      <Link
+                        href={`/artists/${artist.id}`}
+                        key={artist.id}
+                        className="hover:text-primary"
+                      >
+                        {artist.name}
+                        {index < artists.length - 1 && <span>, </span>}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
+                <TrackActions trackTitle={track.title} trackId={track.id} />
               </div>
 
               <div className="flex flex-wrap items-center gap-2">

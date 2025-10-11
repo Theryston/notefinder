@@ -24,11 +24,44 @@ model User {
   accounts              Account[]
   emailVerificationCode EmailVerificationCode[]
   forgotPasswordCode    ForgotPasswordCode[]
+  userSessionVisibility UserSessionVisibility[]
   tracks                Track[]
   notes                 TrackNote[]
   trackViews            TrackView[]
+  userFavoriteTracks    UserFavoriteTrack[]
 
   @@map("users")
+}
+
+model UserFavoriteTrack {
+  id        String   @id @default(cuid()) @map("id")
+  userId    String   @map("user_id")
+  trackId   String   @map("track_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@map("user_favorite_tracks")
+}
+
+enum UserSessionVisibilityValue {
+  PUBLIC
+  ME_ONLY
+}
+
+model UserSessionVisibility {
+  id        String                     @id @default(cuid()) @map("id")
+  userId    String                     @map("user_id")
+  key       String                     @map("key")
+  value     UserSessionVisibilityValue @map("value")
+  createdAt DateTime                   @default(now()) @map("created_at")
+  updatedAt DateTime                   @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_session_visibilities")
 }
 
 model Account {
@@ -108,12 +141,13 @@ model Track {
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
 
-  creator      User          @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  album        Album?        @relation(fields: [albumId], references: [id], onDelete: Cascade)
-  thumbnails   Thumbnail[]
-  trackArtists TrackArtist[]
-  notes        TrackNote[]
-  views        TrackView[]
+  creator            User                @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  album              Album?              @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  thumbnails         Thumbnail[]
+  trackArtists       TrackArtist[]
+  notes              TrackNote[]
+  views              TrackView[]
+  userFavoriteTracks UserFavoriteTrack[]
 
   @@map("tracks")
 }

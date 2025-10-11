@@ -21,6 +21,57 @@ export const createTrackView = async (formData: FormData) => {
   });
 };
 
+export const handleFavoriteTrack = async (
+  prevState: { isFavorite: boolean },
+  formData: FormData,
+): Promise<{ isFavorite: boolean }> => {
+  const trackId = formData.get('trackId');
+  const ignoreAction = formData.get('ignoreAction');
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return {
+      isFavorite: prevState?.isFavorite,
+    };
+  }
+
+  try {
+    const favorite = await prisma.userFavoriteTrack.findFirst({
+      where: {
+        userId: session.user.id,
+        trackId: trackId as string,
+      },
+    });
+
+    if (ignoreAction === 'true') {
+      return { isFavorite: !!favorite };
+    }
+
+    if (favorite) {
+      await prisma.userFavoriteTrack.delete({
+        where: { id: favorite.id },
+      });
+
+      return {
+        isFavorite: false,
+      };
+    } else {
+      await prisma.userFavoriteTrack.create({
+        data: { userId: session.user.id, trackId: trackId as string },
+      });
+
+      return {
+        isFavorite: true,
+      };
+    }
+  } catch (error) {
+    console.error(error);
+    return {
+      isFavorite: prevState?.isFavorite,
+    };
+  }
+};
+
 export const revalidateTrack = async (formData: FormData) => {
   const trackId = formData.get('trackId');
   if (!trackId) return;
