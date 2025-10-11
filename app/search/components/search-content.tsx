@@ -78,13 +78,13 @@ export async function SearchContent({ query }: { query: string }) {
     >
       {!hasTracks && query.length > 0 && (
         <p className="text-sm text-muted-foreground text-center">
-          Nenhuma música encontrada.
+          Nenhuma música encontrada 🥲
         </p>
       )}
 
       {!hasTracks && query.length === 0 && (
         <p className="text-sm text-muted-foreground text-center">
-          Digite algo para buscar músicas.
+          Digite algo para buscar a música 😤
         </p>
       )}
 
