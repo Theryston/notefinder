@@ -27,6 +27,11 @@ async function updateTrackStatus(
     },
     include: {
       creator: true,
+      trackArtists: {
+        include: {
+          artist: true,
+        },
+      },
     },
   });
 
@@ -51,6 +56,10 @@ async function updateTrackStatus(
       subject: `As notas da música ${currentTrack.title} estão disponíveis`,
       react: CompletedEmail({ track: currentTrack }),
     });
+
+    for (const artist of currentTrack.trackArtists) {
+      revalidateTag(`artist_${artist.artist.id}`);
+    }
   }
 
   if (currentTrack.status !== newStatus && newStatus === 'ERROR') {
