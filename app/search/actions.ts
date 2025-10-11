@@ -87,6 +87,9 @@ export const onAddNotes = async (
     }
 
     const track = await prisma.track.create({
+      include: {
+        creator: true,
+      },
       data: {
         creator: { connect: { id: session.user.id } },
         status: 'QUEUED',
@@ -119,6 +122,7 @@ export const onAddNotes = async (
     }
 
     revalidateTag(`track_${track.ytId}`);
+    revalidateTag(`user_${track.creator.username}`);
     redirect(`/tracks/${track.id}`);
   } catch (error) {
     if (isNextRedirectError(error)) throw error;

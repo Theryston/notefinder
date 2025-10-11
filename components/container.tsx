@@ -3,7 +3,7 @@ import { Footer } from './footer';
 import { auth } from '@/auth';
 import { User } from '@prisma/client';
 import { redirect } from 'next/navigation';
-import { getUserById } from '@/lib/services/users/get-user-by-id';
+import { getUserById } from '@/lib/services/users/get-user';
 
 type Props = {
   children: React.ReactNode;

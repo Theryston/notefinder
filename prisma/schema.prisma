@@ -24,7 +24,7 @@ model User {
   accounts              Account[]
   emailVerificationCode EmailVerificationCode[]
   forgotPasswordCode    ForgotPasswordCode[]
-  userSessionVisibility UserSessionVisibility[]
+  userSectionVisibility UserSectionVisibility[]
   tracks                Track[]
   notes                 TrackNote[]
   trackViews            TrackView[]
@@ -46,22 +46,22 @@ model UserFavoriteTrack {
   @@map("user_favorite_tracks")
 }
 
-enum UserSessionVisibilityValue {
+enum UserSectionVisibilityValue {
   PUBLIC
   ME_ONLY
 }
 
-model UserSessionVisibility {
+model UserSectionVisibility {
   id        String                     @id @default(cuid()) @map("id")
   userId    String                     @map("user_id")
   key       String                     @map("key")
-  value     UserSessionVisibilityValue @map("value")
+  value     UserSectionVisibilityValue @map("value")
   createdAt DateTime                   @default(now()) @map("created_at")
   updatedAt DateTime                   @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("user_session_visibilities")
+  @@map("user_section_visibilities")
 }
 
 model Account {
@@ -137,6 +137,7 @@ model Track {
   durationSeconds   Int?        @map("duration_seconds")
   isExplicit        Boolean?    @map("is_explicit")
   albumId           String?     @map("album_id")
+  score             Int         @default(0) @map("score")
   creatorId         String      @map("creator_id")
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")

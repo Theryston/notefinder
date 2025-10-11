@@ -13,12 +13,22 @@ export const createTrackView = async (formData: FormData) => {
 
   if (!session?.user?.id) return;
 
+  const user = await prisma.user.findFirst({
+    where: {
+      id: session.user.id,
+    },
+  });
+
+  if (!user) return;
+
   await prisma.trackView.create({
     data: {
       trackId: trackId as string,
       userId: session.user.id,
     },
   });
+
+  revalidateTag(`user_${user.username}`);
 };
 
 export const handleFavoriteTrack = async (
@@ -30,6 +40,18 @@ export const handleFavoriteTrack = async (
   const session = await auth();
 
   if (!session?.user?.id) {
+    return {
+      isFavorite: prevState?.isFavorite,
+    };
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      id: session.user.id,
+    },
+  });
+
+  if (!user) {
     return {
       isFavorite: prevState?.isFavorite,
     };
@@ -52,6 +74,8 @@ export const handleFavoriteTrack = async (
         where: { id: favorite.id },
       });
 
+      revalidateTag(`user_${user.username}`);
+
       return {
         isFavorite: false,
       };
@@ -59,6 +83,8 @@ export const handleFavoriteTrack = async (
       await prisma.userFavoriteTrack.create({
         data: { userId: session.user.id, trackId: trackId as string },
       });
+
+      revalidateTag(`user_${user.username}`);
 
       return {
         isFavorite: true,
@@ -76,7 +102,17 @@ export const revalidateTrack = async (formData: FormData) => {
   const trackId = formData.get('trackId');
   if (!trackId) return;
 
+  const track = await prisma.track.findUnique({
+    where: { id: trackId as string },
+    include: {
+      creator: true,
+    },
+  });
+
+  if (!track) return;
+
   revalidateTag(`track_${trackId}`);
+  revalidateTag(`user_${track.creator.username}`);
   revalidatePath(`/tracks/${trackId}`);
   redirect(`/tracks/${trackId}`);
 };

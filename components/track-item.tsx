@@ -2,17 +2,16 @@ import { Thumbnail } from '@/lib/services/notefinder-ytmusic/types';
 import { cn, getBiggestOne } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Button } from './ui/button';
 import { PlayIcon } from 'lucide-react';
 
-type Track = {
+export type Track = {
+  id?: string;
   title: string;
   artists: { name: string; id?: string }[];
   thumbnails?: {
     url: string;
     width: number;
   }[];
-  onGoToTrack?: () => void;
   videoId: string;
 };
 
@@ -32,7 +31,7 @@ export function TrackItem({
   appendFooter,
   customThumbnail,
   href,
-  onGoToTrack = () => {},
+  onGoToTrack,
 }: Props) {
   let biggestThumbnail = getBiggestOne(
     track.thumbnails || [],
@@ -89,7 +88,7 @@ function TrackDetails({
 }: {
   track: Track;
   href?: string;
-  onGoToTrack: () => void;
+  onGoToTrack?: () => void;
 }) {
   const firstArtist = track.artists[0];
 
@@ -138,7 +137,7 @@ function TrackImage({
   track: Track;
   format: 'line';
   biggestThumbnail: Thumbnail;
-  onGoToTrack: () => void;
+  onGoToTrack?: () => void;
 }) {
   return (
     <div className="relative">

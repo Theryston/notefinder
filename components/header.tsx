@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { getUserByIdWithCache } from '@/lib/services/users/get-user-by-id';
+import { getUserByIdWithCache } from '@/lib/services/users/get-user';
 import { Suspense } from 'react';
 
 export async function Header() {

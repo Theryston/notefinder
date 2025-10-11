@@ -17,6 +17,9 @@ async function createThumbnail(
 
   const track = await prisma.track.findUnique({
     where: { id },
+    include: {
+      creator: true,
+    },
   });
 
   if (!track) {
@@ -33,6 +36,7 @@ async function createThumbnail(
   });
 
   revalidateTag(`track_${id}`);
+  revalidateTag(`user_${track.creator.username}`);
 
   return NextResponse.json(thumbnail);
 }

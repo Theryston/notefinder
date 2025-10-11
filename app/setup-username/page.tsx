@@ -2,7 +2,7 @@ import { auth } from '@/auth';
 import { Container } from '@/components/container';
 import { redirect } from 'next/navigation';
 import { UsernameForm } from './components/username-form';
-import { getUserByIdWithCache } from '@/lib/services/users/get-user-by-id';
+import { getUserByIdWithCache } from '@/lib/services/users/get-user';
 
 export default async function SetupUsername({
   searchParams,

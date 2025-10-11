@@ -65,6 +65,7 @@ async function updateTrackStatus(
   }
 
   revalidateTag(`track_${id}`);
+  revalidateTag(`user_${currentTrack.creator.username}`);
 
   return NextResponse.json(
     { message: 'Track status updated' },
