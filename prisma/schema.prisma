@@ -142,15 +142,31 @@ model Track {
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
 
-  creator            User                @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  album              Album?              @relation(fields: [albumId], references: [id], onDelete: Cascade)
-  thumbnails         Thumbnail[]
-  trackArtists       TrackArtist[]
-  notes              TrackNote[]
-  views              TrackView[]
-  userFavoriteTracks UserFavoriteTrack[]
+  creator              User                  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  album                Album?                @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  thumbnails           Thumbnail[]
+  trackArtists         TrackArtist[]
+  notes                TrackNote[]
+  views                TrackView[]
+  userFavoriteTracks   UserFavoriteTrack[]
+  trackCalculationJobs TrackCalculationJob[]
 
   @@map("tracks")
+}
+
+model TrackCalculationJob {
+  id        String    @id @default(cuid()) @map("id")
+  trackId   String    @map("track_id")
+  jobId     String    @map("job_id")
+  startAt   DateTime  @map("start_at")
+  endAt     DateTime? @map("end_at")
+  score     Int?      @map("score")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@map("track_calculation_jobs")
 }
 
 model TrackView {

@@ -77,3 +77,5 @@ export const STATUS_INFO: Record<TrackStatus, StatusInfo> = {
     showBar: false,
   },
 };
+
+export const CALCULATE_TRACK_SCORE_JOB_DELAY = 1000 * 60 * 60 * 1; // 1 hour

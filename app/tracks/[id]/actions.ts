@@ -2,8 +2,13 @@
 
 import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
+import { calculateTrackScoreJob } from '@/lib/services/track/calculate-score-job';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
+
+export const calculateTrackScore = async (trackId: string) => {
+  await calculateTrackScoreJob(trackId);
+};
 
 export const createTrackView = async (formData: FormData) => {
   const trackId = formData.get('trackId');

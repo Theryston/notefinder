@@ -6,7 +6,7 @@ import { Resend } from 'resend';
 import { CompletedEmail } from './completed-email';
 import { ErrorEmail } from './error-email';
 import { withMiddleware } from '@/lib/with-middleware';
-import { trackMiddleware } from '../track-middleware';
+import { apiKeyMiddleware } from '@/lib/api-key-middleware';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -97,4 +97,4 @@ export async function GET(
   });
 }
 
-export const PUT = withMiddleware(trackMiddleware, updateTrackStatus);
+export const PUT = withMiddleware(apiKeyMiddleware, updateTrackStatus);

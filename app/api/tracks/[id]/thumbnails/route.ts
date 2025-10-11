@@ -2,7 +2,7 @@ import prisma from '@/lib/prisma';
 import { withMiddleware } from '@/lib/with-middleware';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
-import { trackMiddleware } from '../track-middleware';
+import { apiKeyMiddleware } from '@/lib/api-key-middleware';
 
 async function createThumbnail(
   request: Request,
@@ -41,4 +41,4 @@ async function createThumbnail(
   return NextResponse.json(thumbnail);
 }
 
-export const POST = withMiddleware(trackMiddleware, createThumbnail);
+export const POST = withMiddleware(apiKeyMiddleware, createThumbnail);
