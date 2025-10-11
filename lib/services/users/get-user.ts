@@ -1,3 +1,4 @@
+import { MINIMAL_TRACK_INCLUDE } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import { unstable_cache as cache } from 'next/cache';
 
@@ -20,23 +21,13 @@ export const getUserByUsernameWithCache = async (username: string) => {
           tracks: {
             orderBy: { createdAt: 'desc' },
             take: 10,
-            include: {
-              trackArtists: {
-                include: { artist: true },
-              },
-              thumbnails: true,
-            },
+            include: MINIMAL_TRACK_INCLUDE,
           },
           userSectionVisibility: true,
           userFavoriteTracks: {
             include: {
               track: {
-                include: {
-                  trackArtists: {
-                    include: { artist: true },
-                  },
-                  thumbnails: true,
-                },
+                include: MINIMAL_TRACK_INCLUDE,
               },
             },
           },
@@ -45,12 +36,7 @@ export const getUserByUsernameWithCache = async (username: string) => {
             take: 10,
             include: {
               track: {
-                include: {
-                  trackArtists: {
-                    include: { artist: true },
-                  },
-                  thumbnails: true,
-                },
+                include: MINIMAL_TRACK_INCLUDE,
               },
             },
           },

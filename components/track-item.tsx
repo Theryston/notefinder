@@ -41,12 +41,14 @@ export function TrackItem({
     'width',
   ) as Thumbnail;
 
+  let isPlaceholder = false;
   if (!biggestThumbnail) {
     biggestThumbnail = {
       url: '/track-placeholder.png',
       width: 500,
       height: 500,
     };
+    isPlaceholder = true;
   }
 
   return (
@@ -66,6 +68,7 @@ export function TrackItem({
             format={format}
             biggestThumbnail={biggestThumbnail}
             onGoToTrack={onGoToTrack}
+            isPlaceholder={isPlaceholder}
           />
         </Link>
       ) : (
@@ -74,6 +77,7 @@ export function TrackItem({
           format={format}
           biggestThumbnail={biggestThumbnail}
           onGoToTrack={onGoToTrack}
+          isPlaceholder={isPlaceholder}
         />
       )}
       <div className="flex flex-col gap-1 w-full">
@@ -155,11 +159,13 @@ function TrackImage({
   format,
   biggestThumbnail,
   onGoToTrack,
+  isPlaceholder,
 }: {
   track: Track;
   format: 'line';
   biggestThumbnail: Thumbnail;
   onGoToTrack?: () => void;
+  isPlaceholder?: boolean;
 }) {
   return (
     <div
@@ -168,7 +174,11 @@ function TrackImage({
       })}
     >
       <Image
-        src={`https://image.coollabs.io/image/${biggestThumbnail.url}`}
+        src={
+          isPlaceholder
+            ? biggestThumbnail.url
+            : `https://image.coollabs.io/image/${biggestThumbnail.url}`
+        }
         alt={track.title}
         fill
         className="object-cover"

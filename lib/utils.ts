@@ -9,7 +9,7 @@ import {
   UserSectionVisibilityValue,
 } from '@prisma/client';
 import { Track as TrackItemType } from '@/components/track-item';
-import { DEFAULT_SECTION_VISIBILITY } from './constants';
+import { DEFAULT_SECTION_VISIBILITY, MinimalTrack } from './constants';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -78,12 +78,7 @@ export function canShowSession({
   return visibilityValue === UserSectionVisibilityValue.PUBLIC;
 }
 
-export function dbTrackToTrackItem(
-  track: DbTrack & {
-    trackArtists: { artist: Artist }[];
-    thumbnails: Thumbnail[];
-  },
-): TrackItemType {
+export function dbTrackToTrackItem(track: MinimalTrack): TrackItemType {
   return {
     id: track.id,
     title: track.title ?? '',
