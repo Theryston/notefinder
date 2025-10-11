@@ -27,8 +27,8 @@ export const getUserByUsernameWithCache = async (
   User & {
     tracks: MinimalTrack[];
     userSectionVisibility: UserSectionVisibility[];
-    userFavoriteTracks: UserFavoriteTrack[];
-    trackViews: TrackView[];
+    userFavoriteTracks: (UserFavoriteTrack & { track: MinimalTrack })[];
+    trackViews: (TrackView & { track: MinimalTrack })[];
     _count: {
       tracks: number;
       userFavoriteTracks: number;
