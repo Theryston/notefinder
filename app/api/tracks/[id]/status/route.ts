@@ -60,6 +60,10 @@ async function updateTrackStatus(
     for (const artist of currentTrack.trackArtists) {
       revalidateTag(`artist_${artist.artist.id}`);
     }
+
+    if (currentTrack.albumId) {
+      revalidateTag(`album_${currentTrack.albumId}`);
+    }
   }
 
   if (currentTrack.status !== newStatus && newStatus === 'ERROR') {
