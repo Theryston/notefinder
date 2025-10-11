@@ -111,6 +111,10 @@ export const getTopViewedToday = async (
   take: number,
   ignoreIds: string[],
 ): Promise<MinimalTrack[]> => {
+  'use cache: remote';
+  cacheLife('max');
+  cacheTag(`tracks_top_viewed_today_${take}_${ignoreIds.join(',')}`);
+
   const endOfDay = moment().endOf('day');
   const startOfDay = moment().startOf('day');
 
