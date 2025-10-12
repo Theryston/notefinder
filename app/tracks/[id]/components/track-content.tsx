@@ -4,8 +4,12 @@ import { TrackOverview } from './track-overview';
 import { Timeline } from '@/components/timeline';
 import { CalculateScore } from './calculate-score';
 import { FullTrack } from '@/lib/constants';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 export async function TrackContent({ track }: { track: FullTrack }) {
+  'use cache: remote';
+  cacheTag(`track_${track.id}`);
+
   if (!track) notFound();
 
   return (

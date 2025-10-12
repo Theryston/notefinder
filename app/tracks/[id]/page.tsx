@@ -7,16 +7,23 @@ import { FULL_TRACK_INCLUDE, FullTrack } from '@/lib/constants';
 import { Suspense } from 'react';
 import prisma from '@/lib/prisma';
 
+async function getTrack(id: string) {
+  'use cache: remote';
+  cacheTag(`track_${id}`);
+
+  return prisma.track.findFirst({
+    where: { id },
+    include: FULL_TRACK_INCLUDE,
+  });
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const track = await prisma.track.findFirst({
-    where: { id },
-    include: FULL_TRACK_INCLUDE,
-  });
+  const track = await getTrack(id);
 
   if (!track) notFound();
 
@@ -51,16 +58,9 @@ export default async function Track({
 }
 
 async function Content({ params }: { params: Promise<{ id: string }> }) {
-  'use cache: remote';
-
   const { id } = await params;
 
-  cacheTag(`track_${id}`);
-
-  const track = await prisma.track.findFirst({
-    where: { id },
-    include: FULL_TRACK_INCLUDE,
-  });
+  const track = await getTrack(id);
 
   if (!track) notFound();
 
