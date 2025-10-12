@@ -120,9 +120,9 @@ export async function TrackOverview({ track }: { track: FullTrack }) {
 
 function TrackActionsLoading() {
   return (
-    <div className="flex gap-2">
-      {Array.from({ length: 3 }).map((_, index) => (
-        <div key={index} className="w-24 h-8">
+    <div className="flex flex-wrap gap-2 h-fit w-fit">
+      {Array.from({ length: 2 }).map((_, index) => (
+        <div key={index} className="size-9">
           <Skeleton />
         </div>
       ))}
