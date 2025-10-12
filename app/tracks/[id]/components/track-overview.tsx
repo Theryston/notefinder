@@ -2,8 +2,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getBiggestOne } from '@/lib/utils';
 import moment from 'moment';
-// import { TrackActions } from './track-actions';
+import { TrackActions } from './track-actions';
 import { FullTrack } from '@/lib/constants';
+import { Suspense } from 'react';
+import { Skeleton } from '@/components/sheleton';
 
 function formatDuration(seconds?: number | null, fallback?: string | null) {
   if (typeof seconds === 'number' && Number.isFinite(seconds)) {
@@ -83,7 +85,10 @@ export async function TrackOverview({ track }: { track: FullTrack }) {
                     ))}
                   </div>
                 </div>
-                {/* <TrackActions trackTitle={track.title} trackId={track.id} /> */}
+
+                <Suspense fallback={<TrackActionsLoading />}>
+                  <TrackActions trackTitle={track.title} trackId={track.id} />
+                </Suspense>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -110,6 +115,18 @@ export async function TrackOverview({ track }: { track: FullTrack }) {
         </div>
       </div>
     </section>
+  );
+}
+
+function TrackActionsLoading() {
+  return (
+    <div className="flex gap-2">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div key={index} className="w-24 h-8">
+          <Skeleton />
+        </div>
+      ))}
+    </div>
   );
 }
 
