@@ -52,6 +52,7 @@ export default async function Track({
 
 async function Content({ params }: { params: Promise<{ id: string }> }) {
   'use cache: remote';
+
   const { id } = await params;
 
   cacheTag(`track_${id}`);
