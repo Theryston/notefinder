@@ -3,9 +3,9 @@ import { notFound } from 'next/navigation';
 import { ProcessingTrack } from './components/processing-track';
 import { TrackContent } from './components/track-content';
 import { unstable_cacheTag as cacheTag } from 'next/cache';
-import { FULL_TRACK_INCLUDE, FullTrack } from '@/lib/constants';
-import prisma from '@/lib/prisma';
+import { FullTrack } from '@/lib/constants';
 import { Suspense } from 'react';
+import { getTrackCached } from '@/lib/services/track/get-track-cached';
 
 export async function generateMetadata({
   params,
@@ -13,10 +13,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const track = await prisma.track.findFirst({
-    where: { id },
-    include: FULL_TRACK_INCLUDE,
-  });
+  const track = await getTrackCached({ id });
 
   if (!track) notFound();
 
@@ -56,10 +53,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
 
   cacheTag(`track_${id}`);
 
-  const track = await prisma.track.findFirst({
-    where: { id },
-    include: FULL_TRACK_INCLUDE,
-  });
+  const track = await getTrackCached({ id });
 
   if (!track) notFound();
 

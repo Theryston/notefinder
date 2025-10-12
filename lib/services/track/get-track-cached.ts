@@ -1,8 +1,31 @@
-import { MINIMAL_TRACK_INCLUDE, MinimalTrack } from '@/lib/constants';
+import {
+  FULL_TRACK_INCLUDE,
+  FullTrack,
+  MINIMAL_TRACK_INCLUDE,
+  MinimalTrack,
+} from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { unstable_cacheTag as cacheTag } from 'next/cache';
 import moment from 'moment';
+
+type GetTrackCached = {
+  id: string;
+};
+
+export async function getTrackCached({
+  id,
+}: GetTrackCached): Promise<FullTrack> {
+  'use cache: remote';
+  cacheTag(`track_${id}`);
+
+  const track = await prisma.track.findFirst({
+    where: { id },
+    include: FULL_TRACK_INCLUDE,
+  });
+
+  return track as unknown as FullTrack;
+}
 
 export type GetTrackCustomWhereWithCacheConditions = {
   key: 'artistId' | 'albumId' | 'completed_only' | 'ignore_ids';
