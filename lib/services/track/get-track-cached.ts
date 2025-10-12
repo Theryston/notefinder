@@ -107,7 +107,7 @@ export const getTrackCustomWhereWithCache = async ({
   return { tracks, total };
 };
 
-export const getTopViewedToday = async (
+export const getTopViewedLast24Hours = async (
   take: number,
   ignoreIds: string[],
 ): Promise<MinimalTrack[]> => {
@@ -118,16 +118,12 @@ export const getTopViewedToday = async (
     ...ignoreIds.map((id) => `track_${id}`),
   );
 
-  const endOfDay = moment().endOf('day');
-  const startOfDay = moment().startOf('day');
+  const last24Hours = moment().subtract(24, 'hours').toDate();
 
   const result: unknown[] = await prisma.trackView.groupBy({
     by: ['trackId'],
     where: {
-      createdAt: {
-        gte: startOfDay.toDate(),
-        lt: endOfDay.toDate(),
-      },
+      createdAt: { gte: last24Hours },
       trackId: { notIn: ignoreIds },
     },
     _count: {

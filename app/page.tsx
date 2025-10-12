@@ -2,7 +2,7 @@ import { Container } from '@/components/container';
 import { TrackList } from '@/components/track-list';
 import { Button } from '@/components/ui/button';
 import {
-  getTopViewedToday,
+  getTopViewedLast24Hours,
   getTrackCustomWhereWithCache,
   GetTrackCustomWhereWithCacheConditions,
 } from '@/lib/services/track/get-track-cached';
@@ -40,7 +40,7 @@ export default async function Home() {
 
   previousExploreTracksIds = exploreTracks.map((track) => track.id);
 
-  const topViewedTracks = await getTopViewedToday(
+  const topViewedTracks = await getTopViewedLast24Hours(
     take,
     exploreTracks.map((track) => track.id),
   );
