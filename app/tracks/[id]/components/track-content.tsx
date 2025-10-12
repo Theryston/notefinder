@@ -1,13 +1,11 @@
-import { getTrackCached } from '@/lib/services/track/get-track-cached';
 import { notFound } from 'next/navigation';
 import { AddView } from './add-view';
 import { TrackOverview } from './track-overview';
 import { Timeline } from '@/components/timeline';
 import { CalculateScore } from './calculate-score';
+import { FullTrack } from '@/lib/constants';
 
-type Track = Awaited<ReturnType<typeof getTrackCached>>;
-
-export async function TrackContent({ track }: { track: Track }) {
+export async function TrackContent({ track }: { track: FullTrack }) {
   if (!track) notFound();
 
   return (

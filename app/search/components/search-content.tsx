@@ -5,7 +5,14 @@ import { notefinderYtmusicSearch } from '@/lib/services/notefinder-ytmusic/ytmus
 import { CustomTrackItem } from './custom-track-item';
 import { getTracksByVideoIds } from '@/lib/services/track/get-track-cached';
 
-export async function SearchContent({ query }: { query: string }) {
+export async function SearchContent({
+  searchParams,
+}: {
+  searchParams: Promise<{ q: string }>;
+}) {
+  const params = await searchParams;
+  const query = params.q || '';
+
   let tracks: (NotefinderYtmusicSearchResponse & {
     existingTrack?: Track & { artists: Artist[] };
   })[] = [];

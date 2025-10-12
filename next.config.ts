@@ -1,8 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  expireTime: 31536000, // 1 year
-  experimental: { useCache: true },
+  experimental: { cacheComponents: true },
   images: {
     remotePatterns: [
       {

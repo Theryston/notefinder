@@ -37,9 +37,9 @@ export const createTrackView = async (formData: FormData) => {
 };
 
 export const handleFavoriteTrack = async (
-  prevState: { isFavorite: boolean },
+  prevState: { isFavorite: boolean; isLoggedIn: boolean },
   formData: FormData,
-): Promise<{ isFavorite: boolean }> => {
+): Promise<{ isFavorite: boolean; isLoggedIn: boolean }> => {
   const trackId = formData.get('trackId');
   const ignoreAction = formData.get('ignoreAction');
   const session = await auth();
@@ -47,6 +47,7 @@ export const handleFavoriteTrack = async (
   if (!session?.user?.id) {
     return {
       isFavorite: prevState?.isFavorite,
+      isLoggedIn: false,
     };
   }
 
@@ -59,6 +60,7 @@ export const handleFavoriteTrack = async (
   if (!user) {
     return {
       isFavorite: prevState?.isFavorite,
+      isLoggedIn: false,
     };
   }
 
@@ -71,7 +73,7 @@ export const handleFavoriteTrack = async (
     });
 
     if (ignoreAction === 'true') {
-      return { isFavorite: !!favorite };
+      return { isFavorite: !!favorite, isLoggedIn: true };
     }
 
     if (favorite) {
@@ -83,6 +85,7 @@ export const handleFavoriteTrack = async (
 
       return {
         isFavorite: false,
+        isLoggedIn: true,
       };
     } else {
       await prisma.userFavoriteTrack.create({
@@ -93,12 +96,14 @@ export const handleFavoriteTrack = async (
 
       return {
         isFavorite: true,
+        isLoggedIn: true,
       };
     }
   } catch (error) {
     console.error(error);
     return {
       isFavorite: prevState?.isFavorite,
+      isLoggedIn: true,
     };
   }
 };

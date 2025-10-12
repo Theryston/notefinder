@@ -1,9 +1,11 @@
 import { Container } from '@/components/container';
-import { getTrackCached } from '@/lib/services/track/get-track-cached';
 import { notFound } from 'next/navigation';
 import { ProcessingTrack } from './components/processing-track';
 import { TrackContent } from './components/track-content';
-import { auth } from '@/auth';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { FULL_TRACK_INCLUDE, FullTrack } from '@/lib/constants';
+import prisma from '@/lib/prisma';
+import { Suspense } from 'react';
 
 export async function generateMetadata({
   params,
@@ -11,7 +13,10 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const track = await getTrackCached({ id });
+  const track = await prisma.track.findFirst({
+    where: { id },
+    include: FULL_TRACK_INCLUDE,
+  });
 
   if (!track) notFound();
 
@@ -36,23 +41,42 @@ export default async function Track({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  return (
+    <Container pathname="/tracks/:id">
+      <Suspense fallback={null}>
+        <Content params={params} />
+      </Suspense>
+    </Container>
+  );
+}
+
+async function Content({ params }: { params: Promise<{ id: string }> }) {
+  'use cache: remote';
   const { id } = await params;
-  const track = await getTrackCached({ id });
-  const session = await auth();
+
+  cacheTag(`track_${id}`);
+
+  const track = await prisma.track.findFirst({
+    where: { id },
+    include: FULL_TRACK_INCLUDE,
+  });
 
   if (!track) notFound();
 
   return (
-    <Container pathname={`/tracks/${id}`}>
+    <>
       {track.status !== 'COMPLETED' && (
         <ProcessingTrack
           id={id}
           defaultStatus={track.status}
           defaultStatusDescription={track.statusDescription || undefined}
-          isCreator={session?.user?.id === track.creatorId}
+          creatorId={track.creatorId}
         />
       )}
-      {track.status === 'COMPLETED' && <TrackContent track={track} />}
-    </Container>
+
+      {track.status === 'COMPLETED' && (
+        <TrackContent track={track as unknown as FullTrack} />
+      )}
+    </>
   );
 }

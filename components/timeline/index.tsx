@@ -1,9 +1,7 @@
-import { getTrackCached } from '@/lib/services/track/get-track-cached';
 import { TimelineClient } from '@/components/timeline/timeline-client';
+import { FullTrack } from '@/lib/constants';
 
-type Track = Awaited<ReturnType<typeof getTrackCached>>;
-
-export function Timeline({ track }: { track: Track }) {
+export function Timeline({ track }: { track: FullTrack }) {
   if (!track) return null;
   if (!track.notes || track.notes.length === 0) return null;
   if (!track.ytId) return null;

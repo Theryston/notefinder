@@ -6,6 +6,7 @@ import { canShowSession, dbTrackToTrackItem } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import { UserOverview } from './components/overview';
 import { ToggleView } from './components/toggle-view';
+import { Suspense } from 'react';
 
 export async function generateMetadata({
   params,
@@ -32,6 +33,16 @@ export default async function Profile({
 }: {
   params: Promise<{ username: string }>;
 }) {
+  return (
+    <Container pathname="/profile">
+      <Suspense fallback={null}>
+        <Content params={params} />
+      </Suspense>
+    </Container>
+  );
+}
+
+async function Content({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
   const session = await auth();
 
@@ -131,17 +142,15 @@ export default async function Profile({
   }
 
   return (
-    <Container pathname="/profile">
-      <div className="flex flex-col gap-4">
-        <UserOverview user={user} />
-        {sections.length === 0 && (
-          <div className="mt-4 text-center text-sm text-muted-foreground">
-            Parece que {isMe ? 'você' : user.name} não tem informações{' '}
-            {isMe ? 'para mostrar' : 'públicas para mostrar'} 🥲
-          </div>
-        )}
-        {sections}
-      </div>
-    </Container>
+    <div className="flex flex-col gap-4">
+      <UserOverview user={user} />
+      {sections.length === 0 && (
+        <div className="mt-4 text-center text-sm text-muted-foreground">
+          Parece que {isMe ? 'você' : user.name} não tem informações{' '}
+          {isMe ? 'para mostrar' : 'públicas para mostrar'} 🥲
+        </div>
+      )}
+      {sections}
+    </div>
   );
 }

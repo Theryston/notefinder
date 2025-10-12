@@ -1,8 +1,12 @@
 import {
+  Album,
   Artist,
   Thumbnail,
   Track,
+  TrackArtist,
+  TrackNote,
   TrackStatus,
+  User,
   UserSectionVisibilityValue,
 } from '@prisma/client';
 
@@ -25,6 +29,15 @@ export const FULL_TRACK_INCLUDE = {
   creator: true,
   trackArtists: { include: { artist: true } },
   _count: { select: { views: true } },
+};
+
+export type FullTrack = Track & {
+  notes: TrackNote[];
+  thumbnails: Thumbnail[];
+  album: Album;
+  creator: User;
+  trackArtists: TrackArtist & { artist: Artist }[];
+  _count: { views: number };
 };
 
 export type StatusInfo = {

@@ -6,14 +6,10 @@ import {
   UserFavoriteTrack,
   UserSectionVisibility,
 } from '@prisma/client';
-import {
-  unstable_cacheTag as cacheTag,
-  unstable_cacheLife as cacheLife,
-} from 'next/cache';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 export const getUserByIdWithCache = async (id: string) => {
   'use cache: remote';
-  cacheLife('max');
   cacheTag(`user_${id}`);
 
   return await prisma.user.findFirst({
@@ -37,7 +33,6 @@ export const getUserByUsernameWithCache = async (
   }
 > => {
   'use cache: remote';
-  cacheLife('max');
   cacheTag(`user_${username}`);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

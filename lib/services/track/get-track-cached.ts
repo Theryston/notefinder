@@ -1,30 +1,8 @@
-import {
-  FULL_TRACK_INCLUDE,
-  MINIMAL_TRACK_INCLUDE,
-  MinimalTrack,
-} from '@/lib/constants';
+import { MINIMAL_TRACK_INCLUDE, MinimalTrack } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
-import {
-  unstable_cacheTag as cacheTag,
-  unstable_cacheLife as cacheLife,
-} from 'next/cache';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
 import moment from 'moment';
-
-type GetTrackCached = {
-  id: string;
-};
-
-export async function getTrackCached({ id }: GetTrackCached) {
-  'use cache: remote';
-  cacheLife('max');
-  cacheTag(`track_${id}`);
-
-  return await prisma.track.findFirst({
-    where: { id },
-    include: FULL_TRACK_INCLUDE,
-  });
-}
 
 export type GetTrackCustomWhereWithCacheConditions = {
   key: 'artistId' | 'albumId' | 'completed_only' | 'ignore_ids';
@@ -50,7 +28,6 @@ export const getTrackCustomWhereWithCache = async ({
   total: number;
 }> => {
   'use cache: remote';
-  cacheLife('max');
 
   const skip = (page - 1) * take;
   const tags = [
@@ -112,7 +89,6 @@ export const getTopViewedLast24Hours = async (
   ignoreIds: string[],
 ): Promise<MinimalTrack[]> => {
   'use cache: remote';
-  cacheLife('max');
   cacheTag(
     `tracks_top_viewed_today_${take}`,
     ...ignoreIds.map((id) => `track_${id}`),
@@ -123,7 +99,9 @@ export const getTopViewedLast24Hours = async (
   const result: unknown[] = await prisma.trackView.groupBy({
     by: ['trackId'],
     where: {
-      createdAt: { gte: last24Hours },
+      createdAt: {
+        gte: last24Hours,
+      },
       trackId: { notIn: ignoreIds },
     },
     _count: {
@@ -159,7 +137,6 @@ export const getTopViewedLast24Hours = async (
 
 export const getTracksByVideoIds = async (videoIds: string[]) => {
   'use cache: remote';
-  cacheLife('max');
   cacheTag('existing_tracks', ...videoIds.map((id) => `track_video_${id}`));
 
   return await prisma.track.findMany({

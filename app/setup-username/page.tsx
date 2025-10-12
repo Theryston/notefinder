@@ -3,8 +3,34 @@ import { Container } from '@/components/container';
 import { redirect } from 'next/navigation';
 import { UsernameForm } from './components/username-form';
 import { getUserByIdWithCache } from '@/lib/services/users/get-user';
+import { Suspense } from 'react';
 
 export default async function SetupUsername({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirectTo?: string }>;
+}) {
+  return (
+    <Container pathname="/setup-username">
+      <div className="max-w-sm mx-auto py-12">
+        <div className="flex flex-col gap-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-semibold">Definir nome de usuário</h1>
+            <p className="text-sm text-muted-foreground">
+              Escolha um nome de usuário único para o seu perfil.
+            </p>
+          </div>
+
+          <Suspense fallback={null}>
+            <Content searchParams={searchParams} />
+          </Suspense>
+        </div>
+      </div>
+    </Container>
+  );
+}
+
+async function Content({
   searchParams,
 }: {
   searchParams: Promise<{ redirectTo?: string }>;
@@ -20,20 +46,5 @@ export default async function SetupUsername({
   const user = await getUserByIdWithCache(session.user.id);
   if (user?.username) redirect(redirectTo);
 
-  return (
-    <Container pathname="/setup-username">
-      <div className="max-w-sm mx-auto py-12">
-        <div className="flex flex-col gap-6">
-          <div className="text-center">
-            <h1 className="text-2xl font-semibold">Definir nome de usuário</h1>
-            <p className="text-sm text-muted-foreground">
-              Escolha um nome de usuário único para o seu perfil.
-            </p>
-          </div>
-
-          <UsernameForm redirectTo={redirectTo} name={user?.name || ''} />
-        </div>
-      </div>
-    </Container>
-  );
+  return <UsernameForm redirectTo={redirectTo} name={user?.name || ''} />;
 }

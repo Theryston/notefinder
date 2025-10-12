@@ -7,6 +7,8 @@ import {
 } from '@/lib/services/track/get-track-cached';
 import { dbTrackToTrackItem } from '@/lib/utils';
 import { notFound } from 'next/navigation';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { Suspense } from 'react';
 
 export async function generateMetadata({
   params,
@@ -31,7 +33,21 @@ export default async function ArtistPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  return (
+    <Container pathname={`/artists/:id`}>
+      <Suspense fallback={null}>
+        <Content params={params} />
+      </Suspense>
+    </Container>
+  );
+}
+
+async function Content({ params }: { params: Promise<{ id: string }> }) {
+  'use cache: remote';
+
   const { id } = await params;
+  cacheTag(`artist_${id}`);
+
   const artist = await prisma.artist.findUnique({
     where: { id },
   });
@@ -56,18 +72,16 @@ export default async function ArtistPage({
   });
 
   return (
-    <Container pathname={`/artists/${id}`}>
-      <TrackList
-        title={`Músicas de ${artist.name}`}
-        tracks={tracks.map(dbTrackToTrackItem)}
-        pagination={{
-          total,
-          conditions,
-          page,
-          take,
-          cacheTags,
-        }}
-      />
-    </Container>
+    <TrackList
+      title={`Músicas de ${artist.name}`}
+      tracks={tracks.map(dbTrackToTrackItem)}
+      pagination={{
+        total,
+        conditions,
+        page,
+        take,
+        cacheTags,
+      }}
+    />
   );
 }

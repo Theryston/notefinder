@@ -4,13 +4,13 @@ import * as React from 'react';
 import Link from 'next/link';
 import { TrackStatus } from '@prisma/client';
 import { Button } from '@/components/ui/button';
-import { revalidateTrack } from '../actions';
+import { revalidateTrack } from '../../actions';
 import { PlayIcon } from 'lucide-react';
 import { useCallback } from 'react';
 import { Skeleton } from '@/components/sheleton';
 import { STATUS_INFO } from '@/lib/constants';
 
-export function ProcessingTrack({
+export function ProcessingTrackContent({
   id,
   defaultStatus,
   defaultStatusDescription,
@@ -18,8 +18,8 @@ export function ProcessingTrack({
 }: {
   id: string;
   defaultStatus: TrackStatus;
-  isCreator: boolean;
   defaultStatusDescription?: string;
+  isCreator: boolean;
 }) {
   const [status, setStatus] = React.useState<TrackStatus>(defaultStatus);
   const [statusDescription, setStatusDescription] = React.useState<

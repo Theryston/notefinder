@@ -19,7 +19,7 @@ import {
 import { getUserByIdWithCache } from '@/lib/services/users/get-user';
 import { Suspense } from 'react';
 
-export async function Header() {
+export async function Header({ desktopOnly }: { desktopOnly?: boolean }) {
   const session = await auth();
   const headersList = await headers();
   const { device } = userAgent({
@@ -28,6 +28,22 @@ export async function Header() {
 
   const deviceType = device.type || 'desktop';
 
+  if (desktopOnly && deviceType !== 'desktop') return null;
+
+  return (
+    <AnonymousHeader
+      customRightSide={
+        session?.user ? <UserAvatar session={session} /> : undefined
+      }
+    />
+  );
+}
+
+export function AnonymousHeader({
+  customRightSide,
+}: {
+  customRightSide?: React.ReactNode;
+}) {
   return (
     <>
       <div className="h-20" />
@@ -80,25 +96,21 @@ export async function Header() {
                 <GithubIcon />
               </Link>
             </Button>
-            {session?.user ? (
-              <UserAvatar session={session} />
-            ) : (
-              <Button
-                variant="outline"
-                aria-label="User"
-                size={deviceType === 'mobile' ? 'icon' : 'default'}
-                asChild
-              >
-                <Link href="/sign-in">
-                  <span className="hidden md:block">Entrar</span>
-                  <UserIcon />
-                </Link>
-              </Button>
-            )}
+            {customRightSide ? customRightSide : <AnonymousUserAvatar />}
           </div>
         </div>
       </header>
     </>
+  );
+}
+
+function AnonymousUserAvatar() {
+  return (
+    <Button variant="outline" aria-label="User" size="icon" asChild>
+      <Link href="/sign-in">
+        <UserIcon />
+      </Link>
+    </Button>
   );
 }
 
@@ -112,10 +124,7 @@ async function UserAvatar({ session }: { session: Session }) {
 
   const user = await getUserByIdWithCache(session.user.id);
 
-  if (!user) {
-    handleSignOut();
-    return null;
-  }
+  if (!user) return <AnonymousUserAvatar />;
 
   return (
     <DropdownMenu>

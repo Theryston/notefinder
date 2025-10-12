@@ -1,12 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { getTrackCached } from '@/lib/services/track/get-track-cached';
 import { getBiggestOne } from '@/lib/utils';
 import moment from 'moment';
 import { TrackActions } from './track-actions';
-import { auth } from '@/auth';
-
-type Track = Awaited<ReturnType<typeof getTrackCached>>;
+import { FullTrack } from '@/lib/constants';
 
 function formatDuration(seconds?: number | null, fallback?: string | null) {
   if (typeof seconds === 'number' && Number.isFinite(seconds)) {
@@ -34,8 +31,7 @@ function formatViews(views?: number | null) {
   return '—';
 }
 
-export async function TrackOverview({ track }: { track: NonNullable<Track> }) {
-  const session = await auth();
+export async function TrackOverview({ track }: { track: FullTrack }) {
   const thumbnails = track.thumbnails ?? [];
   const biggest = thumbnails.length
     ? (getBiggestOne(thumbnails, 'width') as (typeof thumbnails)[number])
@@ -87,11 +83,7 @@ export async function TrackOverview({ track }: { track: NonNullable<Track> }) {
                     ))}
                   </div>
                 </div>
-                <TrackActions
-                  isLoggedIn={!!session}
-                  trackTitle={track.title}
-                  trackId={track.id}
-                />
+                <TrackActions trackTitle={track.title} trackId={track.id} />
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -121,7 +113,7 @@ export async function TrackOverview({ track }: { track: NonNullable<Track> }) {
   );
 }
 
-function CardsInfo({ track }: { track: NonNullable<Track> }) {
+function CardsInfo({ track }: { track: FullTrack }) {
   const views = track._count?.views ?? 0;
   const durationReadable = formatDuration(
     track.durationSeconds,

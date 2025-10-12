@@ -53,7 +53,7 @@ export function TrackItem({
 
   return (
     <div
-      key={`${track.artists[0].name}-${track.title}-${Math.random()}`}
+      key={`${track.artists[0].name}-${track.title}`}
       className={cn('w-full h-full relative rounded-md p-2 group', {
         'flex gap-2': format === 'line',
         'hover:bg-primary/10': !!href,

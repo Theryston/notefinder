@@ -1,4 +1,3 @@
-import { Container } from '@/components/container';
 import { TrackList } from '@/components/track-list';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,8 +8,12 @@ import {
 import { dbTrackToTrackItem } from '@/lib/utils';
 import { SearchIcon } from 'lucide-react';
 import Link from 'next/link';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
 
-export default async function Home() {
+export async function HomeContent() {
+  'use cache: remote';
+  cacheTag('tracks_explore');
+
   const take = 9;
   const page = 1;
 
@@ -123,7 +126,7 @@ export default async function Home() {
   }
 
   return (
-    <Container pathname="/">
+    <>
       {sections.length === 0 && (
         <div className="mt-4 text-center text-sm text-muted-foreground flex flex-col gap-2">
           Parece que ouve um probleminha, que tal tentar pesquisar uma música?
@@ -136,6 +139,6 @@ export default async function Home() {
         </div>
       )}
       {sections}
-    </Container>
+    </>
   );
 }
