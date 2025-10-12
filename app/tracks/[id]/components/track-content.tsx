@@ -5,6 +5,7 @@ import { Timeline } from '@/components/timeline';
 import { CalculateScore } from './calculate-score';
 import { FullTrack } from '@/lib/constants';
 import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { Suspense } from 'react';
 
 export async function TrackContent({ track }: { track: FullTrack }) {
   'use cache: remote';
@@ -14,8 +15,10 @@ export async function TrackContent({ track }: { track: FullTrack }) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* <CalculateScore trackId={track.id} /> */}
-      {/* <AddView trackId={track.id} /> */}
+      <Suspense fallback={null}>
+        <CalculateScore trackId={track.id} />
+        <AddView trackId={track.id} />
+      </Suspense>
       <TrackOverview track={track} />
       <Timeline track={track} />
     </div>
