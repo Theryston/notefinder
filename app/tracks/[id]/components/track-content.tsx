@@ -17,7 +17,7 @@ export async function TrackContent({ track }: { track: FullTrack }) {
       {/* <CalculateScore trackId={track.id} /> */}
       {/* <AddView trackId={track.id} /> */}
       <TrackOverview track={track} />
-      {/* <Timeline track={track} /> */}
+      <Timeline track={track} />
     </div>
   );
 }
