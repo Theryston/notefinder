@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getBiggestOne } from '@/lib/utils';
 import moment from 'moment';
-import { TrackActions } from './track-actions';
+// import { TrackActions } from './track-actions';
 import { FullTrack } from '@/lib/constants';
 
 function formatDuration(seconds?: number | null, fallback?: string | null) {
@@ -83,7 +83,7 @@ export async function TrackOverview({ track }: { track: FullTrack }) {
                     ))}
                   </div>
                 </div>
-                <TrackActions trackTitle={track.title} trackId={track.id} />
+                {/* <TrackActions trackTitle={track.title} trackId={track.id} /> */}
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
