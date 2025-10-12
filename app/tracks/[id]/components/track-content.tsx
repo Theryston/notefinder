@@ -14,8 +14,8 @@ export async function TrackContent({ track }: { track: FullTrack }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <CalculateScore trackId={track.id} />
-      <AddView trackId={track.id} />
+      {/* <CalculateScore trackId={track.id} /> */}
+      {/* <AddView trackId={track.id} /> */}
       <TrackOverview track={track} />
       <Timeline track={track} />
     </div>
