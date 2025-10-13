@@ -138,7 +138,10 @@ async function UserAvatar({ session }: { session: Session }) {
         <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href={`/users/${user?.username}`}>Perfil</Link>
+          <Link href={`/users/${user?.username}`}>Meu perfil</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/me/edit">Editar perfil</Link>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleSignOut}>Sair</DropdownMenuItem>
       </DropdownMenuContent>
