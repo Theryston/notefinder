@@ -1,10 +1,10 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION_NAME!,
+  region: process.env.CUSTOM_AWS_REGION_NAME!,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    accessKeyId: process.env.CUSTOM_AWS_ACCESS_KEY!,
+    secretAccessKey: process.env.CUSTOM_AWS_SECRET_ACCESS_KEY!,
   },
 });
 
@@ -16,7 +16,7 @@ export async function uploadAvatarToS3(
   const key = `avatars/${userId}.png`;
 
   const command = new PutObjectCommand({
-    Bucket: process.env.AWS_BUCKET_NAME!,
+    Bucket: process.env.CUSTOM_AWS_BUCKET_NAME!,
     Key: key,
     Body: buffer,
     ContentType: file.type,
@@ -25,5 +25,5 @@ export async function uploadAvatarToS3(
 
   await s3Client.send(command);
 
-  return `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION_NAME}.amazonaws.com/${key}`;
+  return `https://${process.env.CUSTOM_AWS_BUCKET_NAME}.s3.${process.env.CUSTOM_AWS_REGION_NAME}.amazonaws.com/${key}`;
 }
