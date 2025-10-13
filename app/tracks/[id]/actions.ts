@@ -32,8 +32,6 @@ export const createTrackView = async (formData: FormData) => {
       userId: session.user.id,
     },
   });
-
-  revalidateTag(`user_${user.username}`);
 };
 
 export const handleFavoriteTrack = async (
