@@ -14,7 +14,7 @@ async function getTrack(id: string) {
   'use cache: remote';
   cacheTag(`track_${id}`);
 
-  return prisma.track.findFirst({
+  return prisma.track.findUnique({
     where: { id },
     include: FULL_TRACK_INCLUDE,
   });

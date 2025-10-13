@@ -16,7 +16,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const artist = await prisma.artist.findFirst({
+  const artist = await prisma.artist.findUnique({
     where: { id },
   });
 
@@ -56,7 +56,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   cacheTag(`artist_${id}`);
 
-  const artist = await prisma.artist.findFirst({
+  const artist = await prisma.artist.findUnique({
     where: { id },
   });
 
