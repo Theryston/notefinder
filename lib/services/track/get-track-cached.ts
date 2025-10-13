@@ -132,7 +132,7 @@ export const getTopViewedLast24Hours = async (
 
   return tracks.sort(
     (a, b) => (viewsByTrackId[b.id] ?? 0) - (viewsByTrackId[a.id] ?? 0),
-  );
+  ) as unknown as MinimalTrack[];
 };
 
 export const getTracksByVideoIds = async (videoIds: string[]) => {
