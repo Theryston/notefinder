@@ -1,12 +1,12 @@
 'use client';
 
 import { useActionState, useEffect, useRef, useState } from 'react';
-import { toggleView } from '../actions';
+import { toggleView } from '../../actions';
 import { UserSectionVisibilityValue } from '@prisma/client';
 import { Button } from '@/components/ui/button';
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 
-export function ToggleView({ sectionKey }: { sectionKey: string }) {
+export function ToggleViewContent({ sectionKey }: { sectionKey: string }) {
   const formRef = useRef<HTMLFormElement>(null);
   const hasDoneInitialFetch = useRef(false);
   const [ignoreAction, setIgnoreAction] = useState(true);
