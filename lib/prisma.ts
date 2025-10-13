@@ -1,10 +1,7 @@
-import { PrismaClient } from '@prisma/client/edge';
-import { withAccelerate } from '@prisma/extension-accelerate';
+import { PrismaClient } from '@prisma/client';
 
 function createPrismaClient() {
-  return new PrismaClient({
-    log: ['error'],
-  }).$extends(withAccelerate());
+  return new PrismaClient({ log: ['error'] });
 }
 
 const globalForPrisma = global as unknown as {
