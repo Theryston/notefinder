@@ -109,7 +109,8 @@ export const getTopViewedLast24Hours = async (
     },
     orderBy: { _count: { trackId: 'desc' } },
     take,
-  });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any);
 
   const trackIds = result.map((r) => (r as { trackId: string }).trackId);
 

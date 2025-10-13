@@ -24,7 +24,8 @@ export async function getMoreViewsToday(userId?: string) {
       },
     },
     take: 10,
-  });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any);
 
   const trackIds = result.map((r) => (r as { trackId: string }).trackId);
 
