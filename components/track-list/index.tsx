@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { getTrackList } from './actions';
 import { dbTrackToTrackItem } from '@/lib/utils';
 import { Button } from '../ui/button';
+import Link from 'next/link';
 
 export type PaginationType = {
   page: number;
@@ -80,9 +81,12 @@ export function TrackList({
             href={`/tracks/${track.id}`}
             customThumbnail={
               itemVariant === 'numbered' && (
-                <div className="text-xl font-bold size-20 flex items-center justify-center">
+                <Link
+                  href={`/tracks/${track.id}`}
+                  className="text-xl font-bold size-20 flex items-center justify-center hover:text-primary"
+                >
                   {(index + 1).toString().padStart(2, '0')}
-                </div>
+                </Link>
               )
             }
           />
