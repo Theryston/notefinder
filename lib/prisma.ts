@@ -1,7 +1,16 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaNeon } from '@prisma/adapter-neon';
+import { neonConfig } from '@neondatabase/serverless';
+import ws from 'ws';
 
 function createPrismaClient() {
-  return new PrismaClient({ log: ['error'] });
+  neonConfig.webSocketConstructor = ws;
+  neonConfig.poolQueryViaFetch = true;
+
+  const connectionString = `${process.env.DATABASE_URL}`;
+
+  const adapter = new PrismaNeon({ connectionString });
+  return new PrismaClient({ adapter });
 }
 
 const globalForPrisma = global as unknown as {
