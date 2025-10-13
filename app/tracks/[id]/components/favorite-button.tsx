@@ -1,7 +1,11 @@
+'use client';
+
 import { useActionState, useEffect, useRef, useState } from 'react';
 import { handleFavoriteTrack } from '../actions';
 import { Button } from '@/components/ui/button';
 import { HeartIcon } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 export function FavoriteButton({ trackId }: { trackId: string }) {
   const hasDoneInitialFetch = useRef(false);
@@ -10,6 +14,7 @@ export function FavoriteButton({ trackId }: { trackId: string }) {
     handleFavoriteTrack,
     { isFavorite, isLoggedIn: false },
   );
+  const pathname = usePathname();
 
   useEffect(() => {
     if (hasDoneInitialFetch.current) return;
@@ -24,7 +29,16 @@ export function FavoriteButton({ trackId }: { trackId: string }) {
     setIsFavorite(state?.isFavorite);
   }, [state?.isFavorite]);
 
-  if (!state.isLoggedIn) return;
+  if (!state.isLoggedIn) {
+    return (
+      <Button size="icon" variant="ghost" asChild>
+        <Link href={`/sign-in?redirectTo=${pathname}`}>
+          <HeartIcon className="size-4" />
+        </Link>
+      </Button>
+    );
+  }
+
   return (
     <form action={handleFavorite}>
       <input type="hidden" name="trackId" value={trackId} />

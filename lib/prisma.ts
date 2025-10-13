@@ -3,10 +3,7 @@ import { withAccelerate } from '@prisma/extension-accelerate';
 
 function createPrismaClient() {
   return new PrismaClient({
-    log:
-      process.env.NODE_ENV !== 'production'
-        ? ['query', 'error', 'warn']
-        : ['error'],
+    log: ['error'],
   }).$extends(withAccelerate());
 }
 
