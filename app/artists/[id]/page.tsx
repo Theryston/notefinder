@@ -8,7 +8,7 @@ import {
 import { dbTrackToTrackItem } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import { unstable_cacheTag as cacheTag } from 'next/cache';
-import { Suspense } from 'react';
+import { MAX_STATIC_PAGES } from '@/lib/constants';
 
 export async function generateMetadata({
   params,
@@ -16,7 +16,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const artist = await prisma.artist.findUnique({
+  const artist = await prisma.artist.findFirst({
     where: { id },
   });
 
@@ -28,6 +28,16 @@ export async function generateMetadata({
   };
 }
 
+export async function generateStaticParams() {
+  const artists = await prisma.artist.findMany({
+    select: { id: true },
+    where: { trackArtists: { some: { track: { status: 'COMPLETED' } } } },
+    take: MAX_STATIC_PAGES,
+  });
+
+  return artists.map((artist) => ({ id: artist.id }));
+}
+
 export default async function ArtistPage({
   params,
 }: {
@@ -35,9 +45,7 @@ export default async function ArtistPage({
 }) {
   return (
     <Container pathname={`/artists/:id`}>
-      <Suspense fallback={null}>
-        <Content params={params} />
-      </Suspense>
+      <Content params={params} />
     </Container>
   );
 }
@@ -48,7 +56,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   cacheTag(`artist_${id}`);
 
-  const artist = await prisma.artist.findUnique({
+  const artist = await prisma.artist.findFirst({
     where: { id },
   });
 

@@ -9,7 +9,7 @@ async function getTrack(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const track = await prisma.track.findUnique({ where: { id } });
+  const track = await prisma.track.findFirst({ where: { id } });
 
   if (!track) {
     return NextResponse.json({ error: 'Track not found' }, { status: 404 });
@@ -25,7 +25,7 @@ async function putTrack(
   const { id } = await params;
   const { musicUrl, vocalsUrl, score } = await request.json();
 
-  const track = await prisma.track.findUnique({
+  const track = await prisma.track.findFirst({
     where: { id },
   });
 

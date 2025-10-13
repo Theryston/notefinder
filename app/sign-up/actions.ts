@@ -51,7 +51,7 @@ export const onSignupCredentials = async (
       };
     }
 
-    const existingUsername = await prisma.user.findUnique({
+    const existingUsername = await prisma.user.findFirst({
       where: { username },
     });
 
@@ -64,7 +64,7 @@ export const onSignupCredentials = async (
       };
     }
 
-    const existingEmail = await prisma.user.findUnique({ where: { email } });
+    const existingEmail = await prisma.user.findFirst({ where: { email } });
 
     if (existingEmail) {
       return {

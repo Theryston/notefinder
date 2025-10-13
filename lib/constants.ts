@@ -113,6 +113,8 @@ export const STATUS_INFO: Record<TrackStatus, StatusInfo> = {
   },
 };
 
+export const MAX_STATIC_PAGES = 100;
+
 export const CALCULATE_TRACK_SCORE_JOB_DELAY = 1000 * 60 * 60 * 1; // 1 hour
 
 export const MINIMAL_TRACK_INCLUDE: Prisma.TrackInclude = {

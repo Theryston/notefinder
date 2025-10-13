@@ -110,7 +110,7 @@ export const revalidateTrack = async (formData: FormData) => {
   const trackId = formData.get('trackId');
   if (!trackId) return;
 
-  const track = await prisma.track.findUnique({
+  const track = await prisma.track.findFirst({
     where: { id: trackId as string },
     include: {
       creator: true,

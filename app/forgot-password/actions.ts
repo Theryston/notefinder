@@ -72,7 +72,7 @@ export const onForgotPasswordReset = async (
       };
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
       where: { email },
       select: { id: true },
     });

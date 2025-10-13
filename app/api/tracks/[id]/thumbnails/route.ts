@@ -15,7 +15,7 @@ async function createThumbnail(
     return NextResponse.json({ error: 'URL is required' }, { status: 400 });
   }
 
-  const track = await prisma.track.findUnique({
+  const track = await prisma.track.findFirst({
     where: { id },
     include: {
       creator: true,

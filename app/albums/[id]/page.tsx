@@ -1,5 +1,6 @@
 import { Container } from '@/components/container';
 import { TrackList } from '@/components/track-list';
+import { MAX_STATIC_PAGES } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import {
   getTrackCustomWhereWithCache,
@@ -8,7 +9,6 @@ import {
 import { dbTrackToTrackItem } from '@/lib/utils';
 import { unstable_cacheTag as cacheTag } from 'next/cache';
 import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
 
 export async function generateMetadata({
   params,
@@ -16,7 +16,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const album = await prisma.album.findUnique({
+  const album = await prisma.album.findFirst({
     where: { id },
   });
 
@@ -28,6 +28,15 @@ export async function generateMetadata({
   };
 }
 
+export async function generateStaticParams() {
+  const albums = await prisma.album.findMany({
+    where: { tracks: { some: { status: 'COMPLETED' } } },
+    select: { id: true },
+    take: MAX_STATIC_PAGES,
+  });
+
+  return albums.map((album) => ({ id: album.id }));
+}
 export default async function AlbumPage({
   params,
 }: {
@@ -35,9 +44,7 @@ export default async function AlbumPage({
 }) {
   return (
     <Container pathname={`/albums/:id`}>
-      <Suspense fallback={null}>
-        <Content params={params} />
-      </Suspense>
+      <Content params={params} />
     </Container>
   );
 }
@@ -48,7 +55,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   cacheTag(`album_${id}`);
 
-  const album = await prisma.album.findUnique({
+  const album = await prisma.album.findFirst({
     where: { id },
   });
 

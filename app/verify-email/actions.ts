@@ -27,7 +27,7 @@ export const onVerifyEmail = async (
       return { error: 'Não autenticado' };
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
       where: { id: userId },
       select: {
         emailVerified: true,
