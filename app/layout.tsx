@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { cn } from '@/lib/utils';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
+import { GoogleTagManager } from '@next/third-parties/google';
 
 const font = Manrope({ subsets: ['latin'], variable: '--font-manrope' });
 
@@ -21,6 +22,11 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
+      {process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID && (
+        <GoogleTagManager
+          gtmId={process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID}
+        />
+      )}
       <body className={cn(font.className, 'antialiased')}>
         {children}
         <Toaster />
