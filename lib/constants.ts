@@ -1,12 +1,16 @@
 import {
   Album,
   Artist,
+  Prisma,
   Thumbnail,
   Track,
   TrackArtist,
   TrackNote,
   TrackStatus,
+  TrackView,
   User,
+  UserFavoriteTrack,
+  UserSectionVisibility,
   UserSectionVisibilityValue,
 } from '@prisma/client';
 
@@ -38,6 +42,18 @@ export type FullTrack = Track & {
   creator: User;
   trackArtists: TrackArtist & { artist: Artist }[];
   _count: { views: number };
+};
+
+export type FullUser = User & {
+  tracks: MinimalTrack[];
+  userSectionVisibility: UserSectionVisibility[];
+  userFavoriteTracks: (UserFavoriteTrack & { track: MinimalTrack })[];
+  trackViews: (TrackView & { track: MinimalTrack })[];
+  _count: {
+    tracks: number;
+    userFavoriteTracks: number;
+    trackViews: number;
+  };
 };
 
 export type StatusInfo = {
@@ -99,7 +115,7 @@ export const STATUS_INFO: Record<TrackStatus, StatusInfo> = {
 
 export const CALCULATE_TRACK_SCORE_JOB_DELAY = 1000 * 60 * 60 * 1; // 1 hour
 
-export const MINIMAL_TRACK_INCLUDE = {
+export const MINIMAL_TRACK_INCLUDE: Prisma.TrackInclude = {
   trackArtists: {
     include: { artist: true },
   },
@@ -109,4 +125,37 @@ export const MINIMAL_TRACK_INCLUDE = {
 export type MinimalTrack = Track & {
   trackArtists: { artist: Artist }[];
   thumbnails: Thumbnail[];
+};
+
+export const FULL_USER_INCLUDE: Prisma.UserInclude = {
+  tracks: {
+    orderBy: { createdAt: 'desc' },
+    take: 10,
+    include: MINIMAL_TRACK_INCLUDE,
+  },
+  userSectionVisibility: true,
+  userFavoriteTracks: {
+    include: {
+      track: {
+        include: MINIMAL_TRACK_INCLUDE,
+      },
+    },
+  },
+  trackViews: {
+    distinct: ['trackId'],
+    orderBy: { createdAt: 'desc' },
+    take: 10,
+    include: {
+      track: {
+        include: MINIMAL_TRACK_INCLUDE,
+      },
+    },
+  },
+  _count: {
+    select: {
+      tracks: true,
+      userFavoriteTracks: true,
+      trackViews: true,
+    },
+  },
 };

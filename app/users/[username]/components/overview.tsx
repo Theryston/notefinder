@@ -1,10 +1,8 @@
-import { getUserByUsernameWithCache } from '@/lib/services/users/get-user';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import moment from 'moment';
+import { FullUser } from '@/lib/constants';
 
-type User = Awaited<ReturnType<typeof getUserByUsernameWithCache>>;
-
-export function UserOverview({ user }: { user: NonNullable<User> }) {
+export function UserOverview({ user }: { user: FullUser }) {
   const name = user.name ?? user.username ?? 'Usuário';
   const username = user.username ?? null;
   const avatarAlt = name || 'Avatar';
@@ -56,7 +54,7 @@ export function UserOverview({ user }: { user: NonNullable<User> }) {
   );
 }
 
-function CardsInfo({ user }: { user: NonNullable<User> }) {
+function CardsInfo({ user }: { user: FullUser }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <div className="rounded-lg border bg-card p-3">

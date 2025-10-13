@@ -1,12 +1,26 @@
 import { auth } from '@/auth';
 import { Container } from '@/components/container';
 import { TrackList } from '@/components/track-list';
-import { getUserByUsernameWithCache } from '@/lib/services/users/get-user';
 import { canShowSession, dbTrackToTrackItem } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import { UserOverview } from './components/overview';
 import { ToggleView } from './components/toggle-view';
 import { Suspense } from 'react';
+import prisma from '@/lib/prisma';
+import { FULL_USER_INCLUDE, FullUser } from '@/lib/constants';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
+
+async function getUser(username: string) {
+  'use cache: remote';
+  cacheTag(`user_${username}`);
+
+  const user = await prisma.user.findFirst({
+    where: { username },
+    include: FULL_USER_INCLUDE,
+  });
+
+  return user as unknown as FullUser | null;
+}
 
 export async function generateMetadata({
   params,
@@ -15,7 +29,7 @@ export async function generateMetadata({
 }) {
   const { username } = await params;
 
-  const user = await getUserByUsernameWithCache(username);
+  const user = await getUser(username);
 
   if (!user) notFound();
 
@@ -28,13 +42,13 @@ export async function generateMetadata({
   };
 }
 
-export default async function Profile({
+export default async function User({
   params,
 }: {
   params: Promise<{ username: string }>;
 }) {
   return (
-    <Container pathname="/profile">
+    <Container pathname="/users/:username">
       <Suspense fallback={null}>
         <Content params={params} />
       </Suspense>
@@ -46,7 +60,7 @@ async function Content({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
   const session = await auth();
 
-  const user = await getUserByUsernameWithCache(username);
+  const user = await getUser(username);
 
   if (!user) notFound();
 
