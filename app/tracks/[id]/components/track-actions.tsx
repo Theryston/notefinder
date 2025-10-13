@@ -9,10 +9,11 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { HeartIcon, Share2Icon, Copy, Check } from 'lucide-react';
-import { useActionState, useEffect, useMemo, useRef, useState } from 'react';
+import { Share2Icon, Copy, Check } from 'lucide-react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { handleFavoriteTrack } from '../actions';
+import { FavoriteButton } from './favorite-button';
+import { Skeleton } from '@/components/sheleton';
 
 export function TrackActions({
   trackTitle,
@@ -21,46 +22,13 @@ export function TrackActions({
   trackTitle: string | null;
   trackId: string;
 }) {
-  const hasDoneInitialFetch = useRef(false);
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [state, handleFavorite, isPending] = useActionState(
-    handleFavoriteTrack,
-    { isFavorite, isLoggedIn: false },
-  );
   const [isOpenShareModal, setIsOpenShareModal] = useState(false);
-
-  useEffect(() => {
-    if (hasDoneInitialFetch.current) return;
-    hasDoneInitialFetch.current = true;
-    const formData = new FormData();
-    formData.append('trackId', trackId);
-    formData.append('ignoreAction', 'true');
-    handleFavorite(formData);
-  }, [handleFavorite, trackId, state.isLoggedIn]);
-
-  useEffect(() => {
-    setIsFavorite(state?.isFavorite);
-  }, [state?.isFavorite]);
 
   return (
     <div className="flex flex-wrap gap-2 h-fit w-fit">
-      {state.isLoggedIn && (
-        <form action={handleFavorite}>
-          <input type="hidden" name="trackId" value={trackId} />
-          <Button
-            size="icon"
-            variant="ghost"
-            isLoading={isPending}
-            type="submit"
-          >
-            {isFavorite ? (
-              <HeartIcon fill="#fff" className="size-4" />
-            ) : (
-              <HeartIcon className="size-4" />
-            )}
-          </Button>
-        </form>
-      )}
+      <Suspense fallback={<FavoriteButtonLoading />}>
+        <FavoriteButton trackId={trackId} />
+      </Suspense>
 
       <Button
         size="icon"
@@ -75,6 +43,14 @@ export function TrackActions({
         onOpenChange={setIsOpenShareModal}
         trackTitle={trackTitle}
       />
+    </div>
+  );
+}
+
+function FavoriteButtonLoading() {
+  return (
+    <div className="size-9">
+      <Skeleton />
     </div>
   );
 }

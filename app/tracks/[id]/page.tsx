@@ -6,6 +6,7 @@ import { unstable_cacheTag as cacheTag } from 'next/cache';
 import { FULL_TRACK_INCLUDE, FullTrack } from '@/lib/constants';
 import { Suspense } from 'react';
 import prisma from '@/lib/prisma';
+import { Skeleton } from '@/components/sheleton';
 
 async function getTrack(id: string) {
   'use cache: remote';
@@ -50,10 +51,24 @@ export default async function Track({
 }) {
   return (
     <Container pathname="/tracks/:id">
-      <Suspense fallback={null}>
+      <Suspense fallback={<SuspenseFallback />}>
         <Content params={params} />
       </Suspense>
     </Container>
+  );
+}
+
+function SuspenseFallback() {
+  return (
+    <div className="flex flex-col gap-4 mt-4">
+      <div className="w-full h-96 md:h-64">
+        <Skeleton />
+      </div>
+
+      <div className="w-full h-[60vh]">
+        <Skeleton />
+      </div>
+    </div>
   );
 }
 

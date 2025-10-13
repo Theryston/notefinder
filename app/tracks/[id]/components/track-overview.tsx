@@ -86,9 +86,7 @@ export async function TrackOverview({ track }: { track: FullTrack }) {
                   </div>
                 </div>
 
-                <Suspense fallback={<TrackActionsLoading />}>
-                  <TrackActions trackTitle={track.title} trackId={track.id} />
-                </Suspense>
+                <TrackActions trackTitle={track.title} trackId={track.id} />
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -115,18 +113,6 @@ export async function TrackOverview({ track }: { track: FullTrack }) {
         </div>
       </div>
     </section>
-  );
-}
-
-function TrackActionsLoading() {
-  return (
-    <div className="flex flex-wrap gap-2 h-fit w-fit">
-      {Array.from({ length: 2 }).map((_, index) => (
-        <div key={index} className="size-9">
-          <Skeleton />
-        </div>
-      ))}
-    </div>
   );
 }
 
