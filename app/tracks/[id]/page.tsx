@@ -85,7 +85,6 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
           id={id}
           defaultStatus={track.status}
           defaultStatusDescription={track.statusDescription || undefined}
-          creatorId={track.creatorId}
         />
       )}
 

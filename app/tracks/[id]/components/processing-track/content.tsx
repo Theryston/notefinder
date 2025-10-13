@@ -14,12 +14,10 @@ export function ProcessingTrackContent({
   id,
   defaultStatus,
   defaultStatusDescription,
-  isCreator,
 }: {
   id: string;
   defaultStatus: TrackStatus;
   defaultStatusDescription?: string;
-  isCreator: boolean;
 }) {
   const [status, setStatus] = React.useState<TrackStatus>(defaultStatus);
   const [statusDescription, setStatusDescription] = React.useState<
@@ -152,10 +150,8 @@ export function ProcessingTrackContent({
               <div className="mt-6 rounded-md border bg-accent/40 p-4 text-sm text-accent-foreground">
                 A música que você selecionou ainda não está no nosso catálogo,
                 mas não se preocupe — nosso sistema vai automaticamente detectar
-                as notas para você
-                {isCreator
-                  ? ' e vamos notificar seu e-mail assim que terminarmos.'
-                  : '.'}
+                as notas para você e vamos notificar seu e-mail assim que
+                terminarmos.
                 <br />
                 <br />
                 Este processo acontece em nuvem. Você pode fechar esta página e
