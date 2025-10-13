@@ -29,8 +29,8 @@ export const sendForgotPasswordCode = async (email: string) => {
   await resend.emails.send({
     from: 'Notefinder <noreply@notefinder.com.br>',
     to: email,
-    subject: 'Reset your password',
-    html: `Your password reset code is <b>${code}</b>`,
+    subject: 'Redefina sua senha',
+    html: `Seu código de redefinição de senha é <b>${code}</b>`,
   });
 
   await prisma.forgotPasswordCode.updateMany({

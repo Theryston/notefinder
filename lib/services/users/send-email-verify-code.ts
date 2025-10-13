@@ -29,8 +29,8 @@ export const sendEmailVerifyCode = async (email: string) => {
   await resend.emails.send({
     from: 'Notefinder <noreply@notefinder.com.br>',
     to: email,
-    subject: 'Verify your email',
-    html: `Your verification code is <b>${code}</b>`,
+    subject: 'Verifique seu email',
+    html: `Seu código de verificação é <b>${code}</b>`,
   });
 
   // Expire old code
