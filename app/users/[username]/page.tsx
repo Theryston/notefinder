@@ -9,6 +9,7 @@ import { Suspense } from 'react';
 import prisma from '@/lib/prisma';
 import { FULL_USER_INCLUDE, FullUser } from '@/lib/constants';
 import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { Skeleton } from '@/components/sheleton';
 
 async function getUser(username: string) {
   'use cache: remote';
@@ -49,10 +50,28 @@ export default async function User({
 }) {
   return (
     <Container pathname="/users/:username">
-      <Suspense fallback={null}>
+      <Suspense fallback={<SuspenseFallback />}>
         <Content params={params} />
       </Suspense>
     </Container>
+  );
+}
+
+function SuspenseFallback() {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="w-full h-80 md:h-54">
+        <Skeleton />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {Array.from({ length: 3 * 8 }).map((_, index) => (
+          <div key={index} className="w-full h-26">
+            <Skeleton />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
