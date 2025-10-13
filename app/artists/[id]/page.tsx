@@ -15,7 +15,10 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  'use cache: remote';
   const { id } = await params;
+  cacheTag(`artist_${id}`);
+
   const artist = await prisma.artist.findUnique({
     where: { id },
   });
