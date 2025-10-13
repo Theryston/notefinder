@@ -8,8 +8,11 @@ import { GoogleTagManager } from '@next/third-parties/google';
 const font = Manrope({ subsets: ['latin'], variable: '--font-manrope' });
 
 export const metadata: Metadata = {
-  title:
-    'NoteFinder - Descubra as notas vocais para cantar a sua música favorita',
+  title: {
+    template: '%s - NoteFinder',
+    default:
+      'NoteFinder - Descubra as notas vocais para cantar a sua música favorita',
+  },
   description:
     'NoteFinder descubra as notas vocais para cantar a sua música favorita sem desafinar e fazer feio na frente dos amigos!',
   keywords: ['notas musicais', 'detector de notas', 'voz', 'música', 'YouTube'],
