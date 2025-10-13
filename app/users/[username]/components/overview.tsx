@@ -1,10 +1,24 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import moment from 'moment';
 import { FullUser } from '@/lib/constants';
+import { notFound } from 'next/navigation';
+import { getUserByUsername } from '@/lib/services/users/get-user';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
 
-export function UserOverview({ user }: { user: FullUser }) {
+export async function UserOverview({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}) {
+  'use cache: remote';
+  const { username } = await params;
+  cacheTag(`user_${username}`);
+
+  const user = await getUserByUsername(username);
+
+  if (!user) notFound();
+
   const name = user.name ?? user.username ?? 'Usuário';
-  const username = user.username ?? null;
   const avatarAlt = name || 'Avatar';
   const firstChar = (user.name || user.username || 'U').charAt(0).toUpperCase();
 

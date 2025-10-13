@@ -7,21 +7,9 @@ import { UserOverview } from './components/overview';
 import { ToggleView } from './components/toggle-view';
 import { Suspense } from 'react';
 import prisma from '@/lib/prisma';
-import { FULL_USER_INCLUDE, FullUser } from '@/lib/constants';
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { MAX_STATIC_PAGES } from '@/lib/constants';
 import { Skeleton } from '@/components/sheleton';
-
-async function getUser(username: string) {
-  'use cache: remote';
-  cacheTag(`user_${username}`);
-
-  const user = await prisma.user.findFirst({
-    where: { username },
-    include: FULL_USER_INCLUDE,
-  });
-
-  return user as unknown as FullUser | null;
-}
+import { getUserByUsername } from '@/lib/services/users/get-user';
 
 export async function generateMetadata({
   params,
@@ -30,7 +18,7 @@ export async function generateMetadata({
 }) {
   const { username } = await params;
 
-  const user = await getUser(username);
+  const user = await getUserByUsername(username);
 
   if (!user) notFound();
 
@@ -43,6 +31,15 @@ export async function generateMetadata({
   };
 }
 
+export async function generateStaticParams() {
+  const users = await prisma.user.findMany({
+    select: { username: true },
+    take: MAX_STATIC_PAGES,
+  });
+
+  return users.map((user) => ({ username: user.username }));
+}
+
 export default async function User({
   params,
 }: {
@@ -50,38 +47,47 @@ export default async function User({
 }) {
   return (
     <Container pathname="/users/:username">
-      <Suspense fallback={<SuspenseFallback />}>
-        <Content params={params} />
-      </Suspense>
+      <Content params={params} />
     </Container>
   );
 }
 
-function SuspenseFallback() {
+async function Content({ params }: { params: Promise<{ username: string }> }) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="w-full h-80 md:h-54">
-        <Skeleton />
-      </div>
+      <UserOverview params={params} />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {Array.from({ length: 3 * 8 }).map((_, index) => (
-          <div key={index} className="w-full h-26">
-            <Skeleton />
-          </div>
-        ))}
-      </div>
+      <Suspense fallback={<UserSectionsFallback />}>
+        <UserSections params={params} />
+      </Suspense>
     </div>
   );
 }
 
-async function Content({ params }: { params: Promise<{ username: string }> }) {
-  const { username } = await params;
-  const session = await auth();
+function UserSectionsFallback() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {Array.from({ length: 3 * 8 }).map((_, index) => (
+        <div key={index} className="w-full h-26">
+          <Skeleton />
+        </div>
+      ))}
+    </div>
+  );
+}
 
-  const user = await getUser(username);
+async function UserSections({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}) {
+  const { username } = await params;
+
+  const user = await getUserByUsername(username);
 
   if (!user) notFound();
+
+  const session = await auth();
 
   const isMe = session?.user?.id === user.id;
 
@@ -175,8 +181,7 @@ async function Content({ params }: { params: Promise<{ username: string }> }) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <UserOverview user={user} />
+    <>
       {sections.length === 0 && (
         <div className="mt-4 text-center text-sm text-muted-foreground">
           Parece que {isMe ? 'você' : user.name} não tem informações{' '}
@@ -184,6 +189,6 @@ async function Content({ params }: { params: Promise<{ username: string }> }) {
         </div>
       )}
       {sections}
-    </div>
+    </>
   );
 }
