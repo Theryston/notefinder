@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from 'react';
 import { toggleView } from '../../actions';
-import { UserSectionVisibilityValue } from '@prisma/client';
+import { UserSectionVisibilityValue } from '@/lib/generated/prisma';
 import { Button } from '@/components/ui/button';
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 

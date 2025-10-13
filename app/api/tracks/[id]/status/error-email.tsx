@@ -1,4 +1,4 @@
-import { Track } from '@prisma/client';
+import { Track } from '@/lib/generated/prisma';
 
 export function ErrorEmail({ track }: { track: Track }) {
   return (

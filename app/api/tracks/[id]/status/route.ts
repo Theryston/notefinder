@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma';
-import { TrackStatus } from '@prisma/client';
+import { TrackStatus } from '@/lib/generated/prisma';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';

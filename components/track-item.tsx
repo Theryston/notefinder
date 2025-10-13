@@ -3,7 +3,7 @@ import { cn, getBiggestOne } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PlayIcon } from 'lucide-react';
-import { TrackStatus } from '@prisma/client';
+import { TrackStatus } from '@/lib/generated/prisma';
 import { STATUS_INFO } from '@/lib/constants';
 
 export type Track = {

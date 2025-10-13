@@ -1,4 +1,4 @@
-import { Track } from '@prisma/client';
+import { Track } from '@/lib/generated/prisma';
 
 export function CompletedEmail({ track }: { track: Track }) {
   return (

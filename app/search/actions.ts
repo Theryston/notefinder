@@ -4,7 +4,7 @@ import { type NotefinderYtmusicSearchResponse } from '@/lib/services/notefinder-
 import prisma from '@/lib/prisma';
 import { addNotesQueue } from '@/lib/services/notefinder-worker/queues';
 import { redirect } from 'next/navigation';
-import { Artist, Track } from '@prisma/client';
+import { Artist, Track } from '@/lib/generated/prisma';
 import { auth } from '@/auth';
 import { isNextRedirectError } from '@/lib/utils';
 import { revalidateTag } from 'next/cache';

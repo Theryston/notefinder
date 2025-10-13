@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { MAX_SITEMAP_SIZE } from '@/lib/constants';
 import { MetadataRoute } from 'next';
 import { getBiggestOne } from '@/lib/utils';
-import { Thumbnail, Track } from '@prisma/client';
+import { Thumbnail, Track } from '@/lib/generated/prisma';
 
 export async function generateSitemaps() {
   'use cache: remote';

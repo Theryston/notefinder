@@ -7,7 +7,7 @@ import {
   Thumbnail,
   UserSectionVisibility,
   UserSectionVisibilityValue,
-} from '@prisma/client';
+} from '@/lib/generated/prisma';
 import { Track as TrackItemType } from '@/components/track-item';
 import { DEFAULT_SECTION_VISIBILITY, MinimalTrack } from './constants';
 

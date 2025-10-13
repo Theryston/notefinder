@@ -1,4 +1,4 @@
-import { TrackStatus } from '@prisma/client';
+import { TrackStatus } from '@/lib/generated/prisma';
 import { ProcessingTrackContent } from './content';
 import { Suspense } from 'react';
 
