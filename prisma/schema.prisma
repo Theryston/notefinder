@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  runtime  = "vercel-edge"
 }
 
 datasource db {
