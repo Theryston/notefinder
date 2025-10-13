@@ -23,7 +23,7 @@ export async function generateMetadata({
   if (!album) notFound();
 
   return {
-    title: `${album.name} - NoteFinder`,
+    title: album.name,
     description: `Veja as músicas do álbum ${album.name} no NoteFinder`,
   };
 }

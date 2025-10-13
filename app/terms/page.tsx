@@ -2,7 +2,7 @@ import { Container } from '@/components/container';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Termos e Condições - NoteFinder',
+  title: 'Termos e Condições',
   description: 'Termos e Condições de Uso do NoteFinder',
 };
 

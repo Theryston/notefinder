@@ -23,7 +23,7 @@ export async function generateMetadata({
   if (!user) notFound();
 
   return {
-    title: `${user.name} - NoteFinder`,
+    title: user.name,
     description: `Veja o que o usuário ${user.name} anda fazendo no NoteFinder`,
     openGraph: {
       images: user.image ? [user.image] : undefined,

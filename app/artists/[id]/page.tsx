@@ -23,7 +23,7 @@ export async function generateMetadata({
   if (!artist) notFound();
 
   return {
-    title: `${artist.name} - NoteFinder`,
+    title: artist.name,
     description: `Veja as músicas do artista ${artist.name} no NoteFinder`,
   };
 }
