@@ -12,7 +12,7 @@ import { unstable_cacheTag as cacheTag } from 'next/cache';
 
 export async function HomeContent() {
   'use cache: remote';
-  cacheTag('tracks_explore');
+  cacheTag('home_content');
 
   const take = 9;
   const page = 1;
