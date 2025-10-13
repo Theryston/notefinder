@@ -2,6 +2,8 @@ import { unstable_cacheTag as cacheTag } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { MAX_SITEMAP_SIZE } from '@/lib/constants';
 import { MetadataRoute } from 'next';
+import { getBiggestOne } from '@/lib/utils';
+import { Thumbnail, Track } from '@prisma/client';
 
 export async function generateSitemaps() {
   'use cache: remote';
@@ -39,12 +41,22 @@ export default async function sitemap({
     take: end - start,
     orderBy: [{ score: 'desc' }, { createdAt: 'desc' }],
     where: { status: 'COMPLETED' },
+    include: { thumbnails: true },
   });
 
-  return tracks.map((track) => ({
-    url: `${process.env.NEXT_PUBLIC_APP_URL}/tracks/${track.id}`,
-    lastModified: track.updatedAt,
-    changeFrequency: 'daily',
-    priority: 1,
-  }));
+  const mappedTracks = (
+    tracks as unknown as (Track & { thumbnails: Thumbnail[] })[]
+  ).map((track) => {
+    const biggestThumbnail = getBiggestOne(track.thumbnails, 'width');
+
+    return {
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/tracks/${track.id}`,
+      lastModified: track.updatedAt,
+      changeFrequency: 'daily' as const,
+      priority: 1,
+      images: biggestThumbnail ? [biggestThumbnail.url] : undefined,
+    };
+  });
+
+  return mappedTracks;
 }
