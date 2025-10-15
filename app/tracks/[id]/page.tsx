@@ -31,7 +31,7 @@ export async function generateMetadata({
   if (!track) notFound();
 
   return {
-    title: `${track.title} de ${track.trackArtists.map((artist) => artist.artist.name).join(', ')} notas vocais`,
+    title: `Veja as notas vocais da música ${track.title} de ${track.trackArtists.map((artist) => artist.artist.name).join(', ')}`,
     description: `Mais de ${track.notes.length} notas vocais para cantar ${track.title} de ${track.trackArtists.map((artist) => artist.artist.name).join(', ')} e não desafinar na frente dos amigos!`,
     openGraph:
       track.thumbnails.length > 0

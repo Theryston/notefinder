@@ -26,8 +26,8 @@ export async function generateMetadata({
   if (!album) notFound();
 
   return {
-    title: album.name,
-    description: `Veja as músicas do álbum ${album.name} no NoteFinder`,
+    title: `Músicas do álbum ${album.name} com suas notas vocais`,
+    description: `Veja as músicas do álbum ${album.name} no NoteFinder e as notas vocais de cada música para nunca desafinar ao cantar!`,
   };
 }
 

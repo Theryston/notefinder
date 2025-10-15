@@ -26,8 +26,8 @@ export async function generateMetadata({
   if (!artist) notFound();
 
   return {
-    title: artist.name,
-    description: `Veja as músicas do artista ${artist.name} no NoteFinder`,
+    title: `Músicas de ${artist.name} com suas notas vocais`,
+    description: `Veja as músicas do artista ${artist.name} no NoteFinder e as notas vocais de cada música para nunca desafinar ao cantar!`,
   };
 }
 
