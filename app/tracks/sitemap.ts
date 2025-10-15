@@ -1,4 +1,3 @@
-import { unstable_cacheTag as cacheTag } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { MAX_SITEMAP_SIZE } from '@/lib/constants';
 import { MetadataRoute } from 'next';
@@ -6,9 +5,6 @@ import { getBiggestOne } from '@/lib/utils';
 import { Thumbnail, Track } from '@/lib/generated/prisma';
 
 export async function generateSitemaps() {
-  'use cache: remote';
-  cacheTag('sitemap_generate_tracks');
-
   const total = await prisma.track.count({
     where: { status: 'COMPLETED' },
   });
@@ -29,9 +25,6 @@ export default async function sitemap({
 }: {
   id: Promise<number>;
 }): Promise<MetadataRoute.Sitemap> {
-  'use cache: remote';
-  cacheTag(`sitemap_tracks_${idParam}`);
-
   const id = await idParam;
   const start = id * MAX_SITEMAP_SIZE;
   const end = start + MAX_SITEMAP_SIZE;
