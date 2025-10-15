@@ -30,9 +30,12 @@ export async function generateMetadata({
 
   if (!track) notFound();
 
+  const uniqueNotes = new Set(track.notes.map((note) => note.note));
+  const uniqueNotesArray = Array.from(uniqueNotes);
+
   return {
     title: `Veja as notas vocais da música ${track.title} de ${track.trackArtists.map((artist) => artist.artist.name).join(', ')}`,
-    description: `Mais de ${track.notes.length} notas vocais para cantar ${track.title} de ${track.trackArtists.map((artist) => artist.artist.name).join(', ')} e não desafinar na frente dos amigos!`,
+    description: `As notas ${uniqueNotesArray.join(', ')} podem te ajudar a cantar ${track.title} de ${track.trackArtists.map((artist) => artist.artist.name).join(', ')}, confira em qual momento fazer cada nota e mude para o seu tom se for preciso!`,
     openGraph:
       track.thumbnails.length > 0
         ? {
