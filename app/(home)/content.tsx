@@ -121,6 +121,15 @@ export async function HomeContent() {
           take: keepExploringTake,
           cacheTags: ['tracks_keep_exploring'],
         }}
+        endMessage={
+          <>
+            Nosso catálogo não para por aqui, busque uma música na{' '}
+            <Link href="/search" className="underline hover:text-primary">
+              barra de pesquisa
+            </Link>{' '}
+            lá em cima.
+          </>
+        }
       />,
     );
   }

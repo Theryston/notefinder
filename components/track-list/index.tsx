@@ -22,12 +22,14 @@ export function TrackList({
   title,
   customAction,
   pagination,
+  endMessage,
 }: {
   itemVariant?: 'default' | 'numbered';
   tracks: Track[];
   title?: string;
   customAction?: React.ReactNode;
   pagination?: PaginationType;
+  endMessage?: React.ReactNode;
 }) {
   const [tracks, setTracks] = useState(initialTracks);
   const [page, setPage] = useState(pagination?.page || 1);
@@ -94,7 +96,7 @@ export function TrackList({
       </div>
 
       <div className="flex justify-center">
-        {pagination && hasNextPage && (
+        {pagination && hasNextPage ? (
           <Button
             isLoading={isFetching}
             onClick={() =>
@@ -108,7 +110,11 @@ export function TrackList({
           >
             Carregar mais
           </Button>
-        )}
+        ) : endMessage ? (
+          <div className="text-sm text-muted-foreground text-center">
+            {endMessage}
+          </div>
+        ) : null}
       </div>
     </div>
   );
