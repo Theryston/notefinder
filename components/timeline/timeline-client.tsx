@@ -174,8 +174,6 @@ export function TimelineClient({
       if (loopRef.current) {
         playerRef.current.seekTo(0);
         playerRef.current.play();
-      } else {
-        setIsPlaying(false);
       }
     }
     rafRef.current = requestAnimationFrame(tick);
@@ -233,10 +231,8 @@ export function TimelineClient({
     const playing = playerRef.current.isPlaying();
     if (playing) {
       playerRef.current.pause();
-      setIsPlaying(false);
     } else {
       playerRef.current.play();
-      setIsPlaying(true);
     }
   }, []);
 
