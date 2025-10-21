@@ -11,6 +11,8 @@ import screenfull from 'screenfull';
 import { isMobile } from 'react-device-detect';
 import { cn } from '@/lib/utils';
 import { usePitchDetection } from './use-pitch-detection';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import clsx from 'clsx';
 
 type Note = {
   note: string;
@@ -47,7 +49,11 @@ export function TimelineClient({
   const [isPortrait, setIsPortrait] = useState(false);
 
   // Pitch detection
-  const { isActive: micActive, currentPitch, toggle: toggleMic } = usePitchDetection();
+  const {
+    isActive: micActive,
+    currentPitch,
+    toggle: toggleMic,
+  } = usePitchDetection();
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -411,6 +417,13 @@ export function TimelineClient({
     return isMobile && (!isFullscreen || isPortrait);
   }, [isFullscreen, isPortrait]);
 
+  useEffect(() => {
+    if (isMobile && screenfull.isEnabled) {
+      requestFullscreen();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -424,14 +437,30 @@ export function TimelineClient({
               )}
             >
               {shouldShowAlert && (
-                <div className="flex flex-col p-4 gap-4 absolute -top-4 -left-4 -right-4 -bottom-4 z-50 bg-background/60 backdrop-blur flex justify-center items-center">
-                  <p className="text-sm text-muted-foreground text-center">
+                <div
+                  className={clsx(
+                    'p-4 absolute -top-4 -left-4 -right-4 -bottom-4 z-50 bg-background/60 backdrop-blur flex flex-col justify-center items-center',
+                    {
+                      'gap-4': !isFullscreen,
+                    },
+                  )}
+                >
+                  {isFullscreen && (
+                    <DotLottieReact
+                      src="/rotate-phone.lottie"
+                      loop
+                      autoplay
+                      className="h-32"
+                    />
+                  )}
+                  <p className="text-sm text-muted-foreground text-center p-4">
                     {!isFullscreen ? (
                       'Por favor, expanda a linha do tempo para ver as notas da música!'
                     ) : (
                       <>
-                        Por favor, coloque seu celular na <b>horizontal</b> para
-                        ver as notas da música!
+                        Por favor, coloque seu celular na{' '}
+                        <b className="font-bold text-foreground">horizontal</b>{' '}
+                        para ver as notas da música!
                       </>
                     )}
                   </p>
