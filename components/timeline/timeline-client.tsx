@@ -530,7 +530,7 @@ export function TimelineClient({
                     !isMobile && 'w-1/6',
                   )}
                 >
-                  <div className="rounded-xl border bg-card p-3 shadow flex flex-col gap-3 w-full">
+                  <div className="rounded-xl border bg-card p-3 shadow flex flex-col gap-3 w-full h-full max-h-[calc(100dvh-2rem)] overflow-y-auto">
                     <div
                       className={cn(
                         'aspect-video w-full',
