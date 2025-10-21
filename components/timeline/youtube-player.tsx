@@ -63,8 +63,15 @@ export function YouTubeRoot({
         modestbranding: 1,
         rel: 0,
         controls: 0,
+        playsinline: 1,
         origin:
           typeof window !== 'undefined' ? window.location.origin : undefined,
+        widget_referrer:
+          typeof window !== 'undefined' ? window.location.href : undefined,
+        autoplay: 0,
+        fs: 1,
+        iv_load_policy: 3,
+        disablekb: 0,
       },
     }),
     [],
