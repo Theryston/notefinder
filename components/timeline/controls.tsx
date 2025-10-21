@@ -59,74 +59,79 @@ export function TimelineControls(props: TimelineControlsProps) {
   return (
     <div className="w-full space-y-3">
       {!isInAppBrowser && (
-        <div className="grid grid-cols-[1fr_auto_auto] gap-2">
-          <Button
-            onClick={onPlayPause}
-            isLoading={isLoading}
-            className="w-full"
-          >
-            {isLoading ? (
-              'Carregando…'
-            ) : isPlaying ? (
-              <>
-                <PauseIcon className="w-4 h-4" />
-                Pausar
-              </>
-            ) : (
-              <>
-                <PlayIcon className="w-4 h-4" />
-                Reproduzir
-              </>
-            )}
-          </Button>
-          <Button
-            onClick={onMute}
-            size="icon"
-            variant={mute ? 'outline' : 'default'}
-          >
-            {mute ? (
-              <>
-                <VolumeOffIcon className="w-4 h-4" />
-              </>
-            ) : (
-              <>
-                <Volume2Icon className="w-4 h-4" />
-              </>
-            )}
-          </Button>
-          <Button
-            onClick={onMicToggle}
-            size="icon"
-            variant={micActive ? 'default' : 'outline'}
-          >
-            {micActive ? (
-              <>
-                <MicIcon className="w-4 h-4" />
-              </>
-            ) : (
-              <>
-                <MicOffIcon className="w-4 h-4" />
-              </>
-            )}
-          </Button>
-        </div>
+        <>
+          <div className="grid grid-cols-[1fr_auto_auto] gap-2">
+            <Button
+              onClick={onPlayPause}
+              isLoading={isLoading}
+              className="w-full"
+            >
+              {isLoading ? (
+                'Carregando…'
+              ) : isPlaying ? (
+                <>
+                  <PauseIcon className="w-4 h-4" />
+                  Pausar
+                </>
+              ) : (
+                <>
+                  <PlayIcon className="w-4 h-4" />
+                  Reproduzir
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={onMute}
+              size="icon"
+              variant={mute ? 'outline' : 'default'}
+            >
+              {mute ? (
+                <>
+                  <VolumeOffIcon className="w-4 h-4" />
+                </>
+              ) : (
+                <>
+                  <Volume2Icon className="w-4 h-4" />
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={onMicToggle}
+              size="icon"
+              variant={micActive ? 'default' : 'outline'}
+            >
+              {micActive ? (
+                <>
+                  <MicIcon className="w-4 h-4" />
+                </>
+              ) : (
+                <>
+                  <MicOffIcon className="w-4 h-4" />
+                </>
+              )}
+            </Button>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs text-muted-foreground">Progresso</label>
+            <div className="w-full h-2 rounded bg-muted overflow-hidden">
+              <div
+                className="h-full bg-primary"
+                style={{ width: `${percent}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{formatTime(currentTime)}</span>
+              <span>{formatTime(duration)}</span>
+            </div>
+          </div>
+        </>
       )}
       {isInAppBrowser && (
         <p className="text-xs text-muted-foreground text-center">
           Abra essa página em um navegador para ver mais funcionalidades!
         </p>
       )}
-
-      <div className="space-y-2">
-        <label className="text-xs text-muted-foreground">Progresso</label>
-        <div className="w-full h-2 rounded bg-muted overflow-hidden">
-          <div className="h-full bg-primary" style={{ width: `${percent}%` }} />
-        </div>
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
-        </div>
-      </div>
 
       <div className="flex items-center gap-2">
         <select
