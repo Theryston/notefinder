@@ -62,6 +62,7 @@ export function TimelineClient({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isFollowing, setIsFollowing] = useState(true);
+  const [isInAppBrowser, setIsInAppBrowser] = useState(false);
   const isFollowingRef = useRef(true);
   useEffect(() => {
     isFollowingRef.current = isFollowing;
@@ -420,6 +421,11 @@ export function TimelineClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const isInAppBrowser = navigator.userAgent.includes('Instagram');
+    setIsInAppBrowser(isInAppBrowser);
+  }, []);
+
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -528,17 +534,21 @@ export function TimelineClient({
                     <div
                       className={cn(
                         'aspect-video w-full',
-                        isFullscreen && isMobile && 'h-20',
+                        isFullscreen &&
+                          isMobile &&
+                          (isInAppBrowser ? 'h-40' : 'h-20'),
                       )}
                     >
                       <YouTubeRoot
                         ytId={ytId}
+                        isInAppBrowser={isInAppBrowser}
                         onReady={attachPlayer}
                         onPlay={handlePlay}
                         onPause={handlePause}
                       />
                     </div>
                     <TimelineControls
+                      isInAppBrowser={isInAppBrowser}
                       isPlaying={isPlaying}
                       onPlayPause={handlePlayPause}
                       isLoading={false}
@@ -566,12 +576,14 @@ export function TimelineClient({
               <div className="aspect-video w-full">
                 <YouTubeRoot
                   ytId={ytId}
+                  isInAppBrowser={isInAppBrowser}
                   onReady={attachPlayer}
                   onPlay={handlePlay}
                   onPause={handlePause}
                 />
               </div>
               <TimelineControls
+                isInAppBrowser={isInAppBrowser}
                 isPlaying={isPlaying}
                 onPlayPause={handlePlayPause}
                 isLoading={false}

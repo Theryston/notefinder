@@ -12,6 +12,7 @@ import { Button } from '../ui/button';
 
 type TimelineControlsProps = {
   isPlaying: boolean;
+  isInAppBrowser: boolean;
   isLoading?: boolean;
   onPlayPause: () => void;
   speed: number;
@@ -34,6 +35,7 @@ type TimelineControlsProps = {
 
 export function TimelineControls(props: TimelineControlsProps) {
   const {
+    isInAppBrowser,
     isPlaying,
     isLoading,
     onPlayPause,
@@ -56,53 +58,64 @@ export function TimelineControls(props: TimelineControlsProps) {
 
   return (
     <div className="w-full space-y-3">
-      <div className="grid grid-cols-[1fr_auto_auto] gap-2">
-        <Button onClick={onPlayPause} isLoading={isLoading} className="w-full">
-          {isLoading ? (
-            'Carregando…'
-          ) : isPlaying ? (
-            <>
-              <PauseIcon className="w-4 h-4" />
-              Pausar
-            </>
-          ) : (
-            <>
-              <PlayIcon className="w-4 h-4" />
-              Reproduzir
-            </>
-          )}
-        </Button>
-        <Button
-          onClick={onMute}
-          size="icon"
-          variant={mute ? 'outline' : 'default'}
-        >
-          {mute ? (
-            <>
-              <VolumeOffIcon className="w-4 h-4" />
-            </>
-          ) : (
-            <>
-              <Volume2Icon className="w-4 h-4" />
-            </>
-          )}
-        </Button>
-        <Button
-          onClick={onMicToggle}
-          size="icon"
-          variant={micActive ? 'default' : 'outline'}
-        >
-          {micActive ? (
-            <>
-              <MicIcon className="w-4 h-4" />
-            </>
-          ) : (
-            <>
-              <MicOffIcon className="w-4 h-4" />
-            </>
-          )}
-        </Button>
-      </div>
+      {!isInAppBrowser && (
+        <div className="grid grid-cols-[1fr_auto_auto] gap-2">
+          <Button
+            onClick={onPlayPause}
+            isLoading={isLoading}
+            className="w-full"
+          >
+            {isLoading ? (
+              'Carregando…'
+            ) : isPlaying ? (
+              <>
+                <PauseIcon className="w-4 h-4" />
+                Pausar
+              </>
+            ) : (
+              <>
+                <PlayIcon className="w-4 h-4" />
+                Reproduzir
+              </>
+            )}
+          </Button>
+          <Button
+            onClick={onMute}
+            size="icon"
+            variant={mute ? 'outline' : 'default'}
+          >
+            {mute ? (
+              <>
+                <VolumeOffIcon className="w-4 h-4" />
+              </>
+            ) : (
+              <>
+                <Volume2Icon className="w-4 h-4" />
+              </>
+            )}
+          </Button>
+          <Button
+            onClick={onMicToggle}
+            size="icon"
+            variant={micActive ? 'default' : 'outline'}
+          >
+            {micActive ? (
+              <>
+                <MicIcon className="w-4 h-4" />
+              </>
+            ) : (
+              <>
+                <MicOffIcon className="w-4 h-4" />
+              </>
+            )}
+          </Button>
+        </div>
+      )}
+      {isInAppBrowser && (
+        <p className="text-xs text-muted-foreground text-center">
+          Abra essa página em um navegador para ter mais funcionalidades!
+        </p>
+      )}
 
       <div className="space-y-2">
         <label className="text-xs text-muted-foreground">Progresso</label>

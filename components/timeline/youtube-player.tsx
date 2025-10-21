@@ -29,11 +29,13 @@ export type YouTubeApi = {
 
 export function YouTubeRoot({
   ytId,
+  isInAppBrowser,
   onReady,
   onPlay,
   onPause,
 }: {
   ytId: string;
+  isInAppBrowser: boolean;
   onReady?: (api: YouTubeApi) => void;
   onPlay?: () => void;
   onPause?: () => void;
@@ -62,7 +64,7 @@ export function YouTubeRoot({
         enablejsapi: 1,
         modestbranding: 1,
         rel: 0,
-        controls: 0,
+        controls: isInAppBrowser ? 1 : 0,
         playsinline: 1,
         origin:
           typeof window !== 'undefined' ? window.location.origin : undefined,
@@ -74,7 +76,7 @@ export function YouTubeRoot({
         disablekb: 0,
       },
     }),
-    [],
+    [isInAppBrowser],
   );
 
   const getApi = useMemo<YouTubeApi>(
