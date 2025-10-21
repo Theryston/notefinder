@@ -113,7 +113,7 @@ export function TimelineControls(props: TimelineControlsProps) {
       )}
       {isInAppBrowser && (
         <p className="text-xs text-muted-foreground text-center">
-          Abra essa página em um navegador para ter mais funcionalidades!
+          Abra essa página em um navegador para ver mais funcionalidades!
         </p>
       )}
 
