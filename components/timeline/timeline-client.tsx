@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { usePitchDetection } from './use-pitch-detection';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import clsx from 'clsx';
+import { LyricsDisplay } from './lyrics-display';
 
 type Note = {
   note: string;
@@ -30,9 +31,11 @@ const NEXT_NOTE_PRE_ROLL_SECONDS = 1;
 export function TimelineClient({
   ytId,
   notes,
+  lyricsUrl,
 }: {
   ytId: string;
   notes: Note[];
+  lyricsUrl?: string;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef<HTMLDivElement | null>(null);
@@ -501,6 +504,13 @@ export function TimelineClient({
                 currentTime={currentTime}
                 micActive={micActive}
               />
+
+              {lyricsUrl && (
+                <LyricsDisplay
+                  lyricsUrl={lyricsUrl}
+                  currentTime={currentTime}
+                />
+              )}
 
               {shouldShowNext && (
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-50">

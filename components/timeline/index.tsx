@@ -12,7 +12,11 @@ export function Timeline({ track }: { track: FullTrack }) {
         <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-primary/10 via-transparent to-primary/10" />
 
         <div className="p-4 sm:p-6">
-          <TimelineClient ytId={track.ytId} notes={track.notes} />
+          <TimelineClient
+            ytId={track.ytId}
+            notes={track.notes}
+            lyricsUrl={track.lyricsUrl || undefined}
+          />
         </div>
       </div>
     </section>

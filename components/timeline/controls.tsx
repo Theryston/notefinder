@@ -76,7 +76,7 @@ export function TimelineControls(props: TimelineControlsProps) {
               ) : (
                 <>
                   <PlayIcon className="w-4 h-4" />
-                  Reproduzir
+                  Iniciar
                 </>
               )}
             </Button>
