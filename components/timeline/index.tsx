@@ -1,7 +1,13 @@
 import { TimelineClient } from '@/components/timeline/timeline-client';
-import { FullTrack } from '@/lib/constants';
+import { FullTrack, Lyrics } from '@/lib/constants';
 
-export function Timeline({ track }: { track: FullTrack }) {
+export function Timeline({
+  track,
+  lyrics,
+}: {
+  track: FullTrack;
+  lyrics?: Lyrics;
+}) {
   if (!track) return null;
   if (!track.notes || track.notes.length === 0) return null;
   if (!track.ytId) return null;
@@ -15,7 +21,7 @@ export function Timeline({ track }: { track: FullTrack }) {
           <TimelineClient
             ytId={track.ytId}
             notes={track.notes}
-            lyricsUrl={track.lyricsUrl || undefined}
+            lyrics={lyrics}
           />
         </div>
       </div>

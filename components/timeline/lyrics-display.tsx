@@ -1,18 +1,9 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { isMobile } from 'react-device-detect';
-
-type LyricsWord = {
-  word: string;
-  start: number;
-  end: number;
-};
-
-type LyricsData = {
-  words: LyricsWord[];
-};
+import type { Lyrics, LyricsWord } from '@/lib/constants';
 
 type LyricsPhrase = {
   words: LyricsWord[];
@@ -24,46 +15,20 @@ const MAX_WORDS_PER_PHRASE = isMobile ? 8 : 10;
 const MAX_TIME_GAP_SECONDS = 1.5;
 
 export function LyricsDisplay({
-  lyricsUrl,
+  lyrics,
   currentTime,
 }: {
-  lyricsUrl: string;
+  lyrics: Lyrics;
   currentTime: number;
 }) {
-  const [lyricsData, setLyricsData] = useState<LyricsData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchLyrics = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await fetch(lyricsUrl);
-        if (!response.ok) {
-          throw new Error('Failed to fetch lyrics');
-        }
-        const data = await response.json();
-        setLyricsData(data);
-      } catch (err) {
-        console.error('Error fetching lyrics:', err);
-        setError('Failed to load lyrics');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchLyrics();
-  }, [lyricsUrl]);
-
   const phrases = useMemo(() => {
-    if (!lyricsData?.words || lyricsData.words.length === 0) return [];
+    if (!lyrics?.words || lyrics.words.length === 0) return [];
 
     const result: LyricsPhrase[] = [];
     let currentPhrase: LyricsWord[] = [];
 
-    for (let i = 0; i < lyricsData.words.length; i++) {
-      const word = lyricsData.words[i];
+    for (let i = 0; i < lyrics.words.length; i++) {
+      const word = lyrics.words[i];
       const prevWord = currentPhrase[currentPhrase.length - 1];
 
       const shouldStartNewPhrase =
@@ -91,7 +56,7 @@ export function LyricsDisplay({
     }
 
     return result;
-  }, [lyricsData]);
+  }, [lyrics]);
 
   const currentPhrase = useMemo(() => {
     if (phrases.length === 0) return null;
@@ -125,13 +90,7 @@ export function LyricsDisplay({
     return nextPhrase || activePhrase;
   }, [phrases, currentTime]);
 
-  if (isLoading) {
-    return null;
-  }
-
-  if (error || !currentPhrase) {
-    return null;
-  }
+  if (!currentPhrase) return null;
 
   return (
     <div

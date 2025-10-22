@@ -14,6 +14,7 @@ import { usePitchDetection } from './use-pitch-detection';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import clsx from 'clsx';
 import { LyricsDisplay } from './lyrics-display';
+import { Lyrics } from '@/lib/constants';
 
 type Note = {
   note: string;
@@ -31,11 +32,11 @@ const NEXT_NOTE_PRE_ROLL_SECONDS = 1;
 export function TimelineClient({
   ytId,
   notes,
-  lyricsUrl,
+  lyrics,
 }: {
   ytId: string;
   notes: Note[];
-  lyricsUrl?: string;
+  lyrics?: Lyrics;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef<HTMLDivElement | null>(null);
@@ -505,11 +506,8 @@ export function TimelineClient({
                 micActive={micActive}
               />
 
-              {lyricsUrl && (
-                <LyricsDisplay
-                  lyricsUrl={lyricsUrl}
-                  currentTime={currentTime}
-                />
+              {lyrics && (
+                <LyricsDisplay lyrics={lyrics} currentTime={currentTime} />
               )}
 
               {shouldShowNext && (

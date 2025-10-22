@@ -35,6 +35,16 @@ export const FULL_TRACK_INCLUDE = {
   _count: { select: { views: true } },
 };
 
+export type LyricsWord = {
+  word: string;
+  start: number;
+  end: number;
+};
+
+export type Lyrics = {
+  words: LyricsWord[];
+};
+
 export type FullTrack = Track & {
   notes: TrackNote[];
   thumbnails: Thumbnail[];

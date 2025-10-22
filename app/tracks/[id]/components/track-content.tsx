@@ -3,11 +3,17 @@ import { AddView } from './add-view';
 import { TrackOverview } from './track-overview';
 import { Timeline } from '@/components/timeline';
 import { CalculateScore } from './calculate-score';
-import { FullTrack } from '@/lib/constants';
+import { FullTrack, Lyrics } from '@/lib/constants';
 import { unstable_cacheTag as cacheTag } from 'next/cache';
 import { Suspense } from 'react';
 
-export async function TrackContent({ track }: { track: FullTrack }) {
+export async function TrackContent({
+  track,
+  lyrics,
+}: {
+  track: FullTrack;
+  lyrics?: Lyrics;
+}) {
   'use cache: remote';
   cacheTag(`track_${track.id}`);
 
@@ -20,7 +26,7 @@ export async function TrackContent({ track }: { track: FullTrack }) {
         <AddView trackId={track.id} />
       </Suspense>
       <TrackOverview track={track} />
-      <Timeline track={track} />
+      <Timeline track={track} lyrics={lyrics} />
     </div>
   );
 }

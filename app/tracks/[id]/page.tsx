@@ -6,6 +6,7 @@ import { unstable_cacheTag as cacheTag } from 'next/cache';
 import {
   FULL_TRACK_INCLUDE,
   FullTrack,
+  Lyrics,
   MAX_STATIC_PAGES,
 } from '@/lib/constants';
 import prisma from '@/lib/prisma';
@@ -18,6 +19,19 @@ async function getTrack(id: string) {
     where: { id },
     include: FULL_TRACK_INCLUDE,
   });
+}
+
+async function getLyrics(lyricsUrl?: string) {
+  'use cache: remote';
+  cacheTag(`lyrics_${lyricsUrl || 'none'}`);
+
+  if (!lyricsUrl) return undefined;
+
+  const response = await fetch(lyricsUrl);
+
+  if (!response.ok) return undefined;
+  const data = await response.json();
+  return data as Lyrics;
 }
 
 export async function generateMetadata({
@@ -81,6 +95,8 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
 
   if (!track) notFound();
 
+  const lyrics = await getLyrics(track.lyricsUrl || undefined);
+
   return (
     <>
       {track.status !== 'COMPLETED' && (
@@ -92,7 +108,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
       )}
 
       {track.status === 'COMPLETED' && (
-        <TrackContent track={track as unknown as FullTrack} />
+        <TrackContent track={track as unknown as FullTrack} lyrics={lyrics} />
       )}
     </>
   );
