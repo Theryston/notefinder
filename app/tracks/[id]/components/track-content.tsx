@@ -6,6 +6,7 @@ import { CalculateScore } from './calculate-score';
 import { FullTrack, Lyrics } from '@/lib/constants';
 import { unstable_cacheTag as cacheTag } from 'next/cache';
 import { Suspense } from 'react';
+import { LyricsComponent } from './lyrics';
 
 export async function TrackContent({
   track,
@@ -27,6 +28,7 @@ export async function TrackContent({
       </Suspense>
       <TrackOverview track={track} />
       <Timeline track={track} lyrics={lyrics} />
+      {lyrics && <LyricsComponent lyrics={lyrics} />}
     </div>
   );
 }

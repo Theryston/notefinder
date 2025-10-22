@@ -13,7 +13,7 @@ export function Timeline({
   if (!track.ytId) return null;
 
   return (
-    <section className="w-full">
+    <section className="w-full" id="timeline">
       <div className="relative overflow-hidden rounded-2xl border bg-background/60 shadow-sm backdrop-blur">
         <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-primary/10 via-transparent to-primary/10" />
 
