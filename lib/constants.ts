@@ -92,22 +92,22 @@ export const STATUS_INFO: Record<TrackStatus, StatusInfo> = {
     description: 'Preparando o material para análise.',
     showBar: true,
   },
-  EXTRACTING_LYRICS: {
-    percent: 20,
-    title: 'Extraindo letra da música',
-    description: 'Buscando e tratando a letra da música.',
-    showBar: true,
-  },
   EXTRACTING_VOCALS: {
-    percent: 30,
+    percent: 20,
     title: 'Separando vocais da música',
     description: 'Isolando a voz do instrumental.',
     showBar: true,
   },
   DETECTING_VOCALS_NOTES: {
-    percent: 50,
+    percent: 40,
     title: 'Detectando notas vocais da música',
     description: 'Analisando cada trecho para identificar as notas.',
+    showBar: true,
+  },
+  EXTRACTING_LYRICS: {
+    percent: 90,
+    title: 'Extraindo letra da música',
+    description: 'Buscando e tratando a letra da música.',
     showBar: true,
   },
   COMPLETED: {
