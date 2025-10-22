@@ -42,7 +42,12 @@ async function putTrack(
 
   await prisma.track.update({
     where: { id },
-    data: { musicUrl, vocalsUrl, lyricsUrl, score: score || undefined },
+    data: {
+      musicUrl: musicUrl || undefined,
+      vocalsUrl: vocalsUrl || undefined,
+      lyricsUrl: lyricsUrl || undefined,
+      score: score || undefined,
+    },
   });
 
   revalidateTag(`track_${id}`);
