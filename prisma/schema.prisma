@@ -131,6 +131,7 @@ model Track {
   status            TrackStatus @default(QUEUED) @map("status")
   musicUrl          String?     @map("music_url")
   vocalsUrl         String?     @map("vocals_url")
+  lyricsUrl         String?     @map("lyrics_url")
   statusDescription String?     @map("status_description")
   title             String?     @map("title")
   duration          String?     @map("duration")

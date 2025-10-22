@@ -23,7 +23,7 @@ async function putTrack(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const { musicUrl, vocalsUrl, score } = await request.json();
+  const { musicUrl, vocalsUrl, lyricsUrl, score } = await request.json();
 
   const track = await prisma.track.findFirst({
     where: { id },
@@ -42,7 +42,7 @@ async function putTrack(
 
   await prisma.track.update({
     where: { id },
-    data: { musicUrl, vocalsUrl, score: score || undefined },
+    data: { musicUrl, vocalsUrl, lyricsUrl, score: score || undefined },
   });
 
   revalidateTag(`track_${id}`);
