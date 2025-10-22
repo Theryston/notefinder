@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { Container } from '@/components/container';
-import { Button } from '@/components/ui/button';
 import { onSigninGoogle } from './actions';
 import { CredentialsForm } from './components/credentials-form';
 import { Suspense } from 'react';
+import GoogleButton from '@/components/google-button';
 
 export default async function SignIn({
   searchParams,
@@ -49,9 +49,9 @@ async function Content({
         </div>
 
         <form action={onSigninGoogle}>
-          <Button variant="outline" type="submit" className="w-full">
+          <GoogleButton variant="outline" type="submit" className="w-full">
             Entrar com Google
-          </Button>
+          </GoogleButton>
         </form>
 
         <p className="text-center text-sm">
