@@ -25,6 +25,9 @@ export function ProcessingTrackContent({
   >(defaultStatusDescription);
   const revalidateTrackFormRef = React.useRef<HTMLFormElement>(null);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [animatedProgress, setAnimatedProgress] = React.useState<number>(
+    STATUS_INFO[status].percent ?? 0,
+  );
 
   const musicFetch = useCallback(
     async ({
@@ -81,8 +84,71 @@ export function ProcessingTrackContent({
     }
   }, [status]);
 
+  React.useEffect(() => {
+    const info = STATUS_INFO[status];
+    const currentStepPercent =
+      typeof info.percent === 'number' ? info.percent : 0;
+
+    const statusOrder: TrackStatus[] = [
+      'QUEUED',
+      'DOWNLOADING_THUMBNAILS',
+      'DOWNLOADING_VIDEO',
+      'EXTRACTING_VOCALS',
+      'DETECTING_VOCALS_NOTES',
+      'EXTRACTING_LYRICS',
+      'COMPLETED',
+    ];
+
+    const currentIndex = statusOrder.indexOf(status);
+    const nextStatus = statusOrder[currentIndex + 1];
+    const nextPercent = nextStatus
+      ? (STATUS_INFO[nextStatus].percent ?? 100)
+      : 100;
+
+    setAnimatedProgress((current) => {
+      if (current < currentStepPercent) {
+        return currentStepPercent;
+      }
+      return current;
+    });
+
+    if (status !== 'COMPLETED' && status !== 'ERROR') {
+      let animationFrameId: number;
+
+      const animate = () => {
+        setAnimatedProgress((current) => {
+          if (current < currentStepPercent) {
+            return currentStepPercent;
+          }
+
+          const distanceToNext = nextPercent - current;
+
+          if (distanceToNext < 0.02) {
+            return current;
+          }
+
+          const speed = Math.max(distanceToNext * 0.003, 0.0005);
+
+          const newValue = current + speed;
+
+          return Math.min(newValue, nextPercent - 1.5);
+        });
+
+        animationFrameId = requestAnimationFrame(animate);
+      };
+
+      animationFrameId = requestAnimationFrame(animate);
+
+      return () => {
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+      };
+    }
+  }, [status]);
+
   const info = STATUS_INFO[status];
-  const percent = typeof info.percent === 'number' ? info.percent : 0;
+  const percent = Math.round(animatedProgress);
 
   if (isLoading) {
     return (

@@ -93,13 +93,13 @@ export const STATUS_INFO: Record<TrackStatus, StatusInfo> = {
     showBar: true,
   },
   EXTRACTING_VOCALS: {
-    percent: 20,
+    percent: 40,
     title: 'Separando vocais da música',
     description: 'Isolando a voz do instrumental.',
     showBar: true,
   },
   DETECTING_VOCALS_NOTES: {
-    percent: 40,
+    percent: 65,
     title: 'Detectando notas vocais da música',
     description: 'Analisando cada trecho para identificar as notas.',
     showBar: true,
