@@ -1,6 +1,6 @@
-import { CALCULATE_TRACK_SCORE_JOB_DELAY } from '@/lib/constants';
+import { CALCULATE_TRACK_SCORE_JOB_DELAY_SECONDS } from '@/lib/constants';
 import prisma from '@/lib/prisma';
-import { calculateTrackScoreQueue } from '../notefinder-worker/queues';
+import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 import moment from 'moment';
 
 export const calculateTrackScoreJob = async (trackId: string) => {
@@ -11,28 +11,41 @@ export const calculateTrackScoreJob = async (trackId: string) => {
     },
   });
 
-  if (hasPendingJob) return;
+  if (hasPendingJob) {
+    console.log(
+      `A calculate score job is already pending for track ${trackId}`,
+    );
+    return;
+  }
 
-  const job = await calculateTrackScoreQueue.add(
-    'calculate-track-score',
-    {
-      trackId: trackId,
+  const client = new SQSClient({
+    region: process.env.CUSTOM_AWS_REGION_NAME!,
+    credentials: {
+      accessKeyId: process.env.CUSTOM_AWS_ACCESS_KEY!,
+      secretAccessKey: process.env.CUSTOM_AWS_SECRET_ACCESS_KEY!,
     },
-    {
-      delay: CALCULATE_TRACK_SCORE_JOB_DELAY,
-    },
-  );
+  });
 
-  if (!job?.id) return;
+  const command = new SendMessageCommand({
+    MessageBody: JSON.stringify({ trackId }),
+    QueueUrl: process.env.CALCULATE_TRACK_SCORE_QUEUE_URL!,
+    DelaySeconds: CALCULATE_TRACK_SCORE_JOB_DELAY_SECONDS,
+  });
+
+  const result = await client.send(command);
+
+  const jobId = result.MessageId;
+
+  if (!jobId) return;
 
   const startAt = moment()
-    .add(CALCULATE_TRACK_SCORE_JOB_DELAY, 'milliseconds')
+    .add(CALCULATE_TRACK_SCORE_JOB_DELAY_SECONDS, 'seconds')
     .toDate();
 
   await prisma.trackCalculationJob.create({
     data: {
       trackId: trackId,
-      jobId: job.id,
+      jobId: jobId,
       startAt,
     },
   });
