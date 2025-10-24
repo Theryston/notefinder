@@ -2,12 +2,12 @@
 
 import { type NotefinderYtmusicSearchResponse } from '@/lib/services/notefinder-ytmusic/types';
 import prisma from '@/lib/prisma';
-import { addNotesQueue } from '@/lib/services/notefinder-worker/queues';
 import { redirect } from 'next/navigation';
 import { Artist, Track } from '@/lib/generated/prisma';
 import { auth } from '@/auth';
 import { isNextRedirectError } from '@/lib/utils';
 import { revalidateTag } from 'next/cache';
+import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
 
 export type AddNotesState = {
   error?: { videoId?: string[] };
@@ -112,12 +112,31 @@ export const onAddNotes = async (
       },
     });
 
-    const job = await addNotesQueue.add('add-notes', { track, externalTrack });
+    const client = new SQSClient({
+      region: process.env.CUSTOM_AWS_REGION_NAME!,
+      credentials: {
+        accessKeyId: process.env.CUSTOM_AWS_ACCESS_KEY!,
+        secretAccessKey: process.env.CUSTOM_AWS_SECRET_ACCESS_KEY!,
+      },
+    });
 
-    if (job?.id) {
+    const messageBody = JSON.stringify({ track, externalTrack });
+
+    const command = new SendMessageCommand({
+      MessageBody: messageBody,
+      QueueUrl: process.env.ADD_NOTES_QUEUE_URL!,
+    });
+
+    const result = await client.send(command);
+
+    const jobId = result.MessageId;
+
+    console.log(`Added a add notes job ${jobId} for track ${track.id}`);
+
+    if (jobId) {
       await prisma.track.update({
         where: { id: track.id },
-        data: { jobId: job.id },
+        data: { jobId },
       });
     }
 
