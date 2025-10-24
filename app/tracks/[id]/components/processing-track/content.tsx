@@ -26,8 +26,14 @@ export function ProcessingTrackContent({
   const revalidateTrackFormRef = React.useRef<HTMLFormElement>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [animatedProgress, setAnimatedProgress] = React.useState<number>(
-    STATUS_INFO[status].percent ?? 0,
+    localStorage.getItem(`track_${id}_progress`)
+      ? Number(localStorage.getItem(`track_${id}_progress`))
+      : (STATUS_INFO[status].percent ?? 0),
   );
+
+  React.useEffect(() => {
+    localStorage.setItem(`track_${id}_progress`, animatedProgress.toString());
+  }, [animatedProgress, id]);
 
   const musicFetch = useCallback(
     async ({
