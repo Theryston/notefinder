@@ -14,8 +14,12 @@ export const notefinderYtmusicSearch = async (params: {
 
   console.log(`Searching for ${params.query} on Notefinder YT Music`);
 
+  if (!params.filter) params.filter = 'songs';
+  if (!params.ignore_spelling) params.ignore_spelling = false;
+  if (!params.limit) params.limit = 30;
+
   const client = await getNotefinderYtMusicClient();
-  const response = await client.get('/ytmusic/search', {
+  const response = await client.get('', {
     params,
   });
   return filterValidIds(response.data);
