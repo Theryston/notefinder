@@ -100,7 +100,7 @@ export function ProcessingTrackContent({
 
       <div className="mx-auto max-w-2xl">
         <p className="mb-4 text-sm italic text-muted-foreground/90">
-          Esse processo não leva mais de 15 minutos.
+          Esse processo não leva mais de 5 minutos.
         </p>
         <div className="relative overflow-hidden rounded-2xl border bg-background/60 shadow-sm backdrop-blur">
           <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-primary/10 via-transparent to-primary/10" />
