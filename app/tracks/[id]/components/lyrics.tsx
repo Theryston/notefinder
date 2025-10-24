@@ -9,9 +9,19 @@ export function LyricsComponent({ lyrics }: { lyrics: Lyrics }) {
         <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-primary/10 via-transparent to-primary/10" />
         <div className="p-6 flex flex-col gap-4">
           <h2 className="text-lg font-bold">Letra da música</h2>
-          <p className="text-sm text-muted-foreground">
-            {lyrics.words.map((word) => word.word).join(' ')}
-          </p>
+          {lyrics.segments ? (
+            <div className="flex flex-col gap-2">
+              {lyrics.segments.map((segment) => (
+                <p key={segment.id} className="text-xs text-muted-foreground">
+                  {segment.text.trim()}
+                </p>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {lyrics.words.map((word) => word.word).join(' ')}
+            </p>
+          )}
           <Link
             href="#timeline"
             className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 w-fit"

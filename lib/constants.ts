@@ -41,8 +41,22 @@ export type LyricsWord = {
   end: number;
 };
 
+export type LyricsSegment = {
+  avg_logprob: number;
+  compression_ratio: number;
+  end: number;
+  id: number;
+  no_speech_prob: number;
+  seek: number;
+  start: number;
+  temperature: number;
+  text: string;
+  tokens: number[];
+};
+
 export type Lyrics = {
   words: LyricsWord[];
+  segments?: LyricsSegment[];
 };
 
 export type FullTrack = Track & {
