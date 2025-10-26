@@ -155,7 +155,8 @@ function CardsInfo({ track }: { track: FullTrack }) {
           </div>
           <Link
             href={`/users/${track.creator.username}`}
-            className="mt-0.5 text-sm font-medium hover:text-primary"
+            className="mt-0.5 text-sm font-medium hover:text-primary w-full truncate inline-block align-bottom"
+            title={track.creator.username}
           >
             {track.creator.username}
           </Link>

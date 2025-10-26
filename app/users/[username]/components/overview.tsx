@@ -29,8 +29,8 @@ export async function UserOverview({
 
         <div className="p-6 sm:p-8">
           <div className="grid grid-cols-[120px_1fr] gap-6 sm:gap-8 items-start">
-            <div className="relative rounded-full overflow-hidden border size-[120px] sm:size-[150px]">
-              <Avatar className="size-full">
+            <div className="relative rounded-full overflow-hidden border w-full">
+              <Avatar className="w-full h-full">
                 <AvatarImage src={user.image || ''} alt={avatarAlt} />
                 <AvatarFallback className="text-xl sm:text-2xl font-semibold">
                   {firstChar}
@@ -38,14 +38,16 @@ export async function UserOverview({
               </Avatar>
             </div>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 w-full overflow-hidden">
               <div className="flex flex-col md:flex-row gap-1 md:justify-between">
                 <div className="flex flex-col gap-1">
-                  <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
+                  <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight w-full">
                     {name}
                   </h1>
                   <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                    {username ? <span>@{username}</span> : null}
+                    {username ? (
+                      <span className="max-w-full truncate">@{username}</span>
+                    ) : null}
                     <span className="rounded-full border px-2 py-0.5 text-xs">
                       Membro desde {moment(user.createdAt).format('MM/YYYY')}
                     </span>
