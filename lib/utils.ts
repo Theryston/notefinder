@@ -42,6 +42,10 @@ export function getFullHeight(noStrBlank: boolean = true) {
   return `calc(100dvh - (var(--spacing) * 54))`;
 }
 
+export function getStorageKey(ytId: string) {
+  return `notefinder-timeline-position-${ytId}`;
+}
+
 export function filterValidIds(
   data: NotefinderYtmusicSearchResponse[],
 ): NotefinderYtmusicSearchResponse[] {

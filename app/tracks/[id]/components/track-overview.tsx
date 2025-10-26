@@ -84,7 +84,11 @@ export async function TrackOverview({ track }: { track: FullTrack }) {
                   </div>
                 </div>
 
-                <TrackActions trackTitle={track.title} trackId={track.id} />
+                <TrackActions
+                  trackTitle={track.title}
+                  trackId={track.id}
+                  ytId={track.ytId}
+                />
               </div>
 
               <div className="flex flex-wrap items-center gap-2">

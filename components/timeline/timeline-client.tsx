@@ -9,7 +9,7 @@ import { estimateKey, fromMidiToNote, toMidiFromNote } from './utils';
 import { MaximizeIcon, XIcon } from 'lucide-react';
 import screenfull from 'screenfull';
 import { isMobile } from 'react-device-detect';
-import { cn } from '@/lib/utils';
+import { cn, getStorageKey } from '@/lib/utils';
 import { usePitchDetection } from './use-pitch-detection';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import clsx from 'clsx';
@@ -79,9 +79,21 @@ export function TimelineClient({
     ? Number(searchParams.get('time'))
     : undefined;
 
+  const storageKey = getStorageKey(ytId);
+
   useEffect(() => {
     isFollowingRef.current = isFollowing;
   }, [isFollowing]);
+
+  useEffect(() => {
+    if (currentTime > 0 && isReady) {
+      try {
+        sessionStorage.setItem(storageKey, currentTime.toString());
+      } catch (error) {
+        console.error('Erro ao salvar posição da timeline', error);
+      }
+    }
+  }, [currentTime, isReady, storageKey]);
 
   const displayNotes = useMemo(() => {
     const mapped = (notes || []).map((n) => {
@@ -189,10 +201,16 @@ export function TimelineClient({
       if (loopRef.current) {
         playerRef.current.seekTo(0);
         playerRef.current.play();
+      } else {
+        try {
+          sessionStorage.removeItem(storageKey);
+        } catch (error) {
+          console.error('Erro ao limpar posição salva', error);
+        }
       }
     }
     rafRef.current = requestAnimationFrame(tick);
-  }, [updateProgressUi]);
+  }, [updateProgressUi, storageKey]);
 
   const attachPlayer = useCallback(
     (api: YouTubeApi) => {
@@ -200,18 +218,22 @@ export function TimelineClient({
       setDuration(api.getDuration());
       setCurrentTime(api.getCurrentTime());
       api.setPlaybackRate(speedRef.current);
+      const newCurrentTime =
+        defaultTime || sessionStorage.getItem(storageKey)
+          ? Number(sessionStorage.getItem(storageKey))
+          : 0;
 
-      if (defaultTime) {
-        api.seekTo(defaultTime);
-        setCurrentTime(defaultTime);
-        updateProgressUi(defaultTime, 'center');
+      if (newCurrentTime) {
+        api.seekTo(newCurrentTime);
+        setCurrentTime(newCurrentTime);
+        updateProgressUi(newCurrentTime, 'center');
       }
 
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(tick);
       setIsReady(true);
     },
-    [tick, defaultTime, updateProgressUi],
+    [defaultTime, storageKey, tick, updateProgressUi],
   );
 
   useEffect(() => {

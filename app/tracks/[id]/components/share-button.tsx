@@ -13,8 +13,17 @@ import {
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { Check, Copy } from 'lucide-react';
+import { getStorageKey } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 
-export function ShareButton({ trackTitle }: { trackTitle: string | null }) {
+export function ShareButton({
+  trackTitle,
+  ytId,
+}: {
+  trackTitle: string | null;
+  ytId: string;
+}) {
   const [isOpenShareModal, setIsOpenShareModal] = useState(false);
 
   return (
@@ -31,6 +40,7 @@ export function ShareButton({ trackTitle }: { trackTitle: string | null }) {
         isOpen={isOpenShareModal}
         onOpenChange={setIsOpenShareModal}
         trackTitle={trackTitle}
+        ytId={ytId}
       />
     </>
   );
@@ -40,20 +50,35 @@ function ShareModal({
   isOpen,
   onOpenChange,
   trackTitle,
+  ytId,
 }: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   trackTitle: string | null;
+  ytId: string;
 }) {
   const [shareUrl, setShareUrl] = useState('');
   const [copied, setCopied] = useState(false);
+  const [includeCurrentTime, setIncludeCurrentTime] = useState(true);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && isOpen) {
-      setShareUrl(window.location.href);
+      const storageKey = getStorageKey(ytId);
+      const currentTime = sessionStorage.getItem(storageKey);
+      const currentUrl = new URL(window.location.href);
+
+      if (currentTime && includeCurrentTime) {
+        currentUrl.searchParams.set('time', currentTime);
+        currentUrl.searchParams.set('timeline-focus', 'true');
+      } else {
+        currentUrl.searchParams.delete('time');
+        currentUrl.searchParams.delete('timeline-focus');
+      }
+
+      setShareUrl(currentUrl.toString());
       setCopied(false);
     }
-  }, [isOpen]);
+  }, [includeCurrentTime, isOpen, ytId]);
 
   const shareText = useMemo(() => {
     const base = trackTitle
@@ -139,6 +164,21 @@ function ShareModal({
               )}
               {copied ? 'Copiado' : 'Copiar'}
             </Button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Checkbox
+              id="includeCurrentTime"
+              checked={includeCurrentTime}
+              onCheckedChange={(checked) =>
+                setIncludeCurrentTime(
+                  checked === 'indeterminate' ? true : checked,
+                )
+              }
+            />
+            <Label htmlFor="includeCurrentTime">
+              Incluir momento atual no link
+            </Label>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
