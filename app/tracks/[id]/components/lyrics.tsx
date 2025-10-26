@@ -12,19 +12,34 @@ export function LyricsComponent({ lyrics }: { lyrics: Lyrics }) {
           {lyrics.segments ? (
             <div className="flex flex-col gap-2">
               {lyrics.segments.map((segment) => (
-                <p key={segment.id} className="text-xs text-muted-foreground">
+                <Link
+                  key={segment.id}
+                  href={`?timeline-focus=true&time=${segment.seek}`}
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                  scroll={false}
+                >
                   {segment.text.trim()}
-                </p>
+                </Link>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              {lyrics.words.map((word) => word.word).join(' ')}
-            </p>
+            <div className="text-sm text-muted-foreground flex flex-wrap gap-0.5">
+              {lyrics.words.map((word, index) => (
+                <Link
+                  key={`${word.start}-${index}`}
+                  href={`?timeline-focus=true&time=${word.start}`}
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                  scroll={false}
+                >
+                  {word.word.trim()}
+                </Link>
+              ))}
+            </div>
           )}
           <Link
-            href="#timeline"
+            href="?timeline-focus=true"
             className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 w-fit"
+            scroll={false}
           >
             <ArrowUpIcon className="w-4 h-4" />
             Acompanhe as notas da música com a letra na timeline acima

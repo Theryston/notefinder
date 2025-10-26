@@ -15,6 +15,7 @@ import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import clsx from 'clsx';
 import { LyricsDisplay } from './lyrics-display';
 import { Lyrics } from '@/lib/constants';
+import { useSearchParams } from 'next/navigation';
 
 type Note = {
   note: string;
@@ -66,12 +67,21 @@ export function TimelineClient({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isFollowing, setIsFollowing] = useState(true);
+  const [isReady, setIsReady] = useState(false);
   const [isInAppBrowser, setIsInAppBrowser] = useState(false);
   const isFollowingRef = useRef(true);
+
+  const lastProgrammaticScrollAtRef = useRef(0);
+  const timelineRef = useRef<HTMLDivElement | null>(null);
+  const searchParams = useSearchParams();
+  const isTimelineFocus = searchParams.get('timeline-focus') === 'true';
+  const defaultTime = searchParams.get('time')
+    ? Number(searchParams.get('time'))
+    : undefined;
+
   useEffect(() => {
     isFollowingRef.current = isFollowing;
   }, [isFollowing]);
-  const lastProgrammaticScrollAtRef = useRef(0);
 
   const displayNotes = useMemo(() => {
     const mapped = (notes || []).map((n) => {
@@ -190,10 +200,18 @@ export function TimelineClient({
       setDuration(api.getDuration());
       setCurrentTime(api.getCurrentTime());
       api.setPlaybackRate(speedRef.current);
+
+      if (defaultTime) {
+        api.seekTo(defaultTime);
+        setCurrentTime(defaultTime);
+        updateProgressUi(defaultTime, 'center');
+      }
+
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(tick);
+      setIsReady(true);
     },
-    [tick],
+    [tick, defaultTime, updateProgressUi],
   );
 
   useEffect(() => {
@@ -430,9 +448,26 @@ export function TimelineClient({
     setIsInAppBrowser(isInAppBrowser);
   }, []);
 
+  useEffect(() => {
+    if (isTimelineFocus) {
+      timelineRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    }
+
+    if (isReady && defaultTime) {
+      try {
+        seekTo(defaultTime, 'center');
+      } catch (error) {
+        console.error('Erro ao buscar a posição da linha do tempo', error);
+      }
+    }
+  }, [isTimelineFocus, defaultTime, isReady, seekTo]);
+
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4" ref={timelineRef}>
         <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_260px] gap-4 items-start">
           <div className="space-y-3">
             <div

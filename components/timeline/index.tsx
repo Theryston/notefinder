@@ -1,5 +1,7 @@
 import { TimelineClient } from '@/components/timeline/timeline-client';
 import { FullTrack, Lyrics } from '@/lib/constants';
+import { Suspense } from 'react';
+import { Skeleton } from '../sheleton';
 
 export function Timeline({
   track,
@@ -13,16 +15,18 @@ export function Timeline({
   if (!track.ytId) return null;
 
   return (
-    <section className="w-full" id="timeline">
+    <section className="w-full">
       <div className="relative overflow-hidden rounded-2xl border bg-background/60 shadow-sm backdrop-blur">
         <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-primary/10 via-transparent to-primary/10" />
 
         <div className="p-4 sm:p-6">
-          <TimelineClient
-            ytId={track.ytId}
-            notes={track.notes}
-            lyrics={lyrics}
-          />
+          <Suspense fallback={<Skeleton />}>
+            <TimelineClient
+              ytId={track.ytId}
+              notes={track.notes}
+              lyrics={lyrics}
+            />
+          </Suspense>
         </div>
       </div>
     </section>
