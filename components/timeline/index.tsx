@@ -20,7 +20,7 @@ export function Timeline({
         <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-primary/10 via-transparent to-primary/10" />
 
         <div className="p-4 sm:p-6">
-          <Suspense fallback={<Skeleton />}>
+          <Suspense fallback={<TimelineFallback />}>
             <TimelineClient
               ytId={track.ytId}
               notes={track.notes}
@@ -30,5 +30,18 @@ export function Timeline({
         </div>
       </div>
     </section>
+  );
+}
+
+function TimelineFallback() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_260px] gap-4 items-start w-full">
+      <div className="w-full h-96 md:h-[80vh]">
+        <Skeleton />
+      </div>
+      <div className="w-full h-96 hidden md:block">
+        <Skeleton />
+      </div>
+    </div>
   );
 }
