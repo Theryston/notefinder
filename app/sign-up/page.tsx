@@ -4,6 +4,16 @@ import { onSignupGoogle } from './actions';
 import { CredentialsForm } from './components/credentials-form';
 import { Suspense } from 'react';
 import GoogleButton from '@/components/google-button';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Criar conta',
+  description:
+    'Crie sua conta no NoteFinder para acessar todas as funcionalidades',
+  alternates: {
+    canonical: `${process.env.NEXT_PUBLIC_APP_URL}/sign-up`,
+  },
+};
 
 export default async function SignUp({
   searchParams,

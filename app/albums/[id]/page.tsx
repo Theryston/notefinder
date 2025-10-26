@@ -28,6 +28,9 @@ export async function generateMetadata({
   return {
     title: `Músicas do álbum ${album.name} com suas notas vocais`,
     description: `Veja as músicas do álbum ${album.name} no NoteFinder e as notas vocais de cada música para nunca desafinar ao cantar!`,
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_APP_URL}/albums/${id}`,
+    },
   };
 }
 

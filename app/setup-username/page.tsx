@@ -4,6 +4,15 @@ import { redirect } from 'next/navigation';
 import { UsernameForm } from './components/username-form';
 import { getUserByIdWithCache } from '@/lib/services/users/get-user';
 import { Suspense } from 'react';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Definir nome de usuário',
+  description: 'Defina um nome de usuário para o seu perfil',
+  alternates: {
+    canonical: `${process.env.NEXT_PUBLIC_APP_URL}/setup-username`,
+  },
+};
 
 export default async function SetupUsername({
   searchParams,

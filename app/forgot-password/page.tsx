@@ -5,6 +5,9 @@ import { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Esqueci minha senha',
   description: 'Informe seu email para receber um código de recuperação.',
+  alternates: {
+    canonical: `${process.env.NEXT_PUBLIC_APP_URL}/forgot-password`,
+  },
 };
 
 export default async function ForgotPassword() {

@@ -60,6 +60,9 @@ export async function generateMetadata({
             })),
           }
         : undefined,
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_APP_URL}/tracks/${track.id}`,
+    },
   };
 }
 
