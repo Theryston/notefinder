@@ -29,7 +29,7 @@ export async function UserOverview({
 
         <div className="p-6 sm:p-8">
           <div className="grid grid-cols-[120px_1fr] gap-6 sm:gap-8 items-start">
-            <div className="relative rounded-full overflow-hidden border w-full">
+            <div className="relative rounded-full overflow-hidden border w-full aspect-square">
               <Avatar className="w-full h-full">
                 <AvatarImage src={user.image || ''} alt={avatarAlt} />
                 <AvatarFallback className="text-xl sm:text-2xl font-semibold">
