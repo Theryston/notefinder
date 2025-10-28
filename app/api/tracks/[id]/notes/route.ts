@@ -27,6 +27,11 @@ async function createNotes(
     return NextResponse.json({ error: 'Track not found' }, { status: 404 });
   }
 
+  // Delete all existing notes for the track
+  await prisma.trackNote.deleteMany({
+    where: { trackId: id },
+  });
+
   await prisma.trackNote.createMany({
     data: notes.map((note: Note) => ({
       trackId: id,
