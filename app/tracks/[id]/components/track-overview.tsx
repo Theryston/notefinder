@@ -37,7 +37,11 @@ export async function TrackOverview({ track }: { track: FullTrack }) {
     ? (getBiggestOne(thumbnails, 'width') as (typeof thumbnails)[number])
     : undefined;
 
-  const coverUrl = biggest?.url ? biggest.url : '/track-placeholder.png';
+  const cover = biggest || {
+    url: '/track-placeholder.png',
+    width: 500,
+    height: 500,
+  };
 
   const artists = track.trackArtists?.map((ta) => ta.artist) ?? [];
 
@@ -53,10 +57,10 @@ export async function TrackOverview({ track }: { track: FullTrack }) {
           <div className="grid grid-cols-[150px_1fr] gap-6 sm:gap-8 items-start">
             <div className="relative rounded-xl overflow-hidden border">
               <Image
-                src={coverUrl}
+                src={cover.url}
                 alt={track.title ?? 'Capa da música'}
-                width={700}
-                height={700}
+                width={cover.width ?? 500}
+                height={cover.height ?? 500}
                 className="h-full w-full object-cover"
               />
             </div>

@@ -170,8 +170,9 @@ function TrackImage({
       <Image
         src={biggestThumbnail.url}
         alt={track.title}
-        fill
-        className="object-cover"
+        width={biggestThumbnail.width ?? 500}
+        height={biggestThumbnail.height ?? 500}
+        className="h-full w-full object-cover"
       />
       <div
         className="group-hover:opacity-100 opacity-0 transition-opacity duration-300 bg-black/50 absolute inset-0 z-20 flex items-center justify-center cursor-pointer"
