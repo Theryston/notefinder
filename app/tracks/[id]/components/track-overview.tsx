@@ -37,9 +37,7 @@ export async function TrackOverview({ track }: { track: FullTrack }) {
     ? (getBiggestOne(thumbnails, 'width') as (typeof thumbnails)[number])
     : undefined;
 
-  const coverUrl = biggest?.url
-    ? `https://image.coollabs.io/image/${biggest.url}`
-    : '/track-placeholder.png';
+  const coverUrl = biggest?.url ? biggest.url : '/track-placeholder.png';
 
   const artists = track.trackArtists?.map((ta) => ta.artist) ?? [];
 
@@ -60,7 +58,6 @@ export async function TrackOverview({ track }: { track: FullTrack }) {
                 width={700}
                 height={700}
                 className="h-full w-full object-cover"
-                unoptimized
               />
             </div>
 
