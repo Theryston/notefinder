@@ -59,7 +59,12 @@ async function Content({
         </div>
 
         <form action={onSignupGoogle}>
-          <GoogleButton variant="outline" type="submit" className="w-full">
+          <GoogleButton
+            id="sign-up-google-button"
+            variant="outline"
+            type="submit"
+            className="w-full"
+          >
             Criar conta com Google
           </GoogleButton>
         </form>

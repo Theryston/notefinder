@@ -123,7 +123,12 @@ export function CredentialsForm({ redirectTo }: { redirectTo: string }) {
 
       <input type="hidden" name="redirectTo" value={redirectTo || '/'} />
 
-      <Button type="submit" className="w-full" isLoading={isPending}>
+      <Button
+        id="sign-up-credentials-button"
+        type="submit"
+        className="w-full"
+        isLoading={isPending}
+      >
         Criar conta
       </Button>
     </form>
