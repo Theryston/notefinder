@@ -17,6 +17,7 @@ export function LyricsComponent({ lyrics }: { lyrics: Lyrics }) {
                   href={`?timeline-focus=true&time=${segment.seek}`}
                   className="text-xs text-muted-foreground hover:text-primary transition-colors"
                   scroll={false}
+                  prefetch={false}
                 >
                   {segment.text.trim()}
                 </Link>
@@ -30,6 +31,7 @@ export function LyricsComponent({ lyrics }: { lyrics: Lyrics }) {
                   href={`?timeline-focus=true&time=${word.start}`}
                   className="text-xs text-muted-foreground hover:text-primary transition-colors"
                   scroll={false}
+                  prefetch={false}
                 >
                   {word.word.trim()}
                 </Link>
@@ -40,6 +42,7 @@ export function LyricsComponent({ lyrics }: { lyrics: Lyrics }) {
             href="?timeline-focus=true"
             className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 w-fit"
             scroll={false}
+            prefetch={false}
           >
             <ArrowUpIcon className="w-4 h-4" />
             Acompanhe as notas da música com a letra na timeline acima
