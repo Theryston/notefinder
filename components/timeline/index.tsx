@@ -64,7 +64,12 @@ async function TimelineContent({
       : undefined;
   }
 
-  if (!directUrl.musicUrl || !directUrl.vocalsUrl) {
+  if (
+    !directUrl.musicUrl ||
+    !directUrl.vocalsUrl ||
+    !allowAudioTranspose ||
+    !allowVocalsOnly
+  ) {
     const session = await auth();
     const userId = session?.user?.id;
 
