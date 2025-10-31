@@ -10,8 +10,14 @@ datasource db {
   directUrl = env("DATABASE_DIRECT_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id            String    @id @default(cuid()) @map("id")
+  role          Role      @default(USER) @map("role")
   name          String?   @map("name")
   email         String    @unique @map("email")
   emailVerified DateTime? @map("email_verified_at")
@@ -127,6 +133,7 @@ enum TrackStatus {
 enum PlayingCopyright {
   NOT_ALLOWED
   ALLOWED
+  ALLOW_PLAY_AND_TRANSPOSE
   ADMIN_ONLY
 }
 

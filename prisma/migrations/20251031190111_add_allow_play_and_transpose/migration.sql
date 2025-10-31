@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "PlayingCopyright" ADD VALUE 'ALLOW_PLAY_AND_TRANSPOSE';
