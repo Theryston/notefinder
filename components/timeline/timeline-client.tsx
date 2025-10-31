@@ -669,6 +669,9 @@ export function TimelineClient({
                       showVocalsOnly={!!directUrl?.vocalsUrl}
                       ignoreProgress={!!directUrl?.musicUrl}
                       onChangeVocalsOnly={() => setVocalsOnly((prev) => !prev)}
+                      onSeek={(s) =>
+                        seekTo(s, isPlayingRef.current ? 'center' : 'none')
+                      }
                     />
                   </div>
                 </div>
@@ -718,6 +721,9 @@ export function TimelineClient({
                 showVocalsOnly={!!directUrl?.vocalsUrl}
                 ignoreProgress={!!directUrl?.musicUrl}
                 onChangeVocalsOnly={() => setVocalsOnly((prev) => !prev)}
+                onSeek={(s) =>
+                  seekTo(s, isPlayingRef.current ? 'center' : 'none')
+                }
               />
             </div>
           )}

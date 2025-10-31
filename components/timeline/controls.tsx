@@ -36,6 +36,7 @@ type TimelineControlsProps = {
   showVocalsOnly?: boolean;
   onChangeVocalsOnly: (v: boolean) => void;
   ignoreProgress?: boolean;
+  onSeek: (seconds: number) => void;
 };
 
 export function TimelineControls(props: TimelineControlsProps) {
@@ -59,6 +60,7 @@ export function TimelineControls(props: TimelineControlsProps) {
     showVocalsOnly,
     onChangeVocalsOnly,
     ignoreProgress,
+    onSeek,
   } = props;
 
   const percent =
@@ -123,7 +125,18 @@ export function TimelineControls(props: TimelineControlsProps) {
           {!ignoreProgress && (
             <div className="space-y-2">
               <label className="text-xs text-muted-foreground">Progresso</label>
-              <div className="w-full h-2 rounded bg-muted overflow-hidden">
+              <div
+                className="w-full h-2 rounded bg-muted overflow-hidden"
+                onClick={(e) => {
+                  if (!duration || duration <= 0) return;
+                  const rect = (
+                    e.currentTarget as HTMLDivElement
+                  ).getBoundingClientRect();
+                  const x = e.clientX - rect.left;
+                  const ratio = Math.max(0, Math.min(1, x / rect.width));
+                  onSeek(duration * ratio);
+                }}
+              >
                 <div
                   className="h-full bg-primary"
                   style={{ width: `${percent}%` }}
