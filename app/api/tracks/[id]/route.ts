@@ -23,7 +23,8 @@ async function putTrack(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const { musicUrl, vocalsUrl, lyricsUrl, score } = await request.json();
+  const { musicUrl, vocalsUrl, lyricsUrl, score, musicMp3Url, vocalsMp3Url } =
+    await request.json();
 
   const track = await prisma.track.findFirst({
     where: { id },
@@ -44,7 +45,9 @@ async function putTrack(
     where: { id },
     data: {
       musicUrl: musicUrl || undefined,
+      musicMp3Url: musicMp3Url || undefined,
       vocalsUrl: vocalsUrl || undefined,
+      vocalsMp3Url: vocalsMp3Url || undefined,
       lyricsUrl: lyricsUrl || undefined,
       score: score || undefined,
     },
