@@ -254,7 +254,34 @@ export function AudioRoot({
     [],
   );
 
+  const cleanup = () => {
+    if (playerRef.current) {
+      try {
+        playerRef.current.stop();
+        playerRef.current.dispose();
+      } catch {}
+    }
+
+    if (pitchRef.current) {
+      try {
+        try {
+          pitchRef.current.disconnect();
+        } catch {}
+        pitchRef.current.dispose();
+      } catch {}
+    }
+
+    playerRef.current = null;
+    isPlayingRef.current = false;
+    peaksRef.current = null;
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    pitchRef.current = null;
+  };
+
   useEffect(() => {
+    cleanup();
+
     const player = new Tone.Player({
       url,
       autostart: false,
@@ -302,27 +329,12 @@ export function AudioRoot({
 
     playerRef.current = player;
 
-    return () => {
-      try {
-        if (playerRef.current) {
-          playerRef.current.stop();
-          playerRef.current.dispose();
-        }
-        if (pitchRef.current) {
-          try {
-            pitchRef.current.disconnect();
-          } catch {}
-          pitchRef.current.dispose();
-        }
-      } catch {}
-      playerRef.current = null;
-      isPlayingRef.current = false;
-      peaksRef.current = null;
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-      pitchRef.current = null;
-    };
-  }, [url, getApi, drawWaveform, scheduleDraw, allowAudioTranspose, transpose]);
+    return cleanup;
+    // We intentionally exclude allowAudioTranspose/transpose here to avoid
+    // recreating the player and refetching when only pitch changes.
+    // Pitch routing is handled by the effect below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url, getApi, drawWaveform, scheduleDraw]);
 
   // React to transpose/allowAudioTranspose changes without recreating the Player
   useEffect(() => {
