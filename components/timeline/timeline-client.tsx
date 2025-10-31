@@ -103,8 +103,11 @@ export function TimelineClient({
     useState<boolean>(useDirectAudio);
 
   useEffect(() => {
-    setIsPlayerLoading(Boolean(directUrl?.musicUrl));
-  }, [directUrl?.musicUrl]);
+    if (playableUrl) {
+      setIsPlayerLoading(true);
+      setIsPlaying(false);
+    }
+  }, [playableUrl, directUrl?.vocalsUrl]);
 
   useEffect(() => {
     isFollowingRef.current = isFollowing;
@@ -240,6 +243,7 @@ export function TimelineClient({
   const attachPlayer = useCallback(
     (api: YouTubeApi) => {
       playerRef.current = api;
+      setIsPlaying(false);
       setDuration(api.getDuration());
       setCurrentTime(api.getCurrentTime());
       api.setPlaybackRate(speedRef.current);
@@ -666,9 +670,10 @@ export function TimelineClient({
                       onMute={handleMute}
                       micActive={micActive}
                       onMicToggle={toggleMic}
-                      showVocalsOnly={!!directUrl?.vocalsUrl}
                       ignoreProgress={!!directUrl?.musicUrl}
-                      onChangeVocalsOnly={() => setVocalsOnly((prev) => !prev)}
+                      showVocalsOnly={!!directUrl?.vocalsUrl}
+                      onChangeVocalsOnly={() => setVocalsOnly(!vocalsOnly)}
+                      vocalsOnly={vocalsOnly}
                       onSeek={(s) =>
                         seekTo(s, isPlayingRef.current ? 'center' : 'none')
                       }
@@ -718,9 +723,10 @@ export function TimelineClient({
                 onMute={handleMute}
                 micActive={micActive}
                 onMicToggle={toggleMic}
-                showVocalsOnly={!!directUrl?.vocalsUrl}
                 ignoreProgress={!!directUrl?.musicUrl}
+                showVocalsOnly={!!directUrl?.vocalsUrl}
                 onChangeVocalsOnly={() => setVocalsOnly((prev) => !prev)}
+                vocalsOnly={vocalsOnly}
                 onSeek={(s) =>
                   seekTo(s, isPlayingRef.current ? 'center' : 'none')
                 }

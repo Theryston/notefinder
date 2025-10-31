@@ -51,6 +51,8 @@ export function AudioRoot({
   const onReadyRef = useRef(onReady);
   const onPlayRef = useRef(onPlay);
   const onPauseRef = useRef(onPause);
+  const allowAudioTransposeRef = useRef(allowAudioTranspose);
+  const transposeRef = useRef(transpose);
 
   useEffect(() => {
     onReadyRef.current = onReady;
@@ -61,6 +63,17 @@ export function AudioRoot({
   useEffect(() => {
     onPauseRef.current = onPause;
   }, [onPause]);
+  useEffect(() => {
+    allowAudioTransposeRef.current = allowAudioTranspose;
+  }, [allowAudioTranspose]);
+  useEffect(() => {
+    transposeRef.current = transpose;
+  }, [transpose]);
+
+  function semitonesFromRate(rate: number) {
+    const safe = Math.max(1e-6, rate);
+    return 12 * Math.log2(safe);
+  }
 
   const getCurrentTime = useMemo(
     () => () => {
@@ -131,6 +144,16 @@ export function AudioRoot({
           pausedAtSecondsRef.current = current;
           startedAtContextTimeRef.current = Tone.now();
           playerRef.current.playbackRate = playbackRateRef.current;
+
+          try {
+            if (pitchRef.current) {
+              const rateSemis = semitonesFromRate(playbackRateRef.current);
+              const userSemis = allowAudioTransposeRef.current
+                ? transposeRef.current
+                : 0;
+              pitchRef.current.pitch = userSemis - rateSemis;
+            }
+          } catch {}
           if (wasPlaying) {
             try {
               playerRef.current.stop();
@@ -316,54 +339,30 @@ export function AudioRoot({
       },
     });
 
-    // Initial routing: either through pitch shifter (transpose) or straight to destination
     try {
-      if (allowAudioTranspose) {
-        pitchRef.current = new Tone.PitchShift({ pitch: transpose });
-        player.connect(pitchRef.current);
-        pitchRef.current.toDestination();
-      } else {
-        player.toDestination();
-      }
+      const rateSemis = semitonesFromRate(playbackRateRef.current);
+      const userSemis = allowAudioTransposeRef.current
+        ? transposeRef.current
+        : 0;
+      pitchRef.current = new Tone.PitchShift({ pitch: userSemis - rateSemis });
+      player.connect(pitchRef.current);
+      pitchRef.current.toDestination();
     } catch {}
 
     playerRef.current = player;
 
     return cleanup;
-    // We intentionally exclude allowAudioTranspose/transpose here to avoid
-    // recreating the player and refetching when only pitch changes.
-    // Pitch routing is handled by the effect below.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url, getApi, drawWaveform, scheduleDraw]);
 
-  // React to transpose/allowAudioTranspose changes without recreating the Player
   useEffect(() => {
     const player = playerRef.current;
     if (!player) return;
 
     try {
-      if (allowAudioTranspose) {
-        if (!pitchRef.current) {
-          // Switch to transposed chain
-          player.disconnect();
-          pitchRef.current = new Tone.PitchShift({ pitch: transpose });
-          player.connect(pitchRef.current);
-          pitchRef.current.toDestination();
-        } else {
-          // Update semitone shift
-          pitchRef.current.pitch = transpose;
-        }
-      } else {
-        if (pitchRef.current) {
-          // Bypass and remove pitch shifting
-          player.disconnect();
-          try {
-            pitchRef.current.disconnect();
-          } catch {}
-          pitchRef.current.dispose();
-          pitchRef.current = null;
-          player.toDestination();
-        }
+      if (pitchRef.current) {
+        const rateSemis = semitonesFromRate(playbackRateRef.current);
+        const userSemis = allowAudioTranspose ? transpose : 0;
+        pitchRef.current.pitch = userSemis - rateSemis;
       }
     } catch {}
   }, [allowAudioTranspose, transpose]);

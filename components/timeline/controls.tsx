@@ -37,6 +37,7 @@ type TimelineControlsProps = {
   onChangeVocalsOnly: (v: boolean) => void;
   ignoreProgress?: boolean;
   onSeek: (seconds: number) => void;
+  vocalsOnly: boolean;
 };
 
 export function TimelineControls(props: TimelineControlsProps) {
@@ -61,6 +62,7 @@ export function TimelineControls(props: TimelineControlsProps) {
     onChangeVocalsOnly,
     ignoreProgress,
     onSeek,
+    vocalsOnly,
   } = props;
 
   const percent =
@@ -196,7 +198,11 @@ export function TimelineControls(props: TimelineControlsProps) {
 
       {showVocalsOnly && (
         <div className="flex items-center gap-2">
-          <Checkbox id="showVocalsOnly" onCheckedChange={onChangeVocalsOnly} />
+          <Checkbox
+            id="showVocalsOnly"
+            onCheckedChange={onChangeVocalsOnly}
+            checked={vocalsOnly}
+          />
           <Label htmlFor="showVocalsOnly">Tocar apenas vocais</Label>
         </div>
       )}
