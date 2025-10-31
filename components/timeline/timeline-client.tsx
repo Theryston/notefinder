@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { YouTubeRoot, YouTubeApi } from './youtube-player';
+import { AudioRoot } from './audio-player';
 import { TimelineViewport } from './viewport';
 import { TimelineControls } from './controls';
 import { estimateKey, fromMidiToNote, toMidiFromNote } from './utils';
@@ -34,10 +35,17 @@ export function TimelineClient({
   ytId,
   notes,
   lyrics,
+  directUrl,
+  allowAudioTranspose,
 }: {
   ytId: string;
   notes: Note[];
   lyrics?: Lyrics;
+  directUrl?: {
+    musicUrl?: string;
+    vocalsUrl?: string;
+  };
+  allowAudioTranspose: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef<HTMLDivElement | null>(null);
@@ -70,6 +78,16 @@ export function TimelineClient({
   const [isReady, setIsReady] = useState(false);
   const [isInAppBrowser, setIsInAppBrowser] = useState(false);
   const isFollowingRef = useRef(true);
+  const [vocalsOnly, setVocalsOnly] = useState(false);
+  const [playableUrl, setPlayableUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (vocalsOnly && directUrl?.vocalsUrl) {
+      setPlayableUrl(directUrl.vocalsUrl);
+    } else {
+      setPlayableUrl(directUrl?.musicUrl || null);
+    }
+  }, [vocalsOnly, directUrl?.vocalsUrl, directUrl?.musicUrl]);
 
   const lastProgrammaticScrollAtRef = useRef(0);
   const timelineRef = useRef<HTMLDivElement | null>(null);
@@ -80,6 +98,13 @@ export function TimelineClient({
     : undefined;
 
   const storageKey = getStorageKey(ytId);
+  const useDirectAudio = Boolean(directUrl?.musicUrl);
+  const [isPlayerLoading, setIsPlayerLoading] =
+    useState<boolean>(useDirectAudio);
+
+  useEffect(() => {
+    setIsPlayerLoading(Boolean(directUrl?.musicUrl));
+  }, [directUrl?.musicUrl]);
 
   useEffect(() => {
     isFollowingRef.current = isFollowing;
@@ -232,6 +257,7 @@ export function TimelineClient({
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(tick);
       setIsReady(true);
+      setIsPlayerLoading(false);
     },
     [defaultTime, storageKey, tick, updateProgressUi],
   );
@@ -604,19 +630,30 @@ export function TimelineClient({
                           (isInAppBrowser ? 'h-40' : 'h-20'),
                       )}
                     >
-                      <YouTubeRoot
-                        ytId={ytId}
-                        isInAppBrowser={isInAppBrowser}
-                        onReady={attachPlayer}
-                        onPlay={handlePlay}
-                        onPause={handlePause}
-                      />
+                      {useDirectAudio ? (
+                        <AudioRoot
+                          url={playableUrl!}
+                          onReady={attachPlayer}
+                          onPlay={handlePlay}
+                          onPause={handlePause}
+                          allowAudioTranspose={allowAudioTranspose}
+                          transpose={transpose}
+                        />
+                      ) : (
+                        <YouTubeRoot
+                          ytId={ytId}
+                          isInAppBrowser={isInAppBrowser}
+                          onReady={attachPlayer}
+                          onPlay={handlePlay}
+                          onPause={handlePause}
+                        />
+                      )}
                     </div>
                     <TimelineControls
                       isInAppBrowser={isInAppBrowser}
                       isPlaying={isPlaying}
                       onPlayPause={handlePlayPause}
-                      isLoading={false}
+                      isLoading={isPlayerLoading}
                       speed={speed}
                       onSpeedChange={handleSpeedChange}
                       transpose={transpose}
@@ -629,6 +666,9 @@ export function TimelineClient({
                       onMute={handleMute}
                       micActive={micActive}
                       onMicToggle={toggleMic}
+                      showVocalsOnly={!!directUrl?.vocalsUrl}
+                      ignoreProgress={!!directUrl?.musicUrl}
+                      onChangeVocalsOnly={() => setVocalsOnly((prev) => !prev)}
                     />
                   </div>
                 </div>
@@ -639,19 +679,30 @@ export function TimelineClient({
           {!isFullscreen && !shouldShowAlert && (
             <div className="rounded-lg border bg-card p-3 flex flex-col gap-3">
               <div className="aspect-video w-full">
-                <YouTubeRoot
-                  ytId={ytId}
-                  isInAppBrowser={isInAppBrowser}
-                  onReady={attachPlayer}
-                  onPlay={handlePlay}
-                  onPause={handlePause}
-                />
+                {useDirectAudio ? (
+                  <AudioRoot
+                    url={playableUrl!}
+                    onReady={attachPlayer}
+                    onPlay={handlePlay}
+                    onPause={handlePause}
+                    allowAudioTranspose={allowAudioTranspose}
+                    transpose={transpose}
+                  />
+                ) : (
+                  <YouTubeRoot
+                    ytId={ytId}
+                    isInAppBrowser={isInAppBrowser}
+                    onReady={attachPlayer}
+                    onPlay={handlePlay}
+                    onPause={handlePause}
+                  />
+                )}
               </div>
               <TimelineControls
                 isInAppBrowser={isInAppBrowser}
                 isPlaying={isPlaying}
                 onPlayPause={handlePlayPause}
-                isLoading={false}
+                isLoading={isPlayerLoading}
                 speed={speed}
                 onSpeedChange={handleSpeedChange}
                 transpose={transpose}
@@ -664,6 +715,9 @@ export function TimelineClient({
                 onMute={handleMute}
                 micActive={micActive}
                 onMicToggle={toggleMic}
+                showVocalsOnly={!!directUrl?.vocalsUrl}
+                ignoreProgress={!!directUrl?.musicUrl}
+                onChangeVocalsOnly={() => setVocalsOnly((prev) => !prev)}
               />
             </div>
           )}

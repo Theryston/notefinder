@@ -2,6 +2,10 @@ import { TimelineClient } from '@/components/timeline/timeline-client';
 import { FullTrack, Lyrics } from '@/lib/constants';
 import { Suspense } from 'react';
 import { Skeleton } from '../sheleton';
+import { auth } from '@/auth';
+import { getUserById } from '@/lib/services/users/get-user';
+import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { PlayingCopyright, Role } from '@/lib/generated/prisma';
 
 export function Timeline({
   track,
@@ -21,15 +25,69 @@ export function Timeline({
 
         <div className="p-4 sm:p-6">
           <Suspense fallback={<TimelineFallback />}>
-            <TimelineClient
-              ytId={track.ytId}
-              notes={track.notes}
-              lyrics={lyrics}
-            />
+            <TimelineContent track={track} lyrics={lyrics} />
           </Suspense>
         </div>
       </div>
     </section>
+  );
+}
+
+async function getUserByIdWithCache(userId: string) {
+  'use cache: remote';
+  cacheTag(`user_${userId}`);
+  return await getUserById(userId);
+}
+
+async function TimelineContent({
+  track,
+  lyrics,
+}: {
+  track: FullTrack;
+  lyrics?: Lyrics;
+}) {
+  const directUrl: {
+    musicUrl?: string;
+    vocalsUrl?: string;
+  } = {};
+  let allowAudioTranspose = track.playingCopyright.includes(
+    PlayingCopyright.ALLOW_TRANSPOSE,
+  );
+  let allowVocalsOnly = track.playingCopyright.includes(
+    PlayingCopyright.ALLOW_VOCALS_ONLY,
+  );
+
+  if (track.playingCopyright.includes(PlayingCopyright.ALLOW_PLAY)) {
+    directUrl.musicUrl = track.musicMp3Url || undefined;
+    directUrl.vocalsUrl = allowVocalsOnly
+      ? track.vocalsMp3Url || undefined
+      : undefined;
+  }
+
+  if (!directUrl.musicUrl || !directUrl.vocalsUrl) {
+    const session = await auth();
+    const userId = session?.user?.id;
+
+    if (userId) {
+      const user = await getUserByIdWithCache(userId);
+
+      if (user?.role === Role.ADMIN) {
+        directUrl.musicUrl = track.musicMp3Url || undefined;
+        directUrl.vocalsUrl = track.vocalsMp3Url || undefined;
+        allowAudioTranspose = true;
+        allowVocalsOnly = true;
+      }
+    }
+  }
+
+  return (
+    <TimelineClient
+      ytId={track.ytId}
+      notes={track.notes}
+      lyrics={lyrics}
+      directUrl={directUrl}
+      allowAudioTranspose={allowAudioTranspose}
+    />
   );
 }
 

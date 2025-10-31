@@ -4,7 +4,6 @@ import { TrackOverview } from './track-overview';
 import { Timeline } from '@/components/timeline';
 import { CalculateScore } from './calculate-score';
 import { FullTrack, Lyrics } from '@/lib/constants';
-import { unstable_cacheTag as cacheTag } from 'next/cache';
 import { Suspense } from 'react';
 import { LyricsComponent } from './lyrics';
 
@@ -15,9 +14,6 @@ export async function TrackContent({
   track: FullTrack;
   lyrics?: Lyrics;
 }) {
-  'use cache: remote';
-  cacheTag(`track_${track.id}`);
-
   if (!track) notFound();
 
   return (

@@ -7,7 +7,8 @@ import { compare } from 'bcryptjs';
 import { User } from '@/lib/generated/prisma';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  adapter: PrismaAdapter(prisma as any),
   session: { strategy: 'jwt' },
   callbacks: {
     async jwt({ token, user }) {

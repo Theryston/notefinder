@@ -9,6 +9,8 @@ import {
   MicOffIcon,
 } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Checkbox } from '../ui/checkbox';
+import { Label } from '../ui/label';
 
 type TimelineControlsProps = {
   isPlaying: boolean;
@@ -31,6 +33,9 @@ type TimelineControlsProps = {
   onMute: () => void;
   micActive: boolean;
   onMicToggle: () => void;
+  showVocalsOnly?: boolean;
+  onChangeVocalsOnly: (v: boolean) => void;
+  ignoreProgress?: boolean;
 };
 
 export function TimelineControls(props: TimelineControlsProps) {
@@ -51,6 +56,9 @@ export function TimelineControls(props: TimelineControlsProps) {
     onMute,
     micActive,
     onMicToggle,
+    showVocalsOnly,
+    onChangeVocalsOnly,
+    ignoreProgress,
   } = props;
 
   const percent =
@@ -112,19 +120,21 @@ export function TimelineControls(props: TimelineControlsProps) {
             </Button>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs text-muted-foreground">Progresso</label>
-            <div className="w-full h-2 rounded bg-muted overflow-hidden">
-              <div
-                className="h-full bg-primary"
-                style={{ width: `${percent}%` }}
-              />
+          {!ignoreProgress && (
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Progresso</label>
+              <div className="w-full h-2 rounded bg-muted overflow-hidden">
+                <div
+                  className="h-full bg-primary"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(duration)}</span>
+              </div>
             </div>
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{formatTime(currentTime)}</span>
-              <span>{formatTime(duration)}</span>
-            </div>
-          </div>
+          )}
         </>
       )}
       {isInAppBrowser && (
@@ -170,6 +180,13 @@ export function TimelineControls(props: TimelineControlsProps) {
           +
         </button>
       </div>
+
+      {showVocalsOnly && (
+        <div className="flex items-center gap-2">
+          <Checkbox id="showVocalsOnly" onCheckedChange={onChangeVocalsOnly} />
+          <Label htmlFor="showVocalsOnly">Tocar apenas vocais</Label>
+        </div>
+      )}
     </div>
   );
 }
