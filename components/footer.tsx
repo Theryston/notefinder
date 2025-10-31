@@ -17,8 +17,8 @@ export function Footer() {
         </Link>
       </div>
       <span className="text-xs text-muted-foreground">
-        Este side não reproduz músicas diretamente, apenas utiliza a API do
-        YouTube.
+        Este side não reproduz músicas diretamente caso não tenha a devida
+        licença, nesses casos, utilizamos a API do YouTube.
       </span>
     </footer>
   );

@@ -13,7 +13,7 @@ export default function TermsPage() {
         <div className="space-y-4">
           <h1 className="text-4xl font-bold">Termos e Condições de Uso</h1>
           <p className="text-muted-foreground">
-            Última atualização: 10/11/2025
+            Última atualização: 31/10/2025
           </p>
         </div>
 
@@ -44,36 +44,41 @@ export default function TermsPage() {
             </h2>
             <div className="space-y-3">
               <p className="text-muted-foreground leading-relaxed">
-                <strong className="text-foreground">
-                  O NoteFinder NÃO hospeda, armazena ou reproduz músicas
-                  diretamente.
-                </strong>{' '}
-                Todo o conteúdo musical disponível em nossa plataforma é
-                reproduzido exclusivamente através do{' '}
-                <strong className="text-foreground">
-                  player oficial do YouTube
-                </strong>
-                , utilizando sua API embarcada.
+                A reprodução de músicas no NoteFinder segue a política abaixo:
               </p>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
                 <li>
-                  Não fazemos upload de músicas ou conteúdo audiovisual em
-                  nossos servidores
+                  <strong className="text-foreground">
+                    Reprodução direta no site
+                  </strong>{' '}
+                  somente quando: (i) a obra musical permite
+                  reprodução/streaming de acordo com as licenças aplicáveis; ou
+                  (ii) o NoteFinder adquiriu/licenciou de forma válida os
+                  direitos necessários para reproduzir a obra internamente em
+                  nosso domínio.
                 </li>
                 <li>
-                  Não modificamos ou redistribuímos o conteúdo musical original
+                  <strong className="text-foreground">Demais casos</strong>: a
+                  música é reproduzida exclusivamente por meio do
+                  <strong> player oficial do YouTube</strong>, via API oficial
+                  do YouTube. Nesses cenários, o conteúdo é servido e controlado
+                  pelo YouTube, e eventuais questões de direitos autorais
+                  regem-se pelos Termos de Serviço e políticas do YouTube.
                 </li>
                 <li>
-                  Todos os direitos autorais das músicas pertencem aos seus
-                  respectivos detentores
+                  Não modificamos, redistribuímos ou revendemos o conteúdo
+                  musical; todos os direitos autorais e conexos permanecem com
+                  seus respectivos titulares.
                 </li>
                 <li>
-                  A reprodução das músicas está sujeita aos Termos de Serviço do
-                  YouTube
+                  Não efetuamos upload/armazenamento de fonogramas em nossos
+                  servidores, exceto quando cobertos por licença válida que nos
+                  autorize a reprodução interna conforme descrito acima.
                 </li>
                 <li>
-                  Atuamos apenas como uma ferramenta de análise e visualização
-                  de dados musicais
+                  O NoteFinder atua como uma ferramenta de análise e
+                  visualização de dados musicais e respeita a legislação
+                  aplicável de direitos autorais.
                 </li>
               </ul>
             </div>
