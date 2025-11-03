@@ -84,19 +84,31 @@ async function startNfpAudio(
       },
     });
 
+  console.log(
+    `Found ${notCanceledSpotRequests.length} not canceled spot requests for track ${id}`,
+  );
+
   for (const spotRequest of notCanceledSpotRequests) {
-    await ec2Client.send(
-      new CancelSpotInstanceRequestsCommand({
-        SpotInstanceRequestIds: [spotRequest.spotId],
-      }),
-    );
+    try {
+      await ec2Client.send(
+        new CancelSpotInstanceRequestsCommand({
+          SpotInstanceRequestIds: [spotRequest.spotId],
+        }),
+      );
 
-    await prisma.nfpAudioProcessSpotRequest.update({
-      where: { id: spotRequest.id },
-      data: { isCanceled: true },
-    });
+      await prisma.nfpAudioProcessSpotRequest.update({
+        where: { id: spotRequest.id },
+        data: { isCanceled: true },
+      });
 
-    console.log(`Canceled spot request ${spotRequest.spotId} for track ${id}`);
+      console.log(
+        `Canceled spot request ${spotRequest.spotId} for track ${id}`,
+      );
+    } catch (error) {
+      console.error(
+        `Error canceling spot request ${spotRequest.spotId} for track ${id}: ${error}`,
+      );
+    }
   }
 
   return NextResponse.json(
