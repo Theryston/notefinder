@@ -4,6 +4,10 @@ import { withMiddleware } from '@/lib/with-middleware';
 import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
 import { TrackStatus } from '@/lib/generated/prisma';
 import { NextResponse } from 'next/server';
+import {
+  EC2Client,
+  CancelSpotInstanceRequestsCommand,
+} from '@aws-sdk/client-ec2';
 
 const NFP_AUDIO_STATUS: TrackStatus[] = [
   TrackStatus.EXTRACTING_VOCALS,
@@ -41,6 +45,14 @@ async function startNfpAudio(
     },
   });
 
+  const ec2Client = new EC2Client({
+    region: process.env.CUSTOM_AWS_REGION_NAME!,
+    credentials: {
+      accessKeyId: process.env.CUSTOM_AWS_ACCESS_KEY!,
+      secretAccessKey: process.env.CUSTOM_AWS_SECRET_ACCESS_KEY!,
+    },
+  });
+
   const messageBody = JSON.stringify({ usesGpu: false, track });
 
   const command = new SendMessageCommand({
@@ -63,6 +75,29 @@ async function startNfpAudio(
     where: { id },
     data: { jobId },
   });
+
+  const notCanceledSpotRequests =
+    await prisma.nfpAudioProcessSpotRequest.findMany({
+      where: {
+        trackId: id,
+        isCanceled: false,
+      },
+    });
+
+  for (const spotRequest of notCanceledSpotRequests) {
+    await ec2Client.send(
+      new CancelSpotInstanceRequestsCommand({
+        SpotInstanceRequestIds: [spotRequest.spotId],
+      }),
+    );
+
+    await prisma.nfpAudioProcessSpotRequest.update({
+      where: { id: spotRequest.id },
+      data: { isCanceled: true },
+    });
+
+    console.log(`Canceled spot request ${spotRequest.spotId} for track ${id}`);
+  }
 
   return NextResponse.json(
     {

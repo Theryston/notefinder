@@ -159,17 +159,31 @@ model Track {
   createdAt         DateTime           @default(now()) @map("created_at")
   updatedAt         DateTime           @updatedAt @map("updated_at")
 
-  creator              User                  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  album                Album?                @relation(fields: [albumId], references: [id], onDelete: Cascade)
-  thumbnails           Thumbnail[]
-  trackArtists         TrackArtist[]
-  notes                TrackNote[]
-  views                TrackView[]
-  userFavoriteTracks   UserFavoriteTrack[]
-  trackCalculationJobs TrackCalculationJob[]
-  nfpAudioProcesses    NfpAudioProcess[]
+  creator                     User                         @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  album                       Album?                       @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  thumbnails                  Thumbnail[]
+  trackArtists                TrackArtist[]
+  notes                       TrackNote[]
+  views                       TrackView[]
+  userFavoriteTracks          UserFavoriteTrack[]
+  trackCalculationJobs        TrackCalculationJob[]
+  nfpAudioProcesses           NfpAudioProcess[]
+  nfpAudioProcessSpotRequests NfpAudioProcessSpotRequest[]
 
   @@map("tracks")
+}
+
+model NfpAudioProcessSpotRequest {
+  id         String   @id @default(cuid()) @map("id")
+  trackId    String   @map("track_id")
+  spotId     String   @map("spot_id")
+  isCanceled Boolean  @default(false) @map("is_canceled")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@map("nfp_audio_process_spot_requests")
 }
 
 model NfpAudioProcess {
