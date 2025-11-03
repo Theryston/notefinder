@@ -167,8 +167,22 @@ model Track {
   views                TrackView[]
   userFavoriteTracks   UserFavoriteTrack[]
   trackCalculationJobs TrackCalculationJob[]
+  nfpAudioProcesses    NfpAudioProcess[]
 
   @@map("tracks")
+}
+
+model NfpAudioProcess {
+  id           String   @id @default(cuid()) @map("id")
+  trackId      String   @map("track_id")
+  duration     Int      @map("duration")
+  instanceType String   @map("instance_type")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+
+  @@map("nfp_audio_processes")
 }
 
 model TrackCalculationJob {
