@@ -37,13 +37,12 @@ async function createNfpAudioProcess(request: Request) {
     },
   });
 
-  const notCanceledSpotRequests =
-    await prisma.nfpAudioProcessSpotRequest.findMany({
-      where: {
-        trackId,
-        isCanceled: false,
-      },
-    });
+  const notCanceledSpotRequests = await prisma.nfpAudioSpotRequest.findMany({
+    where: {
+      trackId,
+      isCanceled: false,
+    },
+  });
 
   console.log(
     `Found ${notCanceledSpotRequests.length} not canceled spot requests for track ${trackId}`,
@@ -57,7 +56,7 @@ async function createNfpAudioProcess(request: Request) {
         }),
       );
 
-      await prisma.nfpAudioProcessSpotRequest.update({
+      await prisma.nfpAudioSpotRequest.update({
         where: { id: spotRequest.id },
         data: { isCanceled: true },
       });

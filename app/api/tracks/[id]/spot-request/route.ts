@@ -17,7 +17,7 @@ async function createSpotRequest(
     );
   }
 
-  await prisma.nfpAudioProcessSpotRequest.create({
+  await prisma.nfpAudioSpotRequest.create({
     data: {
       trackId: id,
       spotId,
