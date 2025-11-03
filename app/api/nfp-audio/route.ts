@@ -4,11 +4,11 @@ import { withMiddleware } from '@/lib/with-middleware';
 import { NextResponse } from 'next/server';
 
 async function createNfpAudioProcess(request: Request) {
-  const { duration, body, instanceType } = await request.json();
+  const { duration, trackId, instanceType } = await request.json();
 
-  const bodyJson = JSON.parse(body);
-
-  const trackId = bodyJson?.track?.id;
+  console.log(
+    `Got new nfp audio process request: ${duration} seconds, ${instanceType}, ${trackId}`,
+  );
 
   if (!trackId) {
     return NextResponse.json(
