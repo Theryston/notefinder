@@ -41,7 +41,7 @@ async function startNfpAudio(
     },
   });
 
-  const messageBody = JSON.stringify({ track });
+  const messageBody = JSON.stringify({ usesGpu: false, track });
 
   const command = new SendMessageCommand({
     MessageBody: messageBody,
