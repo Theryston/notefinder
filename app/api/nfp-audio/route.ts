@@ -2,10 +2,6 @@ import { apiKeyMiddleware } from '@/lib/api-key-middleware';
 import prisma from '@/lib/prisma';
 import { withMiddleware } from '@/lib/with-middleware';
 import { NextResponse } from 'next/server';
-import {
-  EC2Client,
-  CancelSpotInstanceRequestsCommand,
-} from '@aws-sdk/client-ec2';
 
 async function createNfpAudioProcess(request: Request) {
   const { duration, trackId, instanceType } = await request.json();
@@ -28,48 +24,6 @@ async function createNfpAudioProcess(request: Request) {
       instanceType,
     },
   });
-
-  const ec2Client = new EC2Client({
-    region: process.env.CUSTOM_AWS_REGION_NAME!,
-    credentials: {
-      accessKeyId: process.env.CUSTOM_AWS_ACCESS_KEY!,
-      secretAccessKey: process.env.CUSTOM_AWS_SECRET_ACCESS_KEY!,
-    },
-  });
-
-  const notCanceledSpotRequests = await prisma.nfpAudioSpotRequest.findMany({
-    where: {
-      trackId,
-      isCanceled: false,
-    },
-  });
-
-  console.log(
-    `Found ${notCanceledSpotRequests.length} not canceled spot requests for track ${trackId}`,
-  );
-
-  for (const spotRequest of notCanceledSpotRequests) {
-    try {
-      await ec2Client.send(
-        new CancelSpotInstanceRequestsCommand({
-          SpotInstanceRequestIds: [spotRequest.spotId],
-        }),
-      );
-
-      await prisma.nfpAudioSpotRequest.update({
-        where: { id: spotRequest.id },
-        data: { isCanceled: true },
-      });
-
-      console.log(
-        `Canceled spot request ${spotRequest.spotId} for track ${trackId}`,
-      );
-    } catch (error) {
-      console.error(
-        `Error canceling spot request ${spotRequest.spotId} for track ${trackId}: ${error}`,
-      );
-    }
-  }
 
   return NextResponse.json(
     {

@@ -168,22 +168,8 @@ model Track {
   userFavoriteTracks   UserFavoriteTrack[]
   trackCalculationJobs TrackCalculationJob[]
   nfpAudioProcesses    NfpAudioProcess[]
-  nfpAudioSpotRequests NfpAudioSpotRequest[]
 
   @@map("tracks")
-}
-
-model NfpAudioSpotRequest {
-  id         String   @id @default(cuid()) @map("id")
-  trackId    String   @map("track_id")
-  spotId     String   @map("spot_id")
-  isCanceled Boolean  @default(false) @map("is_canceled")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-
-  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
-
-  @@map("nfp_audio_spot_requests")
 }
 
 model NfpAudioProcess {
