@@ -2,8 +2,9 @@ import { apiKeyMiddleware } from '@/lib/api-key-middleware';
 import prisma from '@/lib/prisma';
 import { withMiddleware } from '@/lib/with-middleware';
 import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
-import { TrackStatus } from '@/lib/generated/prisma';
+import { Runtime, Track, TrackStatus } from '@/lib/generated/prisma';
 import { NextResponse } from 'next/server';
+import { getSettings } from '@/lib/settings';
 
 const NFP_AUDIO_STATUS: TrackStatus[] = [
   TrackStatus.EXTRACTING_VOCALS,
@@ -33,6 +34,57 @@ async function startNfpAudio(
     });
   }
 
+  const settings = await getSettings();
+
+  if (settings.runtime === Runtime.AWS) {
+    await awsStartNfpAudio({ track, usesGpu: settings.usesGpu });
+  }
+
+  if (settings.runtime === Runtime.RUNPOD) {
+    await runpodStartNfpAudio(track);
+  }
+
+  return NextResponse.json(
+    {
+      message: `Started a nfp audio job for track ${track.id}`,
+    },
+    { status: 200 },
+  );
+}
+
+async function runpodStartNfpAudio(track: Track) {
+  const url = `https://api.runpod.ai/v2/${process.env.RUNPOD_SERVERLESS_ID}/run`;
+
+  const requestConfig = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.RUNPOD_API_KEY}`,
+    },
+    body: JSON.stringify({ input: { track } }),
+  };
+
+  const response = await fetch(url, requestConfig);
+
+  if (!response.ok) {
+    throw new Error(
+      `[RUNPOD] Failed to start nfp audio job for track ${track.id}: ${response.statusText}`,
+    );
+  }
+
+  const data = await response.json();
+  console.log(
+    `[RUNPOD] Started a nfp audio job for track ${track.id} with job id ${data.id}`,
+  );
+}
+
+async function awsStartNfpAudio({
+  track,
+  usesGpu,
+}: {
+  track: Track;
+  usesGpu: boolean;
+}) {
   const client = new SQSClient({
     region: process.env.CUSTOM_AWS_REGION_NAME!,
     credentials: {
@@ -41,7 +93,7 @@ async function startNfpAudio(
     },
   });
 
-  const messageBody = JSON.stringify({ usesGpu: false, track });
+  const messageBody = JSON.stringify({ usesGpu, track });
 
   const command = new SendMessageCommand({
     MessageBody: messageBody,
@@ -52,23 +104,8 @@ async function startNfpAudio(
 
   const jobId = result.MessageId;
 
-  if (!jobId) {
-    return NextResponse.json(
-      { error: 'Failed to start nfp audio extraction job' },
-      { status: 500 },
-    );
-  }
-
-  await prisma.track.update({
-    where: { id },
-    data: { jobId },
-  });
-
-  return NextResponse.json(
-    {
-      message: `Started a nfp audio job for track ${track.id} at ${jobId}`,
-    },
-    { status: 200 },
+  console.log(
+    `[AWS] Started a nfp audio job for track ${track.id} with job id ${jobId}`,
   );
 }
 

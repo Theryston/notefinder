@@ -15,6 +15,21 @@ enum Role {
   ADMIN
 }
 
+enum Runtime {
+  AWS
+  RUNPOD
+}
+
+model Settings {
+  id        String   @id @default(cuid()) @map("id")
+  runtime   Runtime  @default(AWS) @map("runtime")
+  usesGpu   Boolean  @default(false) @map("uses_gpu")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
 model User {
   id            String    @id @default(cuid()) @map("id")
   role          Role      @default(USER) @map("role")
