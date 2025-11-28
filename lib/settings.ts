@@ -1,4 +1,4 @@
-import { Runtime } from './generated/prisma';
+import { Runtime } from '@/lib/generated/prisma/browser';
 import prisma from './prisma';
 
 export async function getSettings() {

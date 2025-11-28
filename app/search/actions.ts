@@ -3,7 +3,7 @@
 import { type NotefinderYtmusicSearchResponse } from '@/lib/services/notefinder-ytmusic/types';
 import prisma from '@/lib/prisma';
 import { redirect } from 'next/navigation';
-import { Artist, Track } from '@/lib/generated/prisma';
+import { Artist, Track } from '@/lib/generated/prisma/client';
 import { auth } from '@/auth';
 import { isNextRedirectError } from '@/lib/utils';
 import { revalidateTag } from 'next/cache';

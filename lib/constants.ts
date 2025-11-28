@@ -12,7 +12,7 @@ import {
   UserFavoriteTrack,
   UserSectionVisibility,
   UserSectionVisibilityValue,
-} from '@/lib/generated/prisma';
+} from '@/lib/generated/prisma/client';
 
 export const DEFAULT_SECTION_VISIBILITY: Record<
   string,

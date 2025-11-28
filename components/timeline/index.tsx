@@ -5,7 +5,7 @@ import { Skeleton } from '../sheleton';
 import { auth } from '@/auth';
 import { getUserById } from '@/lib/services/users/get-user';
 import { unstable_cacheTag as cacheTag } from 'next/cache';
-import { PlayingCopyright, Role } from '@/lib/generated/prisma';
+import { PlayingCopyright, Role } from '@/lib/generated/prisma/client';
 
 export function Timeline({
   track,

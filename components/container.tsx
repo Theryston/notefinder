@@ -1,7 +1,7 @@
 import { AnonymousHeader, Header } from './header';
 import { Footer } from './footer';
 import { auth } from '@/auth';
-import { User } from '@/lib/generated/prisma';
+import { User } from '@/lib/generated/prisma/client';
 import { redirect } from 'next/navigation';
 import { getUserById } from '@/lib/services/users/get-user';
 import { Suspense } from 'react';

@@ -2,7 +2,7 @@ import prisma from '@/lib/prisma';
 import { MAX_SITEMAP_SIZE } from '@/lib/constants';
 import { MetadataRoute } from 'next';
 import { getBiggestOne } from '@/lib/utils';
-import { Thumbnail, Track } from '@/lib/generated/prisma';
+import { Thumbnail, Track } from '@/lib/generated/prisma/client';
 
 export async function generateSitemaps() {
   const total = await prisma.track.count({

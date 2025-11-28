@@ -1,7 +1,7 @@
 'use client';
 
 import { NotefinderYtmusicSearchResponse } from '@/lib/services/notefinder-ytmusic/types';
-import { Artist, Track } from '@/lib/generated/prisma';
+import { Artist, Track } from '@/lib/generated/prisma/client';
 import { useActionState, useRef } from 'react';
 import { onAddNotes } from '../actions';
 import { useEffect } from 'react';

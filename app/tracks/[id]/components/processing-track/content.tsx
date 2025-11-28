@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { TrackStatus } from '@/lib/generated/prisma';
+import { TrackStatus } from '@/lib/generated/prisma/client';
 import { Button } from '@/components/ui/button';
 import { revalidateTrack } from '../../actions';
 import { PlayIcon } from 'lucide-react';

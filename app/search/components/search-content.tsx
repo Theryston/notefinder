@@ -1,6 +1,6 @@
 import { cn, getFullHeight } from '@/lib/utils';
 import { NotefinderYtmusicSearchResponse } from '@/lib/services/notefinder-ytmusic/types';
-import { Artist, Track } from '@/lib/generated/prisma';
+import { Artist, Track } from '@/lib/generated/prisma/client';
 import { notefinderYtmusicSearch } from '@/lib/services/notefinder-ytmusic/ytmusic-search';
 import { CustomTrackItem } from './custom-track-item';
 import { getTracksByVideoIds } from '@/lib/services/track/get-track-cached';

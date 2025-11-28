@@ -2,7 +2,7 @@ import { apiKeyMiddleware } from '@/lib/api-key-middleware';
 import prisma from '@/lib/prisma';
 import { withMiddleware } from '@/lib/with-middleware';
 import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
-import { Runtime, Track, TrackStatus } from '@/lib/generated/prisma';
+import { Runtime, Track, TrackStatus } from '@/lib/generated/prisma/client';
 import { NextResponse } from 'next/server';
 import { getSettings } from '@/lib/settings';
 

@@ -2,12 +2,9 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { NotefinderYtmusicSearchResponse } from './services/notefinder-ytmusic/types';
 import {
-  Artist,
-  Track as DbTrack,
-  Thumbnail,
   UserSectionVisibility,
   UserSectionVisibilityValue,
-} from '@/lib/generated/prisma';
+} from '@/lib/generated/prisma/browser';
 import { Track as TrackItemType } from '@/components/track-item';
 import { DEFAULT_SECTION_VISIBILITY, MinimalTrack } from './constants';
 

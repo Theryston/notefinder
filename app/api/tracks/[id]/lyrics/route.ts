@@ -2,7 +2,7 @@ import { apiKeyMiddleware } from '@/lib/api-key-middleware';
 import prisma from '@/lib/prisma';
 import { withMiddleware } from '@/lib/with-middleware';
 import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
-import { TrackStatus } from '@/lib/generated/prisma';
+import { TrackStatus } from '@/lib/generated/prisma/client';
 import { NextResponse } from 'next/server';
 
 async function startLyricsExtraction(

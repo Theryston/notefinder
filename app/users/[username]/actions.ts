@@ -3,7 +3,7 @@
 import { auth } from '@/auth';
 import { DEFAULT_SECTION_VISIBILITY } from '@/lib/constants';
 import prisma from '@/lib/prisma';
-import { UserSectionVisibilityValue } from '@/lib/generated/prisma';
+import { UserSectionVisibilityValue } from '@/lib/generated/prisma/client';
 import { revalidateTag } from 'next/cache';
 
 type ToggleViewState = {
