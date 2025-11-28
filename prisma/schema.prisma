@@ -1,12 +1,10 @@
 generator client {
-  provider   = "prisma-client-js"
-  engineType = "client"
-  output     = "../lib/generated/prisma"
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum Role {
