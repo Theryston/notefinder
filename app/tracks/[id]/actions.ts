@@ -7,7 +7,7 @@ import moment from 'moment';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { tasks } from '@trigger.dev/sdk';
-import { trackCalculationTask } from '@/triggers/calculate-score';
+import { trackCalculationTask } from '@/trigger/calculate-score';
 
 export const calculateTrackScore = async (trackId: string) => {
   const hasPendingJob = await prisma.trackCalculationJob.findFirst({
