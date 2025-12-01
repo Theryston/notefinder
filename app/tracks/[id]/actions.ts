@@ -1,13 +1,43 @@
 'use server';
 
 import { auth } from '@/auth';
+import { CALCULATE_TRACK_SCORE_JOB_DELAY_SECONDS } from '@/lib/constants';
 import prisma from '@/lib/prisma';
-import { calculateTrackScoreJob } from '@/lib/services/track/calculate-score-job';
+import moment from 'moment';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { tasks } from '@trigger.dev/sdk';
+import { trackCalculationTask } from '@/triggers/calculate-score';
 
 export const calculateTrackScore = async (trackId: string) => {
-  await calculateTrackScoreJob(trackId);
+  const hasPendingJob = await prisma.trackCalculationJob.findFirst({
+    where: {
+      trackId: trackId,
+      endAt: null,
+    },
+  });
+
+  if (hasPendingJob) {
+    console.log(
+      `A calculate score job is already pending for track ${trackId}`,
+    );
+    return;
+  }
+
+  const startAt = moment()
+    .add(CALCULATE_TRACK_SCORE_JOB_DELAY_SECONDS, 'seconds')
+    .toDate();
+
+  const trackCalculationJob = await prisma.trackCalculationJob.create({
+    data: {
+      trackId: trackId,
+      startAt,
+    },
+  });
+
+  await tasks.trigger<typeof trackCalculationTask>('calculate-score', {
+    trackCalculationJobId: trackCalculationJob.id,
+  });
 };
 
 export const createTrackView = async (formData: FormData) => {

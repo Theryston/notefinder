@@ -200,7 +200,7 @@ model NfpAudioProcess {
 model TrackCalculationJob {
   id        String    @id @default(cuid()) @map("id")
   trackId   String    @map("track_id")
-  jobId     String    @map("job_id")
+  jobId     String?   @map("job_id")
   startAt   DateTime  @map("start_at")
   endAt     DateTime? @map("end_at")
   score     Int?      @map("score")
