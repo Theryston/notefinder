@@ -43,7 +43,7 @@ async function createNotes(
     })),
   });
 
-  revalidateTag(`track_${id}`);
+  revalidateTag(`track_${id}`, 'max');
 
   return NextResponse.json({ message: 'Notes created' }, { status: 200 });
 }

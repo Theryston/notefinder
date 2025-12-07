@@ -35,8 +35,8 @@ async function createThumbnail(
     },
   });
 
-  revalidateTag(`track_${id}`);
-  revalidateTag(`user_${track.creator.username}`);
+  revalidateTag(`track_${id}`, 'max');
+  revalidateTag(`user_${track.creator.username}`, 'max');
 
   return NextResponse.json(thumbnail);
 }

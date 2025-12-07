@@ -109,7 +109,7 @@ export const handleFavoriteTrack = async (
         where: { id: favorite.id },
       });
 
-      revalidateTag(`user_${user.username}`);
+      revalidateTag(`user_${user.username}`, 'max');
 
       return {
         isFavorite: false,
@@ -120,7 +120,7 @@ export const handleFavoriteTrack = async (
         data: { userId: session.user.id, trackId: trackId as string },
       });
 
-      revalidateTag(`user_${user.username}`);
+      revalidateTag(`user_${user.username}`, 'max');
 
       return {
         isFavorite: true,
@@ -149,8 +149,8 @@ export const revalidateTrack = async (formData: FormData) => {
 
   if (!track) return;
 
-  revalidateTag(`track_${trackId}`);
-  revalidateTag(`user_${track.creator.username}`);
+  revalidateTag(`track_${trackId}`, 'max');
+  revalidateTag(`user_${track.creator.username}`, 'max');
   revalidatePath(`/tracks/${trackId}`);
   redirect(`/tracks/${trackId}`);
 };

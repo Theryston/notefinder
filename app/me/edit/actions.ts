@@ -52,8 +52,8 @@ export const onUpdateName = async (
       data: { name: rawName },
     });
 
-    revalidateTag(`user_${userId}`);
-    if (current?.username) revalidateTag(`user_${current.username}`);
+    revalidateTag(`user_${userId}`, 'max');
+    if (current?.username) revalidateTag(`user_${current.username}`, 'max');
 
     return {
       success: 'Informações atualizadas com sucesso',
@@ -111,8 +111,8 @@ export const onUploadAvatar = async (
       data: { image: imageUrl },
     });
 
-    revalidateTag(`user_${userId}`);
-    if (current?.username) revalidateTag(`user_${current.username}`);
+    revalidateTag(`user_${userId}`, 'max');
+    if (current?.username) revalidateTag(`user_${current.username}`, 'max');
 
     return { success: 'Avatar atualizado com sucesso', imageUrl };
   } catch (error) {

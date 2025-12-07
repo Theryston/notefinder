@@ -140,8 +140,8 @@ export const onAddNotes = async (
       });
     }
 
-    revalidateTag(`track_video_${track.ytId}`);
-    revalidateTag(`user_${track.creator.username}`);
+    revalidateTag(`track_video_${track.ytId}`, 'max');
+    revalidateTag(`user_${track.creator.username}`, 'max');
     redirect(`/tracks/${track.id}`);
   } catch (error) {
     if (isNextRedirectError(error)) throw error;

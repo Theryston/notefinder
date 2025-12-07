@@ -63,7 +63,7 @@ export const toggleView = async (
     });
   }
 
-  revalidateTag(`user_${user.username}`);
+  revalidateTag(`user_${user.username}`, 'max');
 
   return {
     value: newVisibility,

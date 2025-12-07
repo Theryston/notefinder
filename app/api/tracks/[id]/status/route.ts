@@ -58,11 +58,11 @@ async function updateTrackStatus(
     });
 
     for (const artist of currentTrack.trackArtists) {
-      revalidateTag(`artist_${artist.artist.id}`);
+      revalidateTag(`artist_${artist.artist.id}`, 'max');
     }
 
     if (currentTrack.albumId) {
-      revalidateTag(`album_${currentTrack.albumId}`);
+      revalidateTag(`album_${currentTrack.albumId}`, 'max');
     }
   }
 
@@ -77,8 +77,8 @@ async function updateTrackStatus(
     return NextResponse.json({ message: 'Track deleted' }, { status: 200 });
   }
 
-  revalidateTag(`track_${id}`);
-  revalidateTag(`user_${currentTrack.creator.username}`);
+  revalidateTag(`track_${id}`, 'max');
+  revalidateTag(`user_${currentTrack.creator.username}`, 'max');
 
   return NextResponse.json(
     { message: 'Track status updated' },

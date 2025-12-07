@@ -53,7 +53,7 @@ async function putTrack(
     },
   });
 
-  revalidateTag(`track_${id}`);
+  revalidateTag(`track_${id}`, 'max');
 
   return NextResponse.json({ message: 'Track updated' }, { status: 200 });
 }
