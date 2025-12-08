@@ -57,20 +57,4 @@ jobs:
     steps:
       - name: Trigger Dokploy deployment
         run: |
-          response=$(curl -X POST \
-            'https://dokploy.theryston.dev/api/application.deploy' \
-            -H 'accept: application/json' \
-            -H 'Content-Type: application/json' \
-            -H "x-api-key: ${{ secrets.DOKPLOY_API_KEY }}" \
-            -d "{\"applicationId\": \"${{ secrets.DOKPLOY_APPLICATION_ID }}\"}" \
-            -w "%{http_code}" \
-            -o /tmp/dokploy_response_body.txt \
-            -s)
-          echo "Status code: $response"
-          echo "Response body:"
-          cat /tmp/dokploy_response_body.txt
-          if [ "$response" -lt 200 ] || [ "$response" -ge 300 ]; then
-            echo "Deployment failed"
-            exit 1
-          fi
-          echo "Deployment triggered successfully"
+          curl --request GET '${{ secrets.COOLIFY_WEBHOOK }}' --header 'Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}'
