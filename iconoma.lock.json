@@ -1,0 +1,25 @@
+{
+  "configHash": "44dc8d92b2714e90722f14bae3db8506e2e6577079bc4798d5a0bf41e13d2508",
+  "icons": {
+    "logo": {
+      "name": "logo",
+      "tags": [],
+      "svg": {
+        "content": "file://public\\icons\\logo.svg",
+        "hash": "4e47652c8bc6e0a6ee2ee6cb3e4e2a2572a09f7638e335d05a42f65f5b856399"
+      },
+      "targets": {
+        "react": {
+          "path": "./components/icons.tsx",
+          "builtFrom": {
+            "svgHash": "4e47652c8bc6e0a6ee2ee6cb3e4e2a2572a09f7638e335d05a42f65f5b856399",
+            "configHash": "44dc8d92b2714e90722f14bae3db8506e2e6577079bc4798d5a0bf41e13d2508"
+          }
+        }
+      },
+      "colorVariableKeys": [
+        "currentColor"
+      ]
+    }
+  }
+}

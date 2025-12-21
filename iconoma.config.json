@@ -1,0 +1,27 @@
+{
+  "svg": {
+    "folder": "./public/icons",
+    "inLock": false
+  },
+  "svgo": {
+    "plugins": [
+      "removeDimensions",
+      "removeHiddenElems",
+      "removeTitle",
+      {
+        "name": "convertColors",
+        "params": {
+          "currentColor": false,
+          "names2hex": true
+        }
+      }
+    ]
+  },
+  "extraTargets": [
+    {
+      "targetId": "react",
+      "outputPath": "./components/icons.tsx"
+    }
+  ],
+  "colorVariables": []
+}

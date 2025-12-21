@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { GithubIcon, SearchIcon, UserIcon } from 'lucide-react';
 import { Button } from './ui/button';
@@ -18,6 +17,7 @@ import {
 } from './ui/dropdown-menu';
 import { getUserByIdWithCache } from '@/lib/services/users/get-user';
 import { Suspense } from 'react';
+import { Logo } from './icons';
 
 export async function Header({ desktopOnly }: { desktopOnly?: boolean }) {
   const session = await auth();
@@ -51,13 +51,7 @@ export function AnonymousHeader({
         <div className="flex items-center justify-between max-w-screen-2xl px-4 mx-auto h-full">
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
-              <Image
-                className="!w-10 !h-10"
-                src="/logo.svg"
-                alt="NoteFinder"
-                width={40}
-                height={40}
-              />
+              <Logo className="text-primary text-4xl" />
 
               <span className="text-md font-bold block md:hidden m-0">
                 NoteFinder
