@@ -1,6 +1,6 @@
 import { VariantProps } from 'class-variance-authority';
 import { Button, buttonVariants } from './ui/button';
-import Image from 'next/image';
+import { Google } from './icons';
 
 export default function GoogleButton({
   children,
@@ -12,13 +12,7 @@ export default function GoogleButton({
   }) {
   return (
     <Button {...props}>
-      <Image
-        src="/google.svg"
-        alt="Google"
-        width={20}
-        height={20}
-        className="size-4"
-      />
+      <Google className="size-4" />
       {children}
     </Button>
   );

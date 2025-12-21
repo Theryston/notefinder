@@ -20,6 +20,28 @@
       "colorVariableKeys": [
         "currentColor"
       ]
+    },
+    "google": {
+      "name": "google",
+      "tags": [
+        "google",
+        "search",
+        "g"
+      ],
+      "svg": {
+        "content": "file://public\\icons\\google.svg",
+        "hash": "c4a59f9ef49e004a05d78c98a5abec35f5b15e5004d6159e061aa4f710c5f07b"
+      },
+      "targets": {
+        "react": {
+          "path": "./components/icons.tsx",
+          "builtFrom": {
+            "svgHash": "c4a59f9ef49e004a05d78c98a5abec35f5b15e5004d6159e061aa4f710c5f07b",
+            "configHash": "44dc8d92b2714e90722f14bae3db8506e2e6577079bc4798d5a0bf41e13d2508"
+          }
+        }
+      },
+      "colorVariableKeys": []
     }
   }
 }
