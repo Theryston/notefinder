@@ -7,7 +7,7 @@ import {
 } from '@/lib/services/track/get-track-cached';
 import { dbTrackToTrackItem } from '@/lib/utils';
 import { notFound } from 'next/navigation';
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { cacheTag } from 'next/cache';
 import { MAX_STATIC_PAGES } from '@/lib/constants';
 
 export async function generateMetadata({

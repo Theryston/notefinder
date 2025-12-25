@@ -2,7 +2,7 @@ import { Container } from '@/components/container';
 import { notFound } from 'next/navigation';
 import { ProcessingTrack } from './components/processing-track';
 import { TrackContent } from './components/track-content';
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { cacheTag } from 'next/cache';
 import {
   FULL_TRACK_INCLUDE,
   FullTrack,

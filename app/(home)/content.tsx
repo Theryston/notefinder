@@ -8,7 +8,7 @@ import {
 import { dbTrackToTrackItem } from '@/lib/utils';
 import { SearchIcon } from 'lucide-react';
 import Link from 'next/link';
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { cacheTag } from 'next/cache';
 
 export async function HomeContent() {
   'use cache: remote';

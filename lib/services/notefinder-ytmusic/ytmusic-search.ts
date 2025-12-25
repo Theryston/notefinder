@@ -1,7 +1,7 @@
 import { filterValidIds } from '@/lib/utils';
 import { getNotefinderYtMusicClient } from './get-client';
 import { NotefinderYtmusicSearchResponse } from './types';
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { cacheTag } from 'next/cache';
 
 export const notefinderYtmusicSearch = async (params: {
   query: string;

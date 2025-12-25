@@ -1,6 +1,12 @@
 'use client';
 
-import { useActionState, useEffect, useRef, useState } from 'react';
+import {
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  startTransition,
+} from 'react';
 import { handleFavoriteTrack } from '../actions';
 import { Button } from '@/components/ui/button';
 import { HeartIcon } from 'lucide-react';
@@ -22,7 +28,9 @@ export function FavoriteButton({ trackId }: { trackId: string }) {
     const formData = new FormData();
     formData.append('trackId', trackId);
     formData.append('ignoreAction', 'true');
-    handleFavorite(formData);
+    startTransition(() => {
+      void handleFavorite(formData);
+    });
   }, [handleFavorite, trackId, state.isLoggedIn]);
 
   useEffect(() => {

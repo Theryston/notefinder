@@ -7,7 +7,7 @@ import {
   GetTrackCustomWhereWithCacheConditions,
 } from '@/lib/services/track/get-track-cached';
 import { dbTrackToTrackItem } from '@/lib/utils';
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { cacheTag } from 'next/cache';
 import { notFound } from 'next/navigation';
 
 export async function generateMetadata({

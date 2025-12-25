@@ -1,6 +1,12 @@
 'use client';
 
-import { useActionState, useEffect, useRef, useState } from 'react';
+import {
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  startTransition,
+} from 'react';
 import { Button } from '@/components/ui/button';
 import { onUploadAvatar } from '../actions';
 import { toast } from 'sonner';
@@ -62,7 +68,9 @@ export function AvatarUpload({
 
       const formData = new FormData();
       formData.append('avatar', file);
-      formAction(formData);
+      startTransition(() => {
+        void formAction(formData);
+      });
     }
   };
 

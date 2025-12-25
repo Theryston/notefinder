@@ -1,7 +1,7 @@
 import { MINIMAL_TRACK_INCLUDE, MinimalTrack } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@/lib/generated/prisma/client';
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { cacheTag } from 'next/cache';
 import moment from 'moment';
 
 export type GetTrackCustomWhereWithCacheConditions = {

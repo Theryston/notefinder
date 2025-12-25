@@ -3,7 +3,7 @@ import moment from 'moment';
 import { FullUser } from '@/lib/constants';
 import { notFound } from 'next/navigation';
 import { getUserByUsername } from '@/lib/services/users/get-user';
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { cacheTag } from 'next/cache';
 
 export async function UserOverview({
   params,

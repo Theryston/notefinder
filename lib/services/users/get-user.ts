@@ -1,6 +1,6 @@
 import { FULL_USER_INCLUDE, FullUser } from '@/lib/constants';
 import prisma from '@/lib/prisma';
-import { unstable_cacheTag as cacheTag } from 'next/cache';
+import { cacheTag } from 'next/cache';
 
 export const getUserByIdWithCache = async (id: string) => {
   'use cache: remote';
