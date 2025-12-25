@@ -25,5 +25,5 @@ export async function uploadAvatarToS3(
 
   await s3Client.send(command);
 
-  return `https://${process.env.CUSTOM_AWS_BUCKET_NAME}.s3.${process.env.CUSTOM_AWS_REGION_NAME}.amazonaws.com/${key}`;
+  return `https://files.notefinder.com.br/${key}`;
 }
