@@ -60,12 +60,9 @@ export function AvatarUpload({
       reader.onloadend = () => setPreviewUrl(reader.result as string);
       reader.readAsDataURL(file);
 
-      const form = e.target.form;
-
-      if (form) {
-        const formData = new FormData(form);
-        formAction(formData);
-      }
+      const formData = new FormData();
+      formData.append('avatar', file);
+      formAction(formData);
     }
   };
 
