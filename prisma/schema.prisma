@@ -59,8 +59,8 @@ model UserFavoriteTrack {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("user_favorite_tracks")
 }
@@ -78,7 +78,7 @@ model UserSectionVisibility {
   createdAt DateTime                   @default(now()) @map("created_at")
   updatedAt DateTime                   @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("user_section_visibilities")
 }
@@ -99,7 +99,7 @@ model Account {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([provider, providerAccountId])
   @@map("accounts")
@@ -113,7 +113,7 @@ model EmailVerificationCode {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("email_verification_codes")
 }
@@ -126,7 +126,7 @@ model ForgotPasswordCode {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("forgot_password_codes")
 }
@@ -171,8 +171,8 @@ model Track {
   createdAt         DateTime           @default(now()) @map("created_at")
   updatedAt         DateTime           @updatedAt @map("updated_at")
 
-  creator              User                  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  album                Album?                @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  creator              User                  @relation(fields: [creatorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  album                Album?                @relation(fields: [albumId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   thumbnails           Thumbnail[]
   trackArtists         TrackArtist[]
   notes                TrackNote[]
@@ -192,7 +192,7 @@ model NfpAudioProcess {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("nfp_audio_processes")
 }
@@ -207,7 +207,7 @@ model TrackCalculationJob {
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 
-  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("track_calculation_jobs")
 }
@@ -219,8 +219,8 @@ model TrackView {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("track_views")
 }
@@ -246,7 +246,7 @@ model Thumbnail {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  track Track @relation(fields: [trackId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("thumbnails")
 }
@@ -258,8 +258,8 @@ model TrackArtist {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  track  Track  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  track  Track  @relation(fields: [trackId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("track_artists")
 }
@@ -288,8 +288,8 @@ model TrackNote {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  track   Track @relation(fields: [trackId], references: [id], onDelete: Cascade)
-  creator User? @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  track   Track @relation(fields: [trackId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  creator User? @relation(fields: [creatorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("track_notes")
 }
