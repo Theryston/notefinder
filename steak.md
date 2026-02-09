@@ -1,3 +1,5 @@
 - [ ] The user should be able to select if he wants learn 5, 10 or 20 minutes of steak by day.
 - [ ] The current steak should be displayed in the user profile.
 - [ ] The user should see he's current skeak in the header and if he have done or note for today.
+- [ ] Every day, at 9 PM bazil the users how have an active steak but haven't done it for today, should recieve an email telling him to learn singing.
+- [ ] If the user have an item in the daily_practice_streaks table in more then 7 days should recieve an email telling some thing like: "não esqueça que você ainda pode ser um bom cantor".
