@@ -13,6 +13,7 @@ type PlayerLike = {
   setPlaybackRate: (rate: number) => void;
   mute: () => void;
   unMute: () => void;
+  getIframe?: () => HTMLIFrameElement;
 };
 
 export type YouTubeApi = {
@@ -55,6 +56,12 @@ export function YouTubeRoot({
   useEffect(() => {
     onPauseRef.current = onPause;
   }, [onPause]);
+  useEffect(() => {
+    return () => {
+      playerRef.current = null;
+      apiRef.current = null;
+    };
+  }, []);
 
   const opts = useMemo<YouTubeProps['opts']>(
     () => ({
@@ -79,17 +86,45 @@ export function YouTubeRoot({
     [isInAppBrowser],
   );
 
+  const getAttachedPlayer = () => {
+    const player = playerRef.current as (PlayerLike & {
+      g?: HTMLIFrameElement | null;
+    }) | null;
+    if (!player) return null;
+
+    try {
+      const iframe = player.getIframe?.() ?? player.g ?? null;
+      if (!iframe || !iframe.isConnected || !iframe.src) return null;
+      return player;
+    } catch {
+      return null;
+    }
+  };
+
+  const callPlayer = <T,>(fn: (player: PlayerLike) => T, fallback: T) => {
+    const player = getAttachedPlayer();
+    if (!player) return fallback;
+
+    try {
+      return fn(player);
+    } catch {
+      return fallback;
+    }
+  };
+
   const getApi = useMemo<YouTubeApi>(
     () => ({
-      play: () => playerRef.current?.playVideo?.(),
-      pause: () => playerRef.current?.pauseVideo?.(),
-      isPlaying: () => playerRef.current?.getPlayerState?.() === 1,
-      seekTo: (s: number) => playerRef.current?.seekTo?.(s, true),
-      getCurrentTime: () => playerRef.current?.getCurrentTime?.() ?? 0,
-      getDuration: () => playerRef.current?.getDuration?.() ?? 0,
-      setPlaybackRate: (r: number) => playerRef.current?.setPlaybackRate?.(r),
-      mute: () => playerRef.current?.mute?.(),
-      unMute: () => playerRef.current?.unMute?.(),
+      play: () => callPlayer((player) => player.playVideo(), undefined),
+      pause: () => callPlayer((player) => player.pauseVideo(), undefined),
+      isPlaying: () => callPlayer((player) => player.getPlayerState() === 1, false),
+      seekTo: (s: number) =>
+        callPlayer((player) => player.seekTo(s, true), undefined),
+      getCurrentTime: () => callPlayer((player) => player.getCurrentTime(), 0),
+      getDuration: () => callPlayer((player) => player.getDuration(), 0),
+      setPlaybackRate: (r: number) =>
+        callPlayer((player) => player.setPlaybackRate(r), undefined),
+      mute: () => callPlayer((player) => player.mute(), undefined),
+      unMute: () => callPlayer((player) => player.unMute(), undefined),
     }),
     [],
   );
@@ -102,7 +137,6 @@ export function YouTubeRoot({
         opts={opts}
         onReady={(e: { target: PlayerLike }) => {
           playerRef.current = e.target;
-          console.log('playerRef.current', playerRef.current);
           if (!apiRef.current) apiRef.current = getApi;
           onReadyRef.current?.(apiRef.current);
         }}
