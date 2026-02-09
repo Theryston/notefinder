@@ -4,19 +4,26 @@ import { useEffect, useRef } from 'react';
 import { createTrackView } from '../actions';
 
 export function AddView({ trackId }: { trackId: string }) {
-  const formRef = useRef<HTMLFormElement>(null);
+  const isFetching = useRef(false);
 
   useEffect(() => {
-    if (!formRef.current || !trackId) return;
-    if (sessionStorage.getItem(`track_view_${trackId}`)) return;
+    if (!trackId) return;
+    if (isFetching.current) return;
+    isFetching.current = true;
 
-    formRef.current.requestSubmit();
-    sessionStorage.setItem(`track_view_${trackId}`, 'true');
+    createTrackView({
+      trackId,
+      oldTrackViewId:
+        sessionStorage.getItem(`track_view_${trackId}`) || undefined,
+    })
+      .then((trackViewId) => {
+        if (!trackViewId) return;
+        sessionStorage.setItem(`track_view_${trackId}`, trackViewId);
+      })
+      .finally(() => {
+        isFetching.current = false;
+      });
   }, [trackId]);
 
-  return (
-    <form action={createTrackView} ref={formRef}>
-      <input type="hidden" name="trackId" value={trackId} />
-    </form>
-  );
+  return null;
 }

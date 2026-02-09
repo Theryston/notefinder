@@ -40,28 +40,49 @@ export const calculateTrackScore = async (trackId: string) => {
   });
 };
 
-export const createTrackView = async (formData: FormData) => {
-  const trackId = formData.get('trackId');
-  if (!trackId) return;
-
+export const createTrackView = async ({
+  trackId,
+  oldTrackViewId,
+}: {
+  trackId: string;
+  oldTrackViewId?: string;
+}): Promise<string> => {
   const session = await auth();
 
-  if (!session?.user?.id) return;
+  if (oldTrackViewId) {
+    const oldTrackView = await prisma.trackView.findFirst({
+      where: {
+        trackId: trackId,
+        id: oldTrackViewId,
+      },
+    });
 
-  const user = await prisma.user.findFirst({
-    where: {
-      id: session.user.id,
-    },
-  });
+    if (oldTrackView && !!oldTrackView.userId) return oldTrackViewId;
 
-  if (!user) return;
+    if (oldTrackView && !oldTrackView.userId && session?.user?.id) {
+      await prisma.trackView.update({
+        where: {
+          id: oldTrackViewId,
+        },
+        data: {
+          userId: session.user.id,
+        },
+      });
 
-  await prisma.trackView.create({
+      return oldTrackViewId;
+    }
+
+    return oldTrackViewId;
+  }
+
+  const trackView = await prisma.trackView.create({
     data: {
       trackId: trackId as string,
-      userId: session.user.id,
+      userId: session?.user?.id,
     },
   });
+
+  return trackView?.id;
 };
 
 export const handleFavoriteTrack = async (

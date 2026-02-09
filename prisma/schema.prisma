@@ -215,11 +215,11 @@ model TrackCalculationJob {
 model TrackView {
   id        String   @id @default(cuid()) @map("id")
   trackId   String   @map("track_id")
-  userId    String   @map("user_id")
+  userId    String?  @map("user_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user  User? @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   track Track @relation(fields: [trackId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("track_views")
