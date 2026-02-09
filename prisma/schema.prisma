@@ -48,8 +48,27 @@ model User {
   notes                 TrackNote[]
   trackViews            TrackView[]
   userFavoriteTracks    UserFavoriteTrack[]
+  dailyPracticeStreaks  DailyPracticeStreak[]
 
   @@map("users")
+}
+
+model DailyPracticeStreak {
+  id              String    @id @default(cuid()) @map("id")
+  userId          String    @map("user_id")
+  day             DateTime  @db.Date @map("day")
+  listenedSeconds Int       @default(0) @map("listened_seconds")
+  isCompleted     Boolean   @default(false) @map("is_completed")
+  completedAt     DateTime? @map("completed_at")
+  lastHeartbeatAt DateTime? @map("last_heartbeat_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([userId, day])
+  @@index([userId, isCompleted])
+  @@map("daily_practice_streaks")
 }
 
 model UserFavoriteTrack {

@@ -142,6 +142,21 @@ export const MAX_AVATAR_SIZE = 5 * 1024 * 1024; // 5MB
 
 export const CALCULATE_TRACK_SCORE_JOB_DELAY_SECONDS = 60 * 15; // 15 minutes
 
+export const DAILY_STREAK_TARGET_SECONDS = 60 * 5; // 5 minutes
+export const DAILY_STREAK_HEARTBEAT_INTERVAL_MS = 5_000;
+export const DAILY_STREAK_MAX_HEARTBEAT_SECONDS = 20;
+export const DAILY_STREAK_SERVER_TIME_TOLERANCE_SECONDS = 0;
+
+export type DailyPracticeStreakStatus = {
+  isLoggedIn: boolean;
+  day: string;
+  listenedSeconds: number;
+  targetSeconds: number;
+  completedToday: boolean;
+  currentStreakDays: number;
+  remainingSeconds: number;
+};
+
 export const MINIMAL_TRACK_INCLUDE: Prisma.TrackInclude = {
   trackArtists: {
     include: { artist: true },

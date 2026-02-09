@@ -278,6 +278,8 @@ export function AudioRoot({
   );
 
   const cleanup = () => {
+    const wasPlaying = isPlayingRef.current;
+
     if (playerRef.current) {
       try {
         playerRef.current.stop();
@@ -300,6 +302,10 @@ export function AudioRoot({
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     rafRef.current = null;
     pitchRef.current = null;
+
+    if (wasPlaying) {
+      onPauseRef.current?.();
+    }
   };
 
   useEffect(() => {

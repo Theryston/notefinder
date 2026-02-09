@@ -15,8 +15,15 @@ import { usePitchDetection } from './use-pitch-detection';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import clsx from 'clsx';
 import { LyricsDisplay } from './lyrics-display';
-import { Lyrics } from '@/lib/constants';
+import {
+  DAILY_STREAK_HEARTBEAT_INTERVAL_MS,
+  DAILY_STREAK_MAX_HEARTBEAT_SECONDS,
+  type DailyPracticeStreakStatus,
+  Lyrics,
+} from '@/lib/constants';
 import { useSearchParams } from 'next/navigation';
+import { DailyStreakHud } from './daily-streak-hud';
+import { toast } from 'sonner';
 
 type Note = {
   note: string;
@@ -24,6 +31,12 @@ type Note = {
   start: number;
   end: number;
   frequency_mean?: number;
+};
+
+type DailyPracticeHeartbeatResponse = {
+  status: DailyPracticeStreakStatus;
+  justCompleted: boolean;
+  creditedSeconds: number;
 };
 
 const PX_PER_SECOND = 100;
@@ -37,6 +50,7 @@ export function TimelineClient({
   lyrics,
   directUrl,
   allowAudioTranspose,
+  initialDailyPracticeStreak,
 }: {
   ytId: string;
   notes: Note[];
@@ -46,6 +60,7 @@ export function TimelineClient({
     vocalsUrl?: string;
   };
   allowAudioTranspose: boolean;
+  initialDailyPracticeStreak: DailyPracticeStreakStatus;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef<HTMLDivElement | null>(null);
@@ -61,7 +76,6 @@ export function TimelineClient({
   const orientationWatchRef = useRef<NodeJS.Timeout | null>(null);
   const [isPortrait, setIsPortrait] = useState(false);
 
-  // Pitch detection
   const {
     isActive: micActive,
     currentPitch,
@@ -80,6 +94,18 @@ export function TimelineClient({
   const isFollowingRef = useRef(true);
   const [vocalsOnly, setVocalsOnly] = useState(false);
   const [playableUrl, setPlayableUrl] = useState<string | null>(null);
+  const [dailyPracticeStreak, setDailyPracticeStreak] = useState(
+    initialDailyPracticeStreak,
+  );
+  const isDailyStreakEnabled = dailyPracticeStreak.isLoggedIn;
+  const [isStreakCelebrating, setIsStreakCelebrating] = useState(false);
+  const [isFullscreenStreakExpanded, setIsFullscreenStreakExpanded] =
+    useState(false);
+  const [streakUiNow, setStreakUiNow] = useState(() => Date.now());
+  const pendingPracticeSecondsRef = useRef(0);
+  const lastPracticeCaptureAtRef = useRef<number | null>(null);
+  const streakFlushQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const streakCelebrationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (vocalsOnly && directUrl?.vocalsUrl) {
@@ -122,6 +148,114 @@ export function TimelineClient({
       }
     }
   }, [currentTime, isReady, storageKey]);
+
+  const triggerStreakCelebration = useCallback(() => {
+    setIsStreakCelebrating(true);
+
+    if (streakCelebrationTimeoutRef.current) {
+      clearTimeout(streakCelebrationTimeoutRef.current);
+    }
+
+    streakCelebrationTimeoutRef.current = setTimeout(() => {
+      setIsStreakCelebrating(false);
+      streakCelebrationTimeoutRef.current = null;
+    }, 1800);
+  }, []);
+
+  const capturePracticeElapsed = useCallback(() => {
+    if (!lastPracticeCaptureAtRef.current) return;
+
+    const now = Date.now();
+    const elapsedSeconds = (now - lastPracticeCaptureAtRef.current) / 1000;
+
+    if (elapsedSeconds > 0) {
+      pendingPracticeSecondsRef.current += elapsedSeconds;
+    }
+
+    lastPracticeCaptureAtRef.current = now;
+    setStreakUiNow(now);
+  }, []);
+
+  const persistPracticeHeartbeat = useCallback(
+    async ({ useBeacon = false }: { useBeacon?: boolean } = {}) => {
+      if (!isDailyStreakEnabled) return;
+
+      capturePracticeElapsed();
+      const elapsedSeconds = Math.min(
+        Math.floor(pendingPracticeSecondsRef.current),
+        DAILY_STREAK_MAX_HEARTBEAT_SECONDS,
+      );
+
+      if (elapsedSeconds <= 0) return;
+
+      pendingPracticeSecondsRef.current -= elapsedSeconds;
+
+      if (
+        useBeacon &&
+        typeof navigator !== 'undefined' &&
+        typeof navigator.sendBeacon === 'function'
+      ) {
+        const payload = JSON.stringify({ elapsedSeconds });
+        const sent = navigator.sendBeacon('/api/streak/heartbeat', payload);
+
+        if (!sent) {
+          pendingPracticeSecondsRef.current += elapsedSeconds;
+        }
+
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/streak/heartbeat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ elapsedSeconds }),
+          credentials: 'include',
+          keepalive: true,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Heartbeat failed with status ${response.status}`);
+        }
+
+        const payload =
+          (await response.json()) as DailyPracticeHeartbeatResponse;
+
+        setDailyPracticeStreak(payload.status);
+
+        if (payload.justCompleted) {
+          triggerStreakCelebration();
+          toast.success('Ofensiva mantida! +1 ponto hoje.');
+        }
+      } catch (error) {
+        pendingPracticeSecondsRef.current += elapsedSeconds;
+        console.error('Erro ao registrar ofensiva diária', error);
+      }
+    },
+    [capturePracticeElapsed, isDailyStreakEnabled, triggerStreakCelebration],
+  );
+
+  const queuePracticeFlush = useCallback(
+    (options: { useBeacon?: boolean } = {}) => {
+      streakFlushQueueRef.current = streakFlushQueueRef.current.then(() =>
+        persistPracticeHeartbeat(options),
+      );
+
+      return streakFlushQueueRef.current;
+    },
+    [persistPracticeHeartbeat],
+  );
+
+  const livePracticeListenedSeconds = Math.min(
+    dailyPracticeStreak.targetSeconds,
+    dailyPracticeStreak.listenedSeconds +
+      pendingPracticeSecondsRef.current +
+      (lastPracticeCaptureAtRef.current
+        ? (streakUiNow - lastPracticeCaptureAtRef.current) / 1000
+        : 0),
+  );
 
   const displayNotes = useMemo(() => {
     const mapped = (notes || []).map((n) => {
@@ -320,6 +454,87 @@ export function TimelineClient({
   useEffect(() => {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
+
+  useEffect(() => {
+    return () => {
+      if (streakCelebrationTimeoutRef.current) {
+        clearTimeout(streakCelebrationTimeoutRef.current);
+        streakCelebrationTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isDailyStreakEnabled || !isPlaying) return;
+
+    const intervalId = window.setInterval(() => {
+      setStreakUiNow(Date.now());
+    }, 400);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [isDailyStreakEnabled, isPlaying]);
+
+  useEffect(() => {
+    if (!isDailyStreakEnabled) return;
+
+    if (isPlaying) {
+      if (!lastPracticeCaptureAtRef.current) {
+        lastPracticeCaptureAtRef.current = Date.now();
+      }
+
+      const intervalId = window.setInterval(() => {
+        void queuePracticeFlush();
+      }, DAILY_STREAK_HEARTBEAT_INTERVAL_MS);
+
+      return () => {
+        window.clearInterval(intervalId);
+      };
+    }
+
+    if (lastPracticeCaptureAtRef.current) {
+      capturePracticeElapsed();
+      lastPracticeCaptureAtRef.current = null;
+      void queuePracticeFlush();
+    }
+  }, [
+    capturePracticeElapsed,
+    isDailyStreakEnabled,
+    isPlaying,
+    queuePracticeFlush,
+  ]);
+
+  useEffect(() => {
+    if (!isDailyStreakEnabled) return;
+
+    const flushWithBeacon = () => {
+      capturePracticeElapsed();
+      lastPracticeCaptureAtRef.current = null;
+      void persistPracticeHeartbeat({ useBeacon: true });
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        flushWithBeacon();
+      }
+    };
+
+    window.addEventListener('beforeunload', flushWithBeacon);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', flushWithBeacon);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      flushWithBeacon();
+    };
+  }, [capturePracticeElapsed, isDailyStreakEnabled, persistPracticeHeartbeat]);
+
+  useEffect(() => {
+    if (!isFullscreen) {
+      setIsFullscreenStreakExpanded(false);
+    }
+  }, [isFullscreen]);
 
   const requestFullscreen = useCallback(async () => {
     if (!fullscreenRef.current) return;
@@ -520,6 +735,15 @@ export function TimelineClient({
   return (
     <>
       <div className="flex flex-col gap-4" ref={timelineRef}>
+        {isDailyStreakEnabled && (
+          <DailyStreakHud
+            status={dailyPracticeStreak}
+            listenedSeconds={livePracticeListenedSeconds}
+            isCelebrating={isStreakCelebrating}
+            className={cn(isStreakCelebrating && 'streak-hud-win-pop')}
+          />
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_260px] gap-4 items-start">
           <div className="space-y-3">
             <div
@@ -680,6 +904,33 @@ export function TimelineClient({
                     />
                   </div>
                 </div>
+              )}
+
+              {isFullscreen && isDailyStreakEnabled && (
+                <>
+                  {!isFullscreenStreakExpanded && (
+                    <DailyStreakHud
+                      variant="compact"
+                      status={dailyPracticeStreak}
+                      listenedSeconds={livePracticeListenedSeconds}
+                      isCelebrating={isStreakCelebrating}
+                      className="pointer-events-auto absolute bottom-4 right-4 z-40"
+                      onClick={() => setIsFullscreenStreakExpanded(true)}
+                    />
+                  )}
+
+                  {isFullscreenStreakExpanded && (
+                    <DailyStreakHud
+                      variant="expanded"
+                      status={dailyPracticeStreak}
+                      listenedSeconds={livePracticeListenedSeconds}
+                      isCelebrating={isStreakCelebrating}
+                      className="pointer-events-auto absolute bottom-4 left-1/2 z-[60] w-[min(760px,calc(100%-1rem))] -translate-x-1/2 shadow-2xl"
+                      showMinimizeButton
+                      onMinimize={() => setIsFullscreenStreakExpanded(false)}
+                    />
+                  )}
+                </>
               )}
             </div>
           </div>

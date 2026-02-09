@@ -6,6 +6,10 @@ import { auth } from '@/auth';
 import { getUserById } from '@/lib/services/users/get-user';
 import { cacheTag } from 'next/cache';
 import { PlayingCopyright, Role } from '@/lib/generated/prisma/client';
+import {
+  getDailyPracticeStreakStatus,
+  getDefaultDailyPracticeStreakStatus,
+} from '@/lib/services/streak/daily-practice';
 
 export function Timeline({
   track,
@@ -46,6 +50,12 @@ async function TimelineContent({
   track: FullTrack;
   lyrics?: Lyrics;
 }) {
+  const session = await auth();
+  const userId = session?.user?.id;
+  const dailyPracticeStreak = userId
+    ? await getDailyPracticeStreakStatus(userId)
+    : getDefaultDailyPracticeStreakStatus();
+
   const directUrl: {
     musicUrl?: string;
     vocalsUrl?: string;
@@ -70,9 +80,6 @@ async function TimelineContent({
     !allowAudioTranspose ||
     !allowVocalsOnly
   ) {
-    const session = await auth();
-    const userId = session?.user?.id;
-
     if (userId) {
       const user = await getUserByIdWithCache(userId);
 
@@ -92,6 +99,7 @@ async function TimelineContent({
       lyrics={lyrics}
       directUrl={directUrl}
       allowAudioTranspose={allowAudioTranspose}
+      initialDailyPracticeStreak={dailyPracticeStreak}
     />
   );
 }

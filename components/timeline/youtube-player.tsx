@@ -46,6 +46,7 @@ export function YouTubeRoot({
   const onReadyRef = useRef(onReady);
   const onPlayRef = useRef(onPlay);
   const onPauseRef = useRef(onPause);
+  const isPlayingRef = useRef(false);
 
   useEffect(() => {
     onReadyRef.current = onReady;
@@ -58,6 +59,10 @@ export function YouTubeRoot({
   }, [onPause]);
   useEffect(() => {
     return () => {
+      if (isPlayingRef.current) {
+        onPauseRef.current?.();
+        isPlayingRef.current = false;
+      }
       playerRef.current = null;
       apiRef.current = null;
     };
@@ -141,8 +146,15 @@ export function YouTubeRoot({
           onReadyRef.current?.(apiRef.current);
         }}
         onStateChange={(e: { data: number }) => {
-          if (e.data === 1) onPlayRef.current?.();
-          if (e.data === 2 || e.data === 0) onPauseRef.current?.();
+          if (e.data === 1) {
+            isPlayingRef.current = true;
+            onPlayRef.current?.();
+          }
+
+          if (e.data === 2 || e.data === 0) {
+            isPlayingRef.current = false;
+            onPauseRef.current?.();
+          }
         }}
       />
     </div>
