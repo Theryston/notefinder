@@ -218,7 +218,7 @@ export function DailyStreakHud({
             ) : (
               <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
                 <SparklesIcon className="h-3.5 w-3.5" />
-                complete o primeiro dia cantando
+                primeiro dia seguido cantando
               </span>
             )}
           </div>

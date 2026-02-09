@@ -106,6 +106,7 @@ export function TimelineClient({
   const lastPracticeCaptureAtRef = useRef<number | null>(null);
   const streakFlushQueueRef = useRef<Promise<void>>(Promise.resolve());
   const streakCelebrationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const streakAudioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     if (vocalsOnly && directUrl?.vocalsUrl) {
@@ -160,6 +161,104 @@ export function TimelineClient({
       setIsStreakCelebrating(false);
       streakCelebrationTimeoutRef.current = null;
     }, 1800);
+  }, []);
+
+  const playStreakCompletionChime = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    const AudioContextCtor =
+      window.AudioContext ||
+      (window as Window & { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext;
+
+    if (!AudioContextCtor) return;
+
+    if (!streakAudioContextRef.current) {
+      streakAudioContextRef.current = new AudioContextCtor();
+    }
+
+    const ctx = streakAudioContextRef.current;
+
+    const play = () => {
+      const now = ctx.currentTime + 0.01;
+
+      const scheduleTone = ({
+        start,
+        frequency,
+        peakGain,
+        duration,
+        type,
+      }: {
+        start: number;
+        frequency: number;
+        peakGain: number;
+        duration: number;
+        type: OscillatorType;
+      }) => {
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(peakGain, start + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+        gain.connect(ctx.destination);
+
+        const osc = ctx.createOscillator();
+        osc.type = type;
+        osc.frequency.setValueAtTime(frequency, start);
+        osc.connect(gain);
+        osc.start(start);
+        osc.stop(start + duration + 0.03);
+      };
+
+      scheduleTone({
+        start: now,
+        frequency: 783.99,
+        peakGain: 0.07,
+        duration: 0.32,
+        type: 'sine',
+      });
+
+      scheduleTone({
+        start: now + 0.03,
+        frequency: 1046.5,
+        peakGain: 0.16,
+        duration: 0.52,
+        type: 'triangle',
+      });
+
+      scheduleTone({
+        start: now + 0.18,
+        frequency: 1318.51,
+        peakGain: 0.15,
+        duration: 0.62,
+        type: 'triangle',
+      });
+
+      scheduleTone({
+        start: now + 0.35,
+        frequency: 1567.98,
+        peakGain: 0.14,
+        duration: 0.74,
+        type: 'sine',
+      });
+
+      scheduleTone({
+        start: now + 0.48,
+        frequency: 2093,
+        peakGain: 0.09,
+        duration: 0.6,
+        type: 'sine',
+      });
+    };
+
+    if (ctx.state === 'suspended') {
+      void ctx
+        .resume()
+        .then(play)
+        .catch(() => undefined);
+      return;
+    }
+
+    play();
   }, []);
 
   const capturePracticeElapsed = useCallback(() => {
@@ -227,6 +326,7 @@ export function TimelineClient({
 
         if (payload.justCompleted) {
           triggerStreakCelebration();
+          playStreakCompletionChime();
           toast.success('Ofensiva mantida! +1 ponto hoje.');
         }
       } catch (error) {
@@ -234,7 +334,12 @@ export function TimelineClient({
         console.error('Erro ao registrar ofensiva diária', error);
       }
     },
-    [capturePracticeElapsed, isDailyStreakEnabled, triggerStreakCelebration],
+    [
+      capturePracticeElapsed,
+      isDailyStreakEnabled,
+      playStreakCompletionChime,
+      triggerStreakCelebration,
+    ],
   );
 
   const queuePracticeFlush = useCallback(
@@ -460,6 +565,13 @@ export function TimelineClient({
       if (streakCelebrationTimeoutRef.current) {
         clearTimeout(streakCelebrationTimeoutRef.current);
         streakCelebrationTimeoutRef.current = null;
+      }
+
+      const audioContext = streakAudioContextRef.current;
+      streakAudioContextRef.current = null;
+
+      if (audioContext) {
+        void audioContext.close().catch(() => undefined);
       }
     };
   }, []);
