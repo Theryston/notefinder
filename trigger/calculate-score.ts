@@ -8,7 +8,10 @@ import z from 'zod';
 export const trackCalculationTask = schemaTask({
   id: 'calculate-score',
   maxDuration: 300,
-  schema: z.object({ trackCalculationJobId: z.string() }),
+  schema: z.object({
+    trackCalculationJobId: z.string(),
+    ignoreWait: z.boolean().optional().nullable().default(false),
+  }),
   machine: { preset: 'micro' },
   retry: {
     maxAttempts: 3,
@@ -35,6 +38,7 @@ export const trackCalculationTask = schemaTask({
   },
   run: async (payload) => {
     const trackCalculationJobId = payload.trackCalculationJobId;
+    const ignoreWait = payload.ignoreWait || false;
     if (!trackCalculationJobId) {
       throw new Error('No track calculation job id found in payload');
     }
@@ -58,11 +62,17 @@ export const trackCalculationTask = schemaTask({
       `All good, waiting for calculate the score for ${trackCalculationJobId}`,
     );
 
-    await wait.for({ seconds: CALCULATE_TRACK_SCORE_JOB_DELAY_SECONDS });
+    if (!ignoreWait) {
+      await wait.for({ seconds: CALCULATE_TRACK_SCORE_JOB_DELAY_SECONDS });
 
-    console.log(
-      `Waited for ${CALCULATE_TRACK_SCORE_JOB_DELAY_SECONDS} seconds | Now calculating the score for ${trackCalculationJobId}`,
-    );
+      console.log(
+        `Waited for ${CALCULATE_TRACK_SCORE_JOB_DELAY_SECONDS} seconds | Now calculating the score for ${trackCalculationJobId}`,
+      );
+    } else {
+      console.log(
+        `Ignoring wait for calculate the score for track ${trackCalculationJobId} calculation job`,
+      );
+    }
 
     const globalStats = await getPlatformStats();
 
