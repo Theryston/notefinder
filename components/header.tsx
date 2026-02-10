@@ -152,13 +152,14 @@ async function UserAvatar({ session }: { session: Session }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <div
+      <Link
         className={cn(
           'relative overflow-hidden rounded-lg border px-2 py-1 h-8 flex items-center gap-1',
           !dailyPracticeStreakStatus.completedToday
             ? 'bg-card'
             : 'bg-linear-to-br from-orange-500/15 via-background to-rose-500/10',
         )}
+        href="/me/edit"
       >
         {dailyPracticeStreakStatus.completedToday && (
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,0.22),transparent_55%)]" />
@@ -176,7 +177,7 @@ async function UserAvatar({ session }: { session: Session }) {
           <span className="sm:hidden">{streakDays}</span>
           <span className="hidden sm:inline">{streakLabel}</span>
         </div>
-      </div>
+      </Link>
     </div>
   );
 }
