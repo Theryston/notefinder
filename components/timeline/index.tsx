@@ -6,6 +6,10 @@ import { auth } from '@/auth';
 import { getUserById } from '@/lib/services/users/get-user';
 import { cacheTag } from 'next/cache';
 import { PlayingCopyright, Role } from '@/lib/generated/prisma/client';
+import {
+  getDailyPracticeStreakStatus,
+  getDefaultDailyPracticeStreakStatus,
+} from '@/lib/services/streak/daily-practice';
 
 export function Timeline({
   track,
@@ -21,7 +25,7 @@ export function Timeline({
   return (
     <section className="w-full">
       <div className="relative overflow-hidden rounded-2xl border bg-background/60 shadow-sm backdrop-blur">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-primary/10 via-transparent to-primary/10" />
+        <div className="absolute inset-0 -z-10 bg-linear-to-tr from-primary/10 via-transparent to-primary/10" />
 
         <div className="p-4 sm:p-6">
           <Suspense fallback={<TimelineFallback />}>
@@ -46,6 +50,12 @@ async function TimelineContent({
   track: FullTrack;
   lyrics?: Lyrics;
 }) {
+  const session = await auth();
+  const userId = session?.user?.id;
+  const dailyPracticeStreak = userId
+    ? await getDailyPracticeStreakStatus(userId)
+    : getDefaultDailyPracticeStreakStatus();
+
   const directUrl: {
     musicUrl?: string;
     vocalsUrl?: string;
@@ -70,9 +80,6 @@ async function TimelineContent({
     !allowAudioTranspose ||
     !allowVocalsOnly
   ) {
-    const session = await auth();
-    const userId = session?.user?.id;
-
     if (userId) {
       const user = await getUserByIdWithCache(userId);
 
@@ -92,6 +99,8 @@ async function TimelineContent({
       lyrics={lyrics}
       directUrl={directUrl}
       allowAudioTranspose={allowAudioTranspose}
+      initialDailyPracticeStreak={dailyPracticeStreak}
+      isLoggedIn={!!userId}
     />
   );
 }

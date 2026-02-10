@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import YouTube, { YouTubeProps } from 'react-youtube';
 
 type PlayerLike = {
@@ -46,6 +46,7 @@ export function YouTubeRoot({
   const onReadyRef = useRef(onReady);
   const onPlayRef = useRef(onPlay);
   const onPauseRef = useRef(onPause);
+  const isPlayingRef = useRef(false);
 
   useEffect(() => {
     onReadyRef.current = onReady;
@@ -58,6 +59,10 @@ export function YouTubeRoot({
   }, [onPause]);
   useEffect(() => {
     return () => {
+      if (isPlayingRef.current) {
+        onPauseRef.current?.();
+        isPlayingRef.current = false;
+      }
       playerRef.current = null;
       apiRef.current = null;
     };
@@ -87,9 +92,11 @@ export function YouTubeRoot({
   );
 
   const getAttachedPlayer = () => {
-    const player = playerRef.current as (PlayerLike & {
-      g?: HTMLIFrameElement | null;
-    }) | null;
+    const player = playerRef.current as
+      | (PlayerLike & {
+          g?: HTMLIFrameElement | null;
+        })
+      | null;
     if (!player) return null;
 
     try {
@@ -101,22 +108,26 @@ export function YouTubeRoot({
     }
   };
 
-  const callPlayer = <T,>(fn: (player: PlayerLike) => T, fallback: T) => {
-    const player = getAttachedPlayer();
-    if (!player) return fallback;
+  const callPlayer = useCallback(
+    <T,>(fn: (player: PlayerLike) => T, fallback: T) => {
+      const player = getAttachedPlayer();
+      if (!player) return fallback;
 
-    try {
-      return fn(player);
-    } catch {
-      return fallback;
-    }
-  };
+      try {
+        return fn(player);
+      } catch {
+        return fallback;
+      }
+    },
+    [],
+  );
 
   const getApi = useMemo<YouTubeApi>(
     () => ({
       play: () => callPlayer((player) => player.playVideo(), undefined),
       pause: () => callPlayer((player) => player.pauseVideo(), undefined),
-      isPlaying: () => callPlayer((player) => player.getPlayerState() === 1, false),
+      isPlaying: () =>
+        callPlayer((player) => player.getPlayerState() === 1, false),
       seekTo: (s: number) =>
         callPlayer((player) => player.seekTo(s, true), undefined),
       getCurrentTime: () => callPlayer((player) => player.getCurrentTime(), 0),
@@ -126,7 +137,7 @@ export function YouTubeRoot({
       mute: () => callPlayer((player) => player.mute(), undefined),
       unMute: () => callPlayer((player) => player.unMute(), undefined),
     }),
-    [],
+    [callPlayer],
   );
 
   return (
@@ -141,8 +152,15 @@ export function YouTubeRoot({
           onReadyRef.current?.(apiRef.current);
         }}
         onStateChange={(e: { data: number }) => {
-          if (e.data === 1) onPlayRef.current?.();
-          if (e.data === 2 || e.data === 0) onPauseRef.current?.();
+          if (e.data === 1) {
+            isPlayingRef.current = true;
+            onPlayRef.current?.();
+          }
+
+          if (e.data === 2 || e.data === 0) {
+            isPlayingRef.current = false;
+            onPauseRef.current?.();
+          }
         }}
       />
     </div>

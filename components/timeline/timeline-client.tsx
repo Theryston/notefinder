@@ -15,8 +15,16 @@ import { usePitchDetection } from './use-pitch-detection';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import clsx from 'clsx';
 import { LyricsDisplay } from './lyrics-display';
-import { Lyrics } from '@/lib/constants';
-import { useSearchParams } from 'next/navigation';
+import {
+  DAILY_STREAK_HEARTBEAT_INTERVAL_MS,
+  DAILY_STREAK_MAX_HEARTBEAT_SECONDS,
+  type DailyPracticeStreakStatus,
+  Lyrics,
+} from '@/lib/constants';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { DailyStreakHud } from './daily-streak-hud';
+import { toast } from 'sonner';
 
 type Note = {
   note: string;
@@ -24,6 +32,12 @@ type Note = {
   start: number;
   end: number;
   frequency_mean?: number;
+};
+
+type DailyPracticeHeartbeatResponse = {
+  status: DailyPracticeStreakStatus;
+  justCompleted: boolean;
+  creditedSeconds: number;
 };
 
 const PX_PER_SECOND = 100;
@@ -37,6 +51,8 @@ export function TimelineClient({
   lyrics,
   directUrl,
   allowAudioTranspose,
+  initialDailyPracticeStreak,
+  isLoggedIn,
 }: {
   ytId: string;
   notes: Note[];
@@ -46,6 +62,8 @@ export function TimelineClient({
     vocalsUrl?: string;
   };
   allowAudioTranspose: boolean;
+  initialDailyPracticeStreak: DailyPracticeStreakStatus;
+  isLoggedIn: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef<HTMLDivElement | null>(null);
@@ -55,13 +73,11 @@ export function TimelineClient({
   const loopRef = useRef(false);
   const speedRef = useRef(1);
   const isPlayingRef = useRef(false);
-  // Removed one-time centering when paused; we will only center when explicitly requested
   const lastTimeRef = useRef(0);
   const muteRef = useRef(false);
   const orientationWatchRef = useRef<NodeJS.Timeout | null>(null);
   const [isPortrait, setIsPortrait] = useState(false);
 
-  // Pitch detection
   const {
     isActive: micActive,
     currentPitch,
@@ -80,6 +96,20 @@ export function TimelineClient({
   const isFollowingRef = useRef(true);
   const [vocalsOnly, setVocalsOnly] = useState(false);
   const [playableUrl, setPlayableUrl] = useState<string | null>(null);
+  const [dailyPracticeStreak, setDailyPracticeStreak] = useState(
+    initialDailyPracticeStreak,
+  );
+  const isDailyStreakEnabled = isLoggedIn;
+  const [isStreakCelebrating, setIsStreakCelebrating] = useState(false);
+  const [isFullscreenStreakExpanded, setIsFullscreenStreakExpanded] =
+    useState(false);
+  const [streakUiNow, setStreakUiNow] = useState(() => Date.now());
+  const pendingPracticeSecondsRef = useRef(0);
+  const lastPracticeCaptureAtRef = useRef<number | null>(null);
+  const streakFlushQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const streakCelebrationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const streakAudioContextRef = useRef<AudioContext | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (vocalsOnly && directUrl?.vocalsUrl) {
@@ -122,6 +152,220 @@ export function TimelineClient({
       }
     }
   }, [currentTime, isReady, storageKey]);
+
+  const triggerStreakCelebration = useCallback(() => {
+    setIsStreakCelebrating(true);
+
+    if (streakCelebrationTimeoutRef.current) {
+      clearTimeout(streakCelebrationTimeoutRef.current);
+    }
+
+    streakCelebrationTimeoutRef.current = setTimeout(() => {
+      setIsStreakCelebrating(false);
+      streakCelebrationTimeoutRef.current = null;
+    }, 1800);
+  }, []);
+
+  const playStreakCompletionChime = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    const AudioContextCtor =
+      window.AudioContext ||
+      (window as Window & { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext;
+
+    if (!AudioContextCtor) return;
+
+    if (!streakAudioContextRef.current) {
+      streakAudioContextRef.current = new AudioContextCtor();
+    }
+
+    const ctx = streakAudioContextRef.current;
+
+    const play = () => {
+      const now = ctx.currentTime + 0.01;
+
+      const scheduleTone = ({
+        start,
+        frequency,
+        peakGain,
+        duration,
+        type,
+      }: {
+        start: number;
+        frequency: number;
+        peakGain: number;
+        duration: number;
+        type: OscillatorType;
+      }) => {
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(peakGain, start + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+        gain.connect(ctx.destination);
+
+        const osc = ctx.createOscillator();
+        osc.type = type;
+        osc.frequency.setValueAtTime(frequency, start);
+        osc.connect(gain);
+        osc.start(start);
+        osc.stop(start + duration + 0.03);
+      };
+
+      scheduleTone({
+        start: now,
+        frequency: 783.99,
+        peakGain: 0.07,
+        duration: 0.32,
+        type: 'sine',
+      });
+
+      scheduleTone({
+        start: now + 0.03,
+        frequency: 1046.5,
+        peakGain: 0.16,
+        duration: 0.52,
+        type: 'triangle',
+      });
+
+      scheduleTone({
+        start: now + 0.18,
+        frequency: 1318.51,
+        peakGain: 0.15,
+        duration: 0.62,
+        type: 'triangle',
+      });
+
+      scheduleTone({
+        start: now + 0.35,
+        frequency: 1567.98,
+        peakGain: 0.14,
+        duration: 0.74,
+        type: 'sine',
+      });
+
+      scheduleTone({
+        start: now + 0.48,
+        frequency: 2093,
+        peakGain: 0.09,
+        duration: 0.6,
+        type: 'sine',
+      });
+    };
+
+    if (ctx.state === 'suspended') {
+      void ctx
+        .resume()
+        .then(play)
+        .catch(() => undefined);
+      return;
+    }
+
+    play();
+  }, []);
+
+  const capturePracticeElapsed = useCallback(() => {
+    if (!lastPracticeCaptureAtRef.current) return;
+
+    const now = Date.now();
+    const elapsedSeconds = (now - lastPracticeCaptureAtRef.current) / 1000;
+
+    if (elapsedSeconds > 0) {
+      pendingPracticeSecondsRef.current += elapsedSeconds;
+    }
+
+    lastPracticeCaptureAtRef.current = now;
+    setStreakUiNow(now);
+  }, []);
+
+  const persistPracticeHeartbeat = useCallback(
+    async ({ useBeacon = false }: { useBeacon?: boolean } = {}) => {
+      if (!isDailyStreakEnabled) return;
+
+      capturePracticeElapsed();
+      const elapsedSeconds = Math.min(
+        Math.floor(pendingPracticeSecondsRef.current),
+        DAILY_STREAK_MAX_HEARTBEAT_SECONDS,
+      );
+
+      if (elapsedSeconds <= 0) return;
+
+      pendingPracticeSecondsRef.current -= elapsedSeconds;
+
+      if (
+        useBeacon &&
+        typeof navigator !== 'undefined' &&
+        typeof navigator.sendBeacon === 'function'
+      ) {
+        const payload = JSON.stringify({ elapsedSeconds });
+        const sent = navigator.sendBeacon('/api/streak/heartbeat', payload);
+
+        if (!sent) {
+          pendingPracticeSecondsRef.current += elapsedSeconds;
+        }
+
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/streak/heartbeat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ elapsedSeconds }),
+          credentials: 'include',
+          keepalive: true,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Heartbeat failed with status ${response.status}`);
+        }
+
+        const payload =
+          (await response.json()) as DailyPracticeHeartbeatResponse;
+
+        setDailyPracticeStreak(payload.status);
+
+        if (payload.justCompleted) {
+          router.refresh();
+          triggerStreakCelebration();
+          playStreakCompletionChime();
+          toast.success('Ofensiva mantida! +1 ponto hoje.');
+        }
+      } catch (error) {
+        pendingPracticeSecondsRef.current += elapsedSeconds;
+        console.error('Erro ao registrar ofensiva diária', error);
+      }
+    },
+    [
+      capturePracticeElapsed,
+      isDailyStreakEnabled,
+      playStreakCompletionChime,
+      triggerStreakCelebration,
+      router,
+    ],
+  );
+
+  const queuePracticeFlush = useCallback(
+    (options: { useBeacon?: boolean } = {}) => {
+      streakFlushQueueRef.current = streakFlushQueueRef.current.then(() =>
+        persistPracticeHeartbeat(options),
+      );
+
+      return streakFlushQueueRef.current;
+    },
+    [persistPracticeHeartbeat],
+  );
+
+  const livePracticeListenedSeconds = Math.min(
+    dailyPracticeStreak.targetSeconds,
+    dailyPracticeStreak.listenedSeconds +
+      pendingPracticeSecondsRef.current +
+      (lastPracticeCaptureAtRef.current
+        ? (streakUiNow - lastPracticeCaptureAtRef.current) / 1000
+        : 0),
+  );
 
   const displayNotes = useMemo(() => {
     const mapped = (notes || []).map((n) => {
@@ -320,6 +564,98 @@ export function TimelineClient({
   useEffect(() => {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
+
+  useEffect(() => {
+    return () => {
+      if (streakCelebrationTimeoutRef.current) {
+        clearTimeout(streakCelebrationTimeoutRef.current);
+        streakCelebrationTimeoutRef.current = null;
+      }
+
+      const audioContext = streakAudioContextRef.current;
+      streakAudioContextRef.current = null;
+
+      if (audioContext) {
+        void audioContext.close().catch(() => undefined);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isDailyStreakEnabled || !isPlaying) return;
+
+    const intervalId = window.setInterval(() => {
+      setStreakUiNow(Date.now());
+    }, 400);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [isDailyStreakEnabled, isPlaying]);
+
+  useEffect(() => {
+    if (!isDailyStreakEnabled) return;
+
+    const heartbeatTick = () => {
+      if (isPlayingRef.current) {
+        if (!lastPracticeCaptureAtRef.current) {
+          lastPracticeCaptureAtRef.current = Date.now();
+        }
+
+        void queuePracticeFlush();
+        return;
+      }
+
+      if (lastPracticeCaptureAtRef.current) {
+        capturePracticeElapsed();
+        lastPracticeCaptureAtRef.current = null;
+        void queuePracticeFlush();
+      }
+    };
+
+    const intervalId = window.setInterval(
+      heartbeatTick,
+      DAILY_STREAK_HEARTBEAT_INTERVAL_MS,
+    );
+
+    heartbeatTick();
+
+    return () => {
+      window.clearInterval(intervalId);
+      heartbeatTick();
+    };
+  }, [capturePracticeElapsed, isDailyStreakEnabled, queuePracticeFlush]);
+
+  useEffect(() => {
+    if (!isDailyStreakEnabled) return;
+
+    const flushWithBeacon = () => {
+      capturePracticeElapsed();
+      lastPracticeCaptureAtRef.current = null;
+      void persistPracticeHeartbeat({ useBeacon: true });
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        flushWithBeacon();
+      }
+    };
+
+    window.addEventListener('beforeunload', flushWithBeacon);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', flushWithBeacon);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      flushWithBeacon();
+    };
+  }, [capturePracticeElapsed, isDailyStreakEnabled, persistPracticeHeartbeat]);
+
+  useEffect(() => {
+    if (!isFullscreen) {
+      setIsFullscreenStreakExpanded(false);
+    }
+  }, [isFullscreen]);
 
   const requestFullscreen = useCallback(async () => {
     if (!fullscreenRef.current) return;
@@ -520,6 +856,16 @@ export function TimelineClient({
   return (
     <>
       <div className="flex flex-col gap-4" ref={timelineRef}>
+        {isDailyStreakEnabled && (
+          <DailyStreakHud
+            status={dailyPracticeStreak}
+            listenedSeconds={livePracticeListenedSeconds}
+            isCelebrating={isStreakCelebrating}
+            className={cn(isStreakCelebrating && 'streak-hud-win-pop')}
+            isPlaying={isPlaying}
+          />
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_260px] gap-4 items-start">
           <div className="space-y-3">
             <div
@@ -681,56 +1027,120 @@ export function TimelineClient({
                   </div>
                 </div>
               )}
+
+              {isFullscreen && isDailyStreakEnabled && (
+                <>
+                  {!isFullscreenStreakExpanded && (
+                    <DailyStreakHud
+                      variant="compact"
+                      status={dailyPracticeStreak}
+                      listenedSeconds={livePracticeListenedSeconds}
+                      isCelebrating={isStreakCelebrating}
+                      className="pointer-events-auto absolute bottom-4 right-4 z-40"
+                      onClick={() => setIsFullscreenStreakExpanded(true)}
+                      isPlaying={isPlaying}
+                    />
+                  )}
+
+                  {isFullscreenStreakExpanded && (
+                    <DailyStreakHud
+                      variant="expanded"
+                      status={dailyPracticeStreak}
+                      listenedSeconds={livePracticeListenedSeconds}
+                      isCelebrating={isStreakCelebrating}
+                      className="pointer-events-auto absolute bottom-4 left-1/2 z-60 w-[min(760px,calc(100%-1rem))] -translate-x-1/2 shadow-2xl"
+                      showMinimizeButton
+                      onMinimize={() => setIsFullscreenStreakExpanded(false)}
+                      isPlaying={isPlaying}
+                    />
+                  )}
+                </>
+              )}
             </div>
           </div>
 
-          {!isFullscreen && !shouldShowAlert && (
-            <div className="rounded-lg border bg-card p-3 flex flex-col gap-3">
-              <div className="aspect-video w-full">
-                {useDirectAudio ? (
-                  <AudioRoot
-                    url={playableUrl!}
-                    onReady={attachPlayer}
-                    onPlay={handlePlay}
-                    onPause={handlePause}
-                    allowAudioTranspose={allowAudioTranspose}
-                    transpose={transpose}
-                  />
-                ) : (
-                  <YouTubeRoot
-                    ytId={ytId}
+          {!isFullscreen && (
+            <div className="flex flex-col gap-4">
+              {!shouldShowAlert && (
+                <div className="rounded-lg border bg-card p-3 flex flex-col gap-3">
+                  <div className="aspect-video w-full">
+                    {useDirectAudio ? (
+                      <AudioRoot
+                        url={playableUrl!}
+                        onReady={attachPlayer}
+                        onPlay={handlePlay}
+                        onPause={handlePause}
+                        allowAudioTranspose={allowAudioTranspose}
+                        transpose={transpose}
+                      />
+                    ) : (
+                      <YouTubeRoot
+                        ytId={ytId}
+                        isInAppBrowser={isInAppBrowser}
+                        onReady={attachPlayer}
+                        onPlay={handlePlay}
+                        onPause={handlePause}
+                      />
+                    )}
+                  </div>
+                  <TimelineControls
                     isInAppBrowser={isInAppBrowser}
-                    onReady={attachPlayer}
-                    onPlay={handlePlay}
-                    onPause={handlePause}
+                    isPlaying={isPlaying}
+                    onPlayPause={handlePlayPause}
+                    isLoading={isPlayerLoading}
+                    speed={speed}
+                    onSpeedChange={handleSpeedChange}
+                    transpose={transpose}
+                    onTransposeInc={() => setTranspose((t) => t + 1)}
+                    onTransposeDec={() => setTranspose((t) => t - 1)}
+                    estimatedKey={estimatedKey}
+                    currentTime={currentTime}
+                    duration={duration || Math.max(duration, maxEnd)}
+                    mute={muteRef.current}
+                    onMute={handleMute}
+                    micActive={micActive}
+                    onMicToggle={toggleMic}
+                    ignoreProgress={!!directUrl?.musicUrl}
+                    showVocalsOnly={!!directUrl?.vocalsUrl}
+                    onChangeVocalsOnly={() => setVocalsOnly((prev) => !prev)}
+                    vocalsOnly={vocalsOnly}
+                    onSeek={(s) =>
+                      seekTo(s, isPlayingRef.current ? 'center' : 'none')
+                    }
                   />
-                )}
-              </div>
-              <TimelineControls
-                isInAppBrowser={isInAppBrowser}
-                isPlaying={isPlaying}
-                onPlayPause={handlePlayPause}
-                isLoading={isPlayerLoading}
-                speed={speed}
-                onSpeedChange={handleSpeedChange}
-                transpose={transpose}
-                onTransposeInc={() => setTranspose((t) => t + 1)}
-                onTransposeDec={() => setTranspose((t) => t - 1)}
-                estimatedKey={estimatedKey}
-                currentTime={currentTime}
-                duration={duration || Math.max(duration, maxEnd)}
-                mute={muteRef.current}
-                onMute={handleMute}
-                micActive={micActive}
-                onMicToggle={toggleMic}
-                ignoreProgress={!!directUrl?.musicUrl}
-                showVocalsOnly={!!directUrl?.vocalsUrl}
-                onChangeVocalsOnly={() => setVocalsOnly((prev) => !prev)}
-                vocalsOnly={vocalsOnly}
-                onSeek={(s) =>
-                  seekTo(s, isPlayingRef.current ? 'center' : 'none')
-                }
-              />
+                </div>
+              )}
+
+              {!isLoggedIn && (
+                <section className="relative overflow-hidden rounded-2xl border border-primary/25 bg-linear-to-br from-orange-500/15 via-background to-rose-500/10 p-3">
+                  <div className="pointer-events-none absolute inset-0 -z- bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,0.22),transparent_55%)]" />
+                  <div className="pointer-events-none absolute inset-0 -z-10 bg-background" />
+
+                  <div className="relative flex flex-col gap-3 items-center text-center">
+                    <span className="inline-flex w-fit items-center rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
+                      Pare de cantar desafinado
+                    </span>
+
+                    <div className="flex flex-col gap-2">
+                      <h3 className="text-primary text-sm font-bold">
+                        Entre ou crie uma conta
+                        <br />
+                        para aproveitar ao maximo!
+                      </h3>
+
+                      <p className="text-xs text-muted-foreground">
+                        Com login, você libera sua ofensiva e consegue treinar
+                        canto todos os dias sem perder o ritmo e totalmente de
+                        graça.
+                      </p>
+                    </div>
+
+                    <Button asChild className="w-full">
+                      <Link href="/sign-up">Criar conta</Link>
+                    </Button>
+                  </div>
+                </section>
+              )}
             </div>
           )}
         </div>
