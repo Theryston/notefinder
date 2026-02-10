@@ -24,7 +24,7 @@ async function Content() {
   const user = await getUserByIdWithCache(session.user.id);
 
   return (
-    <div className="max-w-sm mx-auto py-12">
+    <div className="max-w-xl mx-auto py-12">
       <div className="flex flex-col gap-6">
         <Suspense fallback={<AvatarUploadSkeleton />}>
           <AvatarUpload
@@ -36,6 +36,9 @@ async function Content() {
         <BasicForm
           defaultName={user?.name || ''}
           defaultEmail={user?.email || ''}
+          defaultDailyPracticeTargetSeconds={
+            user?.dailyPracticeTargetSeconds ?? null
+          }
         />
       </div>
     </div>

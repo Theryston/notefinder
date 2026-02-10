@@ -1,9 +1,6 @@
 'use client';
 
-import {
-  DAILY_STREAK_TARGET_SECONDS,
-  type DailyPracticeStreakStatus,
-} from '@/lib/constants';
+import { type DailyPracticeStreakStatus } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { FlameIcon, MinusIcon, SparklesIcon } from 'lucide-react';
 
@@ -48,10 +45,7 @@ export function DailyStreakHud({
   showMinimizeButton?: boolean;
   onMinimize?: () => void;
 }) {
-  const safeTarget = Math.max(
-    1,
-    status.targetSeconds || DAILY_STREAK_TARGET_SECONDS,
-  );
+  const safeTarget = Math.max(1, status.targetSeconds);
   const safeListened = Math.min(safeTarget, Math.max(0, listenedSeconds));
   const progress = safeListened / safeTarget;
   const strokeOffsetExpanded = RING_CIRCUMFERENCE * (1 - progress);

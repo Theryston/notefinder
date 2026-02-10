@@ -41,6 +41,36 @@ function normalizeElapsedSeconds(elapsedSeconds: number) {
   return Math.max(0, Math.floor(elapsedSeconds));
 }
 
+function resolveDailyPracticeTargetSeconds(
+  targetSeconds: number | null | undefined,
+) {
+  if (
+    typeof targetSeconds !== 'number' ||
+    !Number.isFinite(targetSeconds) ||
+    targetSeconds <= 0
+  ) {
+    return DAILY_STREAK_TARGET_SECONDS;
+  }
+
+  return Math.floor(targetSeconds);
+}
+
+async function getUserDailyPracticeTargetSeconds(
+  userId: string,
+  tx?: Prisma.TransactionClient,
+) {
+  const user = await (tx ?? prisma).user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      dailyPracticeTargetSeconds: true,
+    },
+  });
+
+  return resolveDailyPracticeTargetSeconds(user?.dailyPracticeTargetSeconds);
+}
+
 function calculateCurrentStreakDays(achievedDayKeys: Set<string>, now: Date) {
   const todayKey = getUtcDayKey(now);
   const yesterdayKey = getUtcDayKey(new Date(now.getTime() - ONE_DAY_MS));
@@ -97,7 +127,11 @@ async function buildDailyPracticeStreakStatus(
   userId: string,
   todayRow: TodayRow,
   now: Date,
+  targetSeconds?: number,
 ): Promise<DailyPracticeStreakStatus> {
+  const resolvedTargetSeconds =
+    targetSeconds ?? (await getUserDailyPracticeTargetSeconds(userId));
+
   const achievedRows = await prisma.dailyPracticeStreak.findMany({
     where: {
       userId,
@@ -113,20 +147,17 @@ async function buildDailyPracticeStreakStatus(
   );
 
   const listenedSeconds = todayRow.isCompleted
-    ? DAILY_STREAK_TARGET_SECONDS
-    : Math.min(todayRow.listenedSeconds, DAILY_STREAK_TARGET_SECONDS);
+    ? resolvedTargetSeconds
+    : Math.min(todayRow.listenedSeconds, resolvedTargetSeconds);
 
   return {
     isLoggedIn: true,
     day: getDayKeyFromDate(todayRow.day),
     listenedSeconds,
-    targetSeconds: DAILY_STREAK_TARGET_SECONDS,
+    targetSeconds: resolvedTargetSeconds,
     completedToday: todayRow.isCompleted,
     currentStreakDays: calculateCurrentStreakDays(achievedDayKeys, now),
-    remainingSeconds: Math.max(
-      0,
-      DAILY_STREAK_TARGET_SECONDS - listenedSeconds,
-    ),
+    remainingSeconds: Math.max(0, resolvedTargetSeconds - listenedSeconds),
   };
 }
 
@@ -173,8 +204,9 @@ export async function recordDailyPracticeHeartbeat(
     DAILY_STREAK_MAX_HEARTBEAT_SECONDS,
   );
 
-  const { todayRow, justCompleted, creditedSeconds } =
+  const { todayRow, justCompleted, creditedSeconds, targetSeconds } =
     await prisma.$transaction(async (tx) => {
+      const targetSeconds = await getUserDailyPracticeTargetSeconds(userId, tx);
       const day = getDateFromUtcDayKey(getUtcDayKey(now));
       const row = await tx.dailyPracticeStreak.upsert({
         where: {
@@ -220,6 +252,7 @@ export async function recordDailyPracticeHeartbeat(
           todayRow: persisted,
           justCompleted: false,
           creditedSeconds: 0,
+          targetSeconds,
         };
       }
 
@@ -271,7 +304,7 @@ export async function recordDailyPracticeHeartbeat(
 
       if (
         !persisted.isCompleted &&
-        persisted.listenedSeconds >= DAILY_STREAK_TARGET_SECONDS
+        persisted.listenedSeconds >= targetSeconds
       ) {
         const completion = await tx.dailyPracticeStreak.updateMany({
           where: {
@@ -281,7 +314,7 @@ export async function recordDailyPracticeHeartbeat(
           data: {
             isCompleted: true,
             completedAt: now,
-            listenedSeconds: DAILY_STREAK_TARGET_SECONDS,
+            listenedSeconds: targetSeconds,
           },
         });
 
@@ -305,10 +338,16 @@ export async function recordDailyPracticeHeartbeat(
         todayRow: persisted,
         justCompleted,
         creditedSeconds,
+        targetSeconds,
       };
     });
 
-  const status = await buildDailyPracticeStreakStatus(userId, todayRow, now);
+  const status = await buildDailyPracticeStreakStatus(
+    userId,
+    todayRow,
+    now,
+    targetSeconds,
+  );
 
   return {
     status,
