@@ -19,6 +19,7 @@
     "@aws-sdk/client-sqs": "^3.916.0",
     "@hookform/resolvers": "^5.2.2",
     "@lottiefiles/dotlottie-react": "^0.17.5",
+    "@neondatabase/serverless": "^1.0.2",
     "@next/third-parties": "16.1.1",
     "@prisma/adapter-neon": "^7.3.0",
     "@prisma/client": "7",
