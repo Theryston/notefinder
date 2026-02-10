@@ -244,6 +244,7 @@ export function DailyPracticeReminderEmail({
                         <tr>
                           <td
                             align="center"
+                            // @ts-expect-errors-ignore
                             bgcolor="#f97316"
                             style={{
                               backgroundColor: '#f97316',
