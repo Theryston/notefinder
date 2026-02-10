@@ -3,6 +3,7 @@
 import { type DailyPracticeStreakStatus } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { FlameIcon, MinusIcon, SparklesIcon } from 'lucide-react';
+import Link from 'next/link';
 
 const RING_RADIUS = 44;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
@@ -218,9 +219,17 @@ export function DailyStreakHud({
           </div>
 
           <p className="text-sm text-center md:text-left text-muted-foreground">
-            {status.completedToday
-              ? 'Ofensiva de hoje garantida. Não se esqueça de voltar amanhã para continuar sua sequência.'
-              : `Continue cantando: faltam ${formatClock(remainingSeconds)} para validar o ponto de hoje.`}
+            {status.completedToday ? (
+              'Ofensiva de hoje garantida. Não se esqueça de voltar amanhã para continuar sua sequência.'
+            ) : (
+              <span>
+                Continue cantando: faltam ${formatClock(remainingSeconds)} para
+                validar o ponto de hoje.{' '}
+                <Link href="/me/edit" className="underline">
+                  Ajuste esse tempo aqui
+                </Link>
+              </span>
+            )}
           </p>
         </div>
       </div>
