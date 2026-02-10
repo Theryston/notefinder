@@ -28,14 +28,15 @@ model Settings {
 }
 
 model User {
-  id            String    @id @default(cuid()) @map("id")
-  role          Role      @default(USER) @map("role")
-  name          String?   @map("name")
-  email         String    @unique @map("email")
-  emailVerified DateTime? @map("email_verified_at")
-  username      String?   @unique @map("username")
-  password      String?   @map("password")
-  image         String?   @map("image_url")
+  id                         String    @id @default(cuid()) @map("id")
+  role                       Role      @default(USER) @map("role")
+  name                       String?   @map("name")
+  email                      String    @unique @map("email")
+  emailVerified              DateTime? @map("email_verified_at")
+  username                   String?   @unique @map("username")
+  password                   String?   @map("password")
+  image                      String?   @map("image_url")
+  dailyPracticeTargetSeconds Int?      @map("daily_practice_target_seconds")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -56,7 +57,7 @@ model User {
 model DailyPracticeStreak {
   id              String    @id @default(cuid()) @map("id")
   userId          String    @map("user_id")
-  day             DateTime  @db.Date @map("day")
+  day             DateTime  @map("day") @db.Date
   listenedSeconds Int       @default(0) @map("listened_seconds")
   isCompleted     Boolean   @default(false) @map("is_completed")
   completedAt     DateTime? @map("completed_at")
