@@ -1,1 +1,0 @@
-- [ ] Every day, at 9 PM bazil time the users how have an active steak but haven't done it for today, should recieve an email telling him to learn singing.
