@@ -591,31 +591,35 @@ export function TimelineClient({
   useEffect(() => {
     if (!isDailyStreakEnabled) return;
 
-    if (isPlaying) {
-      if (!lastPracticeCaptureAtRef.current) {
-        lastPracticeCaptureAtRef.current = Date.now();
+    const heartbeatTick = () => {
+      if (isPlayingRef.current) {
+        if (!lastPracticeCaptureAtRef.current) {
+          lastPracticeCaptureAtRef.current = Date.now();
+        }
+
+        void queuePracticeFlush();
+        return;
       }
 
-      const intervalId = window.setInterval(() => {
+      if (lastPracticeCaptureAtRef.current) {
+        capturePracticeElapsed();
+        lastPracticeCaptureAtRef.current = null;
         void queuePracticeFlush();
-      }, DAILY_STREAK_HEARTBEAT_INTERVAL_MS);
+      }
+    };
 
-      return () => {
-        window.clearInterval(intervalId);
-      };
-    }
+    const intervalId = window.setInterval(
+      heartbeatTick,
+      DAILY_STREAK_HEARTBEAT_INTERVAL_MS,
+    );
 
-    if (lastPracticeCaptureAtRef.current) {
-      capturePracticeElapsed();
-      lastPracticeCaptureAtRef.current = null;
-      void queuePracticeFlush();
-    }
-  }, [
-    capturePracticeElapsed,
-    isDailyStreakEnabled,
-    isPlaying,
-    queuePracticeFlush,
-  ]);
+    heartbeatTick();
+
+    return () => {
+      window.clearInterval(intervalId);
+      heartbeatTick();
+    };
+  }, [capturePracticeElapsed, isDailyStreakEnabled, queuePracticeFlush]);
 
   useEffect(() => {
     if (!isDailyStreakEnabled) return;
