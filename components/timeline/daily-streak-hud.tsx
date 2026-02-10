@@ -204,7 +204,14 @@ export function DailyStreakHud({
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
             {status.currentStreakDays > 0 ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-semibold uppercase tracking-wide',
+                  status.completedToday
+                    ? 'border-primary/30 bg-primary/10 text-primary'
+                    : 'border-border bg-muted-foreground/10 text-muted-foreground',
+                )}
+              >
                 <FlameIcon className="h-3.5 w-3.5" />
                 {status.currentStreakDays} dia
                 {status.currentStreakDays === 1 ? '' : 's'} seguido

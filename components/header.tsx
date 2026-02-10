@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { GithubIcon, SearchIcon, UserIcon } from 'lucide-react';
+import { FlameIcon, GithubIcon, SearchIcon, UserIcon } from 'lucide-react';
 import { Button } from './ui/button';
 import { SearchInput } from './search-input';
 import { auth, signOut } from '@/auth';
@@ -18,6 +18,8 @@ import {
 import { getUserByIdWithCache } from '@/lib/services/users/get-user';
 import { Suspense } from 'react';
 import { Logo } from './icons';
+import { getDailyPracticeStreakStatus } from '@/lib/services/streak/daily-practice';
+import { cn } from '@/lib/utils';
 
 export async function Header({ desktopOnly }: { desktopOnly?: boolean }) {
   const session = await auth();
@@ -120,25 +122,61 @@ async function UserAvatar({ session }: { session: Session }) {
 
   if (!user) return <AnonymousUserAvatar />;
 
+  const dailyPracticeStreakStatus = await getDailyPracticeStreakStatus(user.id);
+  const streakDays = dailyPracticeStreakStatus.currentStreakDays;
+  const streakLabel = `${streakDays} Dia${streakDays === 1 ? '' : 's'} seguido${
+    streakDays === 1 ? '' : 's'
+  }`;
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>
-        <Avatar>
-          <AvatarImage src={user.image || ''} />
-          <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
-        </Avatar>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href={`/users/${user?.username}`}>Meu perfil</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/me/edit">Editar perfil</Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleSignOut}>Sair</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex items-center gap-4">
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <Avatar>
+            <AvatarImage src={user.image || ''} />
+            <AvatarFallback>
+              {user.name?.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href={`/users/${user?.username}`}>Meu perfil</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/me/edit">Editar perfil</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleSignOut}>Sair</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <div
+        className={cn(
+          'relative overflow-hidden rounded-lg border px-2 py-1 h-8 flex items-center gap-1',
+          !dailyPracticeStreakStatus.completedToday
+            ? 'bg-card'
+            : 'bg-linear-to-br from-orange-500/15 via-background to-rose-500/10',
+        )}
+      >
+        {dailyPracticeStreakStatus.completedToday && (
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,0.22),transparent_55%)]" />
+        )}
+
+        <div
+          className={cn(
+            'relative z-10 flex items-center gap-1 text-xs font-medium',
+            !dailyPracticeStreakStatus.completedToday
+              ? 'text-muted-foreground'
+              : 'text-primary',
+          )}
+        >
+          <FlameIcon className="size-3.5" />
+          <span className="sm:hidden">{streakDays}</span>
+          <span className="hidden sm:inline">{streakLabel}</span>
+        </div>
+      </div>
+    </div>
   );
 }

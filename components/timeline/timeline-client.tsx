@@ -22,7 +22,7 @@ import {
   Lyrics,
 } from '@/lib/constants';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DailyStreakHud } from './daily-streak-hud';
 import { toast } from 'sonner';
 
@@ -73,7 +73,6 @@ export function TimelineClient({
   const loopRef = useRef(false);
   const speedRef = useRef(1);
   const isPlayingRef = useRef(false);
-  // Removed one-time centering when paused; we will only center when explicitly requested
   const lastTimeRef = useRef(0);
   const muteRef = useRef(false);
   const orientationWatchRef = useRef<NodeJS.Timeout | null>(null);
@@ -110,6 +109,7 @@ export function TimelineClient({
   const streakFlushQueueRef = useRef<Promise<void>>(Promise.resolve());
   const streakCelebrationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const streakAudioContextRef = useRef<AudioContext | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (vocalsOnly && directUrl?.vocalsUrl) {
@@ -328,6 +328,7 @@ export function TimelineClient({
         setDailyPracticeStreak(payload.status);
 
         if (payload.justCompleted) {
+          router.refresh();
           triggerStreakCelebration();
           playStreakCompletionChime();
           toast.success('Ofensiva mantida! +1 ponto hoje.');
