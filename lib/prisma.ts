@@ -1,15 +1,10 @@
-import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaNeon } from '@prisma/adapter-neon';
 import { PrismaClient } from '@/lib/generated/prisma/client';
-import { Pool } from 'pg';
 
 function createPrismaClient() {
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL!,
-    max: 5,
-    idleTimeoutMillis: 30_000,
+  const adapter = new PrismaNeon({
+    connectionString: process.env.DATABASE_URL,
   });
-
-  const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
 }
 
