@@ -11,12 +11,9 @@ import { revalidateTag } from 'next/cache';
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 type TodayRow = {
-  id: string;
   day: Date;
   listenedSeconds: number;
   isCompleted: boolean;
-  completedAt: Date | null;
-  lastHeartbeatAt: Date | null;
 };
 
 export type DailyPracticeHeartbeatResult = {
@@ -95,33 +92,26 @@ function calculateCurrentStreakDays(achievedDayKeys: Set<string>, now: Date) {
   return streak;
 }
 
-async function getOrCreateTodayRow(
+async function getOrDefaultTodayRow(
   userId: string,
   now: Date,
 ): Promise<TodayRow> {
   const day = getDateFromUtcDayKey(getUtcDayKey(now));
 
-  return prisma.dailyPracticeStreak.upsert({
+  const todayRow = await prisma.dailyPracticeStreak.findFirst({
     where: {
-      userId_day: {
-        userId,
-        day,
-      },
-    },
-    update: {},
-    create: {
       userId,
       day,
     },
-    select: {
-      id: true,
-      day: true,
-      listenedSeconds: true,
-      isCompleted: true,
-      completedAt: true,
-      lastHeartbeatAt: true,
-    },
   });
+
+  if (todayRow) return todayRow;
+
+  return {
+    day,
+    listenedSeconds: 0,
+    isCompleted: false,
+  };
 }
 
 async function buildDailyPracticeStreakStatus(
@@ -176,7 +166,7 @@ export function getDefaultDailyPracticeStreakStatus(
 
 export async function getDailyPracticeStreakStatus(userId: string) {
   const now = new Date();
-  const todayRow = await getOrCreateTodayRow(userId, now);
+  const todayRow = await getOrDefaultTodayRow(userId, now);
 
   return buildDailyPracticeStreakStatus(userId, todayRow, now);
 }
