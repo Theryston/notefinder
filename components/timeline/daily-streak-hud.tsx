@@ -223,7 +223,7 @@ export function DailyStreakHud({
               'Ofensiva de hoje garantida. Não se esqueça de voltar amanhã para continuar sua sequência.'
             ) : (
               <span>
-                Continue cantando: faltam ${formatClock(remainingSeconds)} para
+                Continue cantando: faltam {formatClock(remainingSeconds)} para
                 validar o ponto de hoje.{' '}
                 <Link href="/me/edit" className="underline">
                   Ajuste esse tempo aqui

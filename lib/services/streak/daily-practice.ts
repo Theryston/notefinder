@@ -230,32 +230,6 @@ export async function recordDailyPracticeHeartbeat(
         },
       });
 
-      if (row.isCompleted) {
-        const persisted = await tx.dailyPracticeStreak.update({
-          where: {
-            id: row.id,
-          },
-          data: {
-            lastHeartbeatAt: now,
-          },
-          select: {
-            id: true,
-            day: true,
-            listenedSeconds: true,
-            isCompleted: true,
-            completedAt: true,
-            lastHeartbeatAt: true,
-          },
-        });
-
-        return {
-          todayRow: persisted,
-          justCompleted: false,
-          creditedSeconds: 0,
-          targetSeconds,
-        };
-      }
-
       const secondsSinceLastHeartbeat = row.lastHeartbeatAt
         ? (now.getTime() - row.lastHeartbeatAt.getTime()) / 1000
         : requestedSeconds;
@@ -314,7 +288,6 @@ export async function recordDailyPracticeHeartbeat(
           data: {
             isCompleted: true,
             completedAt: now,
-            listenedSeconds: targetSeconds,
           },
         });
 
