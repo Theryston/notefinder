@@ -343,6 +343,7 @@ export function TimelineClient({
       isDailyStreakEnabled,
       playStreakCompletionChime,
       triggerStreakCelebration,
+      router,
     ],
   );
 

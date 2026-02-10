@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { getUserByUsername } from '@/lib/services/users/get-user';
 import { cacheTag } from 'next/cache';
 import { getDailyPracticeStreakStatus } from '@/lib/services/streak/daily-practice';
-import { FlameIcon, Heart, HeartPlus, HelpCircle, Music } from 'lucide-react';
+import { FlameIcon, Heart, HeartPlus, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export async function UserOverview({
