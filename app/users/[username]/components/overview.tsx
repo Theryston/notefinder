@@ -1,9 +1,12 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import moment from 'moment';
-import { FullUser } from '@/lib/constants';
+import { DailyPracticeStreakStatus, FullUser } from '@/lib/constants';
 import { notFound } from 'next/navigation';
 import { getUserByUsername } from '@/lib/services/users/get-user';
 import { cacheTag } from 'next/cache';
+import { getDailyPracticeStreakStatus } from '@/lib/services/streak/daily-practice';
+import { FlameIcon, Heart, HeartPlus, HelpCircle, Music } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export async function UserOverview({
   params,
@@ -17,6 +20,8 @@ export async function UserOverview({
   const user = await getUserByUsername(username);
 
   if (!user) notFound();
+
+  const dailyPracticeStreakStatus = await getDailyPracticeStreakStatus(user.id);
 
   const name = user.name ?? user.username ?? 'Usuário';
   const avatarAlt = name || 'Avatar';
@@ -56,13 +61,19 @@ export async function UserOverview({
               </div>
 
               <div className="w-full h-full hidden md:block">
-                <CardsInfo user={user} />
+                <CardsInfo
+                  user={user}
+                  dailyPracticeStreakStatus={dailyPracticeStreakStatus}
+                />
               </div>
             </div>
           </div>
 
           <div className="mt-4 w-full h-full block md:hidden">
-            <CardsInfo user={user} />
+            <CardsInfo
+              user={user}
+              dailyPracticeStreakStatus={dailyPracticeStreakStatus}
+            />
           </div>
         </div>
       </div>
@@ -70,37 +81,77 @@ export async function UserOverview({
   );
 }
 
-function CardsInfo({ user }: { user: FullUser }) {
+function CardsInfo({
+  user,
+  dailyPracticeStreakStatus,
+}: {
+  user: FullUser;
+  dailyPracticeStreakStatus: DailyPracticeStreakStatus;
+}) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <div className="rounded-lg border bg-card p-3">
-        <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-          Músicas adicionadas
+      <div
+        className={cn(
+          'rounded-lg border p-3 relative overflow-hidden',
+          !dailyPracticeStreakStatus?.completedToday
+            ? 'bg-card'
+            : 'bg-gradient-to-br from-orange-500/15 via-background to-rose-500/10',
+        )}
+      >
+        {dailyPracticeStreakStatus?.completedToday && (
+          <div className="pointer-events-none absolute inset-0 -z- bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,0.22),transparent_55%)]" />
+        )}
+
+        <div
+          className={cn(
+            'text-[11px] uppercase tracking-wide',
+            !dailyPracticeStreakStatus?.completedToday
+              ? 'text-muted-foreground'
+              : 'text-primary/80',
+          )}
+        >
+          Ofensiva atual
         </div>
-        <div className="mt-0.5 text-sm font-medium">{user._count.tracks}</div>
+        <div
+          className={cn(
+            'mt-0.5 text-sm font-medium flex items-center gap-1',
+            !dailyPracticeStreakStatus?.completedToday
+              ? 'text-muted-foreground'
+              : 'text-primary',
+          )}
+        >
+          <FlameIcon className="size-4" />
+          {dailyPracticeStreakStatus?.currentStreakDays} Dia
+          {dailyPracticeStreakStatus?.currentStreakDays === 1 ? '' : 's'}{' '}
+          seguido{dailyPracticeStreakStatus?.currentStreakDays === 1 ? '' : 's'}
+        </div>
       </div>
       <div className="rounded-lg border bg-card p-3">
         <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-          Músicas vistas
+          Engajamento
         </div>
-        <div className="mt-0.5 text-sm font-medium">
-          {user._count.trackViews}
-        </div>
-      </div>
-      <div className="rounded-lg border bg-card p-3">
-        <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-          Favoritas
-        </div>
-        <div className="mt-0.5 text-sm font-medium">
-          {user._count.userFavoriteTracks}
+        <div className="mt-0.5 text-sm font-medium text-muted-foreground flex items-center gap-1">
+          <Music className="size-4" />
+          {user._count.trackViews} cantada
+          {user._count.trackViews === 1 ? '' : 's'}
         </div>
       </div>
       <div className="rounded-lg border bg-card p-3">
         <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-          Processando agora
+          Lista
         </div>
-        <div className="mt-0.5 text-sm font-medium">
-          {user.tracks.filter((t) => t.status !== 'COMPLETED').length}
+        <div className="mt-0.5 text-sm font-medium text-muted-foreground flex items-center gap-1">
+          <Heart className="size-4" /> {user._count.userFavoriteTracks} Salva
+          {user._count.userFavoriteTracks === 1 ? '' : 's'}
+        </div>
+      </div>
+      <div className="rounded-lg border bg-card p-3">
+        <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+          Contribuição
+        </div>
+        <div className="mt-0.5 text-sm font-medium text-muted-foreground flex items-center gap-1">
+          <HeartPlus className="size-4" /> {user._count.tracks} Adicionada
+          {user._count.tracks === 1 ? '' : 's'}
         </div>
       </div>
     </div>

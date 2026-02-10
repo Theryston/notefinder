@@ -6,6 +6,7 @@ import {
 } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@/lib/generated/prisma/client';
+import { revalidateTag } from 'next/cache';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -151,7 +152,6 @@ async function buildDailyPracticeStreakStatus(
     : Math.min(todayRow.listenedSeconds, resolvedTargetSeconds);
 
   return {
-    isLoggedIn: true,
     day: getDayKeyFromDate(todayRow.day),
     listenedSeconds,
     targetSeconds: resolvedTargetSeconds,
@@ -165,7 +165,6 @@ export function getDefaultDailyPracticeStreakStatus(
   now = new Date(),
 ): DailyPracticeStreakStatus {
   return {
-    isLoggedIn: false,
     day: getUtcDayKey(now),
     listenedSeconds: 0,
     targetSeconds: DAILY_STREAK_TARGET_SECONDS,
@@ -259,20 +258,30 @@ export async function recordDailyPracticeHeartbeat(
         };
       }
 
-      let persisted = await tx.dailyPracticeStreak.update({
-        where: {
-          id: row.id,
-        },
-        data: updateData,
-        select: {
-          id: true,
-          day: true,
-          listenedSeconds: true,
-          isCompleted: true,
-          completedAt: true,
-          lastHeartbeatAt: true,
-        },
-      });
+      let persisted: TodayRow & { user?: { username: string | null } } =
+        await tx.dailyPracticeStreak.update({
+          where: {
+            id: row.id,
+          },
+          data: updateData,
+          select: {
+            id: true,
+            day: true,
+            listenedSeconds: true,
+            isCompleted: true,
+            completedAt: true,
+            lastHeartbeatAt: true,
+            user: {
+              select: {
+                username: true,
+              },
+            },
+          },
+        });
+
+      revalidateTag(`user_${persisted.user?.username}`, 'max');
+
+      delete persisted.user;
 
       let justCompleted = false;
 

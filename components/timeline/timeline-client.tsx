@@ -51,6 +51,7 @@ export function TimelineClient({
   directUrl,
   allowAudioTranspose,
   initialDailyPracticeStreak,
+  isLoggedIn,
 }: {
   ytId: string;
   notes: Note[];
@@ -61,6 +62,7 @@ export function TimelineClient({
   };
   allowAudioTranspose: boolean;
   initialDailyPracticeStreak: DailyPracticeStreakStatus;
+  isLoggedIn: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef<HTMLDivElement | null>(null);
@@ -97,7 +99,7 @@ export function TimelineClient({
   const [dailyPracticeStreak, setDailyPracticeStreak] = useState(
     initialDailyPracticeStreak,
   );
-  const isDailyStreakEnabled = dailyPracticeStreak.isLoggedIn;
+  const isDailyStreakEnabled = isLoggedIn;
   const [isStreakCelebrating, setIsStreakCelebrating] = useState(false);
   const [isFullscreenStreakExpanded, setIsFullscreenStreakExpanded] =
     useState(false);
@@ -859,6 +861,8 @@ export function TimelineClient({
             className={cn(isStreakCelebrating && 'streak-hud-win-pop')}
           />
         )}
+
+        {!isLoggedIn && <div className="flex flex-col gap-4"></div>}
 
         <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_260px] gap-4 items-start">
           <div className="space-y-3">

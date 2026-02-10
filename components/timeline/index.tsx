@@ -100,6 +100,7 @@ async function TimelineContent({
       directUrl={directUrl}
       allowAudioTranspose={allowAudioTranspose}
       initialDailyPracticeStreak={dailyPracticeStreak}
+      isLoggedIn={!!userId}
     />
   );
 }
