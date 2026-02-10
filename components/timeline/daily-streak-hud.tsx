@@ -3,7 +3,6 @@
 import { type DailyPracticeStreakStatus } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { FlameIcon, MinusIcon, SparklesIcon } from 'lucide-react';
-import Link from 'next/link';
 
 const RING_RADIUS = 44;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
@@ -36,6 +35,7 @@ export function DailyStreakHud({
   onClick,
   showMinimizeButton = false,
   onMinimize,
+  isPlaying,
 }: {
   status: DailyPracticeStreakStatus;
   listenedSeconds: number;
@@ -45,6 +45,7 @@ export function DailyStreakHud({
   onClick?: () => void;
   showMinimizeButton?: boolean;
   onMinimize?: () => void;
+  isPlaying: boolean;
 }) {
   const safeTarget = Math.max(1, status.targetSeconds);
   const safeListened = Math.min(safeTarget, Math.max(0, listenedSeconds));
@@ -227,15 +228,17 @@ export function DailyStreakHud({
 
           <p className="text-sm text-center md:text-left text-muted-foreground">
             {status.completedToday ? (
-              'Ofensiva de hoje garantida. Não se esqueça de voltar amanhã para continuar sua sequência.'
-            ) : (
               <span>
-                Continue cantando: faltam {formatClock(remainingSeconds)} para
-                validar o ponto de hoje.{' '}
-                <Link href="/me/edit" className="underline">
-                  Ajuste esse tempo aqui
-                </Link>
+                Ofensiva de hoje garantida. Não se esqueça de voltar amanhã para
+                continuar sua sequência.
               </span>
+            ) : isPlaying ? (
+              <span>
+                Continue treinando: faltam {formatClock(remainingSeconds)} para
+                validar o ponto de hoje.
+              </span>
+            ) : (
+              <span>Click em iniciar e começe a treinar hoje!</span>
             )}
           </p>
         </div>

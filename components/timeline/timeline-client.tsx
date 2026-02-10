@@ -861,6 +861,7 @@ export function TimelineClient({
             listenedSeconds={livePracticeListenedSeconds}
             isCelebrating={isStreakCelebrating}
             className={cn(isStreakCelebrating && 'streak-hud-win-pop')}
+            isPlaying={isPlaying}
           />
         )}
 
@@ -1036,6 +1037,7 @@ export function TimelineClient({
                       isCelebrating={isStreakCelebrating}
                       className="pointer-events-auto absolute bottom-4 right-4 z-40"
                       onClick={() => setIsFullscreenStreakExpanded(true)}
+                      isPlaying={isPlaying}
                     />
                   )}
 
@@ -1048,6 +1050,7 @@ export function TimelineClient({
                       className="pointer-events-auto absolute bottom-4 left-1/2 z-60 w-[min(760px,calc(100%-1rem))] -translate-x-1/2 shadow-2xl"
                       showMinimizeButton
                       onMinimize={() => setIsFullscreenStreakExpanded(false)}
+                      isPlaying={isPlaying}
                     />
                   )}
                 </>

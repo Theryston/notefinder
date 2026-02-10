@@ -131,8 +131,8 @@ async function UserAvatar({ session }: { session: Session }) {
   return (
     <div className="flex items-center gap-4">
       <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Avatar>
+        <DropdownMenuTrigger asChild>
+          <Avatar className="cursor-pointer">
             <AvatarImage src={user.image || ''} />
             <AvatarFallback>
               {user.name?.charAt(0).toUpperCase()}
