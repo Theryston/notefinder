@@ -25,7 +25,7 @@ export function Timeline({
   return (
     <section className="w-full">
       <div className="relative overflow-hidden rounded-2xl border bg-background/60 shadow-sm backdrop-blur">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-primary/10 via-transparent to-primary/10" />
+        <div className="absolute inset-0 -z-10 bg-linear-to-tr from-primary/10 via-transparent to-primary/10" />
 
         <div className="p-4 sm:p-6">
           <Suspense fallback={<TimelineFallback />}>

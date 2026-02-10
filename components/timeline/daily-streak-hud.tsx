@@ -135,7 +135,7 @@ export function DailyStreakHud({
   return (
     <section
       className={cn(
-        'relative overflow-hidden rounded-2xl border border-primary/25 bg-gradient-to-br from-orange-500/15 via-background to-rose-500/10 p-4 sm:p-5',
+        'relative overflow-hidden rounded-2xl border border-primary/25 bg-linear-to-br from-orange-500/15 via-background to-rose-500/10 p-4 sm:p-5',
         className,
       )}
     >
@@ -236,7 +236,7 @@ export function DailyStreakHud({
 
       {isCelebrating && (
         <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden rounded-2xl">
-          <div className="absolute inset-0 streak-celebration-pulse bg-gradient-to-r from-amber-400/20 via-orange-300/15 to-rose-400/20" />
+          <div className="absolute inset-0 streak-celebration-pulse bg-linear-to-r from-amber-400/20 via-orange-300/15 to-rose-400/20" />
 
           {Array.from({ length: 18 }).map((_, index) => (
             <span

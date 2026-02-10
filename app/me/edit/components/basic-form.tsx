@@ -144,7 +144,7 @@ export function BasicForm({
 
                 <span
                   className={cn(
-                    'pointer-events-none absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-300',
+                    'pointer-events-none absolute inset-0 bg-linear-to-br opacity-0 transition-opacity duration-300',
                     option.gradientClass,
                     isSelected ? 'opacity-100' : 'group-hover:opacity-80',
                   )}

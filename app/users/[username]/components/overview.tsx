@@ -30,7 +30,7 @@ export async function UserOverview({
   return (
     <section className="w-full">
       <div className="relative overflow-hidden rounded-2xl border bg-background/60 shadow-sm backdrop-blur">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-primary/10 via-transparent to-primary/10" />
+        <div className="absolute inset-0 -z-10 bg-linear-to-tr from-primary/10 via-transparent to-primary/10" />
 
         <div className="p-6 sm:p-8">
           <div className="grid grid-cols-[120px_1fr] gap-6 sm:gap-8 items-start">
@@ -86,7 +86,7 @@ function CardsInfo({
   dailyPracticeStreakStatus,
 }: {
   user: FullUser;
-  dailyPracticeStreakStatus: DailyPracticeStreakStatus;
+  dailyPracticeStreakStatus: DailyPracticeStreakStatus | null;
 }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -95,7 +95,7 @@ function CardsInfo({
           'rounded-lg border p-3 relative overflow-hidden',
           !dailyPracticeStreakStatus?.completedToday
             ? 'bg-card'
-            : 'bg-gradient-to-br from-orange-500/15 via-background to-rose-500/10',
+            : 'bg-linear-to-br from-orange-500/15 via-background to-rose-500/10',
         )}
       >
         {dailyPracticeStreakStatus?.completedToday && (

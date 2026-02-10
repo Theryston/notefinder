@@ -21,6 +21,7 @@ import {
   type DailyPracticeStreakStatus,
   Lyrics,
 } from '@/lib/constants';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { DailyStreakHud } from './daily-streak-hud';
 import { toast } from 'sonner';
@@ -862,8 +863,6 @@ export function TimelineClient({
           />
         )}
 
-        {!isLoggedIn && <div className="flex flex-col gap-4"></div>}
-
         <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_260px] gap-4 items-start">
           <div className="space-y-3">
             <div
@@ -1045,7 +1044,7 @@ export function TimelineClient({
                       status={dailyPracticeStreak}
                       listenedSeconds={livePracticeListenedSeconds}
                       isCelebrating={isStreakCelebrating}
-                      className="pointer-events-auto absolute bottom-4 left-1/2 z-[60] w-[min(760px,calc(100%-1rem))] -translate-x-1/2 shadow-2xl"
+                      className="pointer-events-auto absolute bottom-4 left-1/2 z-60 w-[min(760px,calc(100%-1rem))] -translate-x-1/2 shadow-2xl"
                       showMinimizeButton
                       onMinimize={() => setIsFullscreenStreakExpanded(false)}
                     />
@@ -1055,53 +1054,88 @@ export function TimelineClient({
             </div>
           </div>
 
-          {!isFullscreen && !shouldShowAlert && (
-            <div className="rounded-lg border bg-card p-3 flex flex-col gap-3">
-              <div className="aspect-video w-full">
-                {useDirectAudio ? (
-                  <AudioRoot
-                    url={playableUrl!}
-                    onReady={attachPlayer}
-                    onPlay={handlePlay}
-                    onPause={handlePause}
-                    allowAudioTranspose={allowAudioTranspose}
-                    transpose={transpose}
-                  />
-                ) : (
-                  <YouTubeRoot
-                    ytId={ytId}
+          {!isFullscreen && (
+            <div className="flex flex-col gap-4">
+              {!shouldShowAlert && (
+                <div className="rounded-lg border bg-card p-3 flex flex-col gap-3">
+                  <div className="aspect-video w-full">
+                    {useDirectAudio ? (
+                      <AudioRoot
+                        url={playableUrl!}
+                        onReady={attachPlayer}
+                        onPlay={handlePlay}
+                        onPause={handlePause}
+                        allowAudioTranspose={allowAudioTranspose}
+                        transpose={transpose}
+                      />
+                    ) : (
+                      <YouTubeRoot
+                        ytId={ytId}
+                        isInAppBrowser={isInAppBrowser}
+                        onReady={attachPlayer}
+                        onPlay={handlePlay}
+                        onPause={handlePause}
+                      />
+                    )}
+                  </div>
+                  <TimelineControls
                     isInAppBrowser={isInAppBrowser}
-                    onReady={attachPlayer}
-                    onPlay={handlePlay}
-                    onPause={handlePause}
+                    isPlaying={isPlaying}
+                    onPlayPause={handlePlayPause}
+                    isLoading={isPlayerLoading}
+                    speed={speed}
+                    onSpeedChange={handleSpeedChange}
+                    transpose={transpose}
+                    onTransposeInc={() => setTranspose((t) => t + 1)}
+                    onTransposeDec={() => setTranspose((t) => t - 1)}
+                    estimatedKey={estimatedKey}
+                    currentTime={currentTime}
+                    duration={duration || Math.max(duration, maxEnd)}
+                    mute={muteRef.current}
+                    onMute={handleMute}
+                    micActive={micActive}
+                    onMicToggle={toggleMic}
+                    ignoreProgress={!!directUrl?.musicUrl}
+                    showVocalsOnly={!!directUrl?.vocalsUrl}
+                    onChangeVocalsOnly={() => setVocalsOnly((prev) => !prev)}
+                    vocalsOnly={vocalsOnly}
+                    onSeek={(s) =>
+                      seekTo(s, isPlayingRef.current ? 'center' : 'none')
+                    }
                   />
-                )}
-              </div>
-              <TimelineControls
-                isInAppBrowser={isInAppBrowser}
-                isPlaying={isPlaying}
-                onPlayPause={handlePlayPause}
-                isLoading={isPlayerLoading}
-                speed={speed}
-                onSpeedChange={handleSpeedChange}
-                transpose={transpose}
-                onTransposeInc={() => setTranspose((t) => t + 1)}
-                onTransposeDec={() => setTranspose((t) => t - 1)}
-                estimatedKey={estimatedKey}
-                currentTime={currentTime}
-                duration={duration || Math.max(duration, maxEnd)}
-                mute={muteRef.current}
-                onMute={handleMute}
-                micActive={micActive}
-                onMicToggle={toggleMic}
-                ignoreProgress={!!directUrl?.musicUrl}
-                showVocalsOnly={!!directUrl?.vocalsUrl}
-                onChangeVocalsOnly={() => setVocalsOnly((prev) => !prev)}
-                vocalsOnly={vocalsOnly}
-                onSeek={(s) =>
-                  seekTo(s, isPlayingRef.current ? 'center' : 'none')
-                }
-              />
+                </div>
+              )}
+
+              {!isLoggedIn && (
+                <section className="relative overflow-hidden rounded-2xl border border-primary/25 bg-linear-to-br from-orange-500/15 via-background to-rose-500/10 p-3">
+                  <div className="pointer-events-none absolute inset-0 -z- bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,0.22),transparent_55%)]" />
+                  <div className="pointer-events-none absolute inset-0 -z-10 bg-background" />
+
+                  <div className="relative flex flex-col gap-3 items-center text-center">
+                    <span className="inline-flex w-fit items-center rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
+                      Pare de cantar desafinado
+                    </span>
+
+                    <div className="flex flex-col gap-2">
+                      <h3 className="text-primary text-sm font-bold">
+                        Entre ou crie uma conta
+                        <br />
+                        para aproveitar ao maximo!
+                      </h3>
+
+                      <p className="text-xs text-muted-foreground">
+                        Com login, você libera sua ofensiva e consegue treinar
+                        canto todos os dias sem perder o ritmo e totalmente de
+                        graça.
+                      </p>
+                    </div>
+
+                    <Button asChild className="w-full">
+                      <Link href="/sign-up">Criar conta</Link>
+                    </Button>
+                  </div>
+                </section>
+              )}
             </div>
           )}
         </div>

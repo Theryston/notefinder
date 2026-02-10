@@ -10,12 +10,13 @@ import prisma from '@/lib/prisma';
 import { MAX_STATIC_PAGES } from '@/lib/constants';
 import { Skeleton } from '@/components/sheleton';
 import { getUserByUsername } from '@/lib/services/users/get-user';
+import { Metadata } from 'next';
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ username: string }>;
-}) {
+}): Promise<Metadata> {
   const { username } = await params;
 
   const user = await getUserByUsername(username);
