@@ -1,5 +1,6 @@
 import { defineConfig } from '@trigger.dev/sdk/v3';
 import { prismaExtension } from '@trigger.dev/build/extensions/prisma';
+import { syncVercelEnvVars } from '@trigger.dev/build/extensions/core';
 
 export default defineConfig({
   project: 'proj_qyslrtmomvqhjrhieogh',
@@ -21,6 +22,10 @@ export default defineConfig({
     extensions: [
       prismaExtension({
         mode: 'modern',
+      }),
+      syncVercelEnvVars({
+        vercelAccessToken: process.env.VERCEL_ACCESS_TOKEN,
+        projectId: process.env.VERCEL_PROJECT_ID,
       }),
     ],
   },
