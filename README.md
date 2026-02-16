@@ -73,7 +73,7 @@ cd notefinder
 pnpm install
 ```
 
-Copy `.env.example` to `.env` and fill in your values (`DATABASE_URL`, `NEXTAUTH_SECRET`, `NOTEFINDER_YTMUSIC_API_URL`, `ADD_NOTES_QUEUE_URL`, S3, Resend, Trigger, etc.).
+Copy `.env.example` to `.env` and fill in your values (`DATABASE_URL`, `NEXTAUTH_SECRET`, `NOTEFINDER_YTMUSIC_API_URL`, S3, Resend, Trigger, etc.).
 
 ```bash
 pnpm db:migrate

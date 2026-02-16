@@ -7,7 +7,8 @@ import { Artist, Track } from '@/lib/generated/prisma/client';
 import { auth } from '@/auth';
 import { isNextRedirectError } from '@/lib/utils';
 import { revalidateTag } from 'next/cache';
-import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
+import { tasks } from '@trigger.dev/sdk';
+import type { nfpMetadataTask } from '@/trigger/nfp-metadata';
 
 export type AddNotesState = {
   error?: { videoId?: string[] };
@@ -112,33 +113,28 @@ export const onAddNotes = async (
       },
     });
 
-    const client = new SQSClient({
-      region: process.env.CUSTOM_AWS_REGION_NAME!,
-      credentials: {
-        accessKeyId: process.env.CUSTOM_AWS_ACCESS_KEY!,
-        secretAccessKey: process.env.CUSTOM_AWS_SECRET_ACCESS_KEY!,
-      },
+    const jobBody = {
+      trackId: track.id,
+      externalTrack,
+    };
+
+    console.log(
+      `Triggering nfp-metadata job with body ${JSON.stringify(jobBody)}`,
+    );
+
+    const handle = await tasks.trigger<typeof nfpMetadataTask>(
+      'nfp-metadata',
+      jobBody,
+    );
+
+    await prisma.track.update({
+      where: { id: track.id },
+      data: { jobId: handle.id },
     });
 
-    const messageBody = JSON.stringify({ track, externalTrack });
-
-    const command = new SendMessageCommand({
-      MessageBody: messageBody,
-      QueueUrl: process.env.ADD_NOTES_QUEUE_URL!,
-    });
-
-    const result = await client.send(command);
-
-    const jobId = result.MessageId;
-
-    console.log(`Added a add notes job ${jobId} for track ${track.id}`);
-
-    if (jobId) {
-      await prisma.track.update({
-        where: { id: track.id },
-        data: { jobId },
-      });
-    }
+    console.log(
+      `Triggered nfp-metadata job ${handle.id} for track ${track.id}`,
+    );
 
     revalidateTag(`track_video_${track.ytId}`, 'max');
     revalidateTag(`user_${track.creator.username}`, 'max');

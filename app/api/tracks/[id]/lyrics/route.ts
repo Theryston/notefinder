@@ -1,9 +1,10 @@
 import { apiKeyMiddleware } from '@/lib/api-key-middleware';
 import prisma from '@/lib/prisma';
 import { withMiddleware } from '@/lib/with-middleware';
-import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
 import { TrackStatus } from '@/lib/generated/prisma/client';
 import { NextResponse } from 'next/server';
+import { tasks } from '@trigger.dev/sdk';
+import type { nfpMetadataTask } from '@/trigger/nfp-metadata';
 
 async function startLyricsExtraction(
   request: Request,
@@ -26,40 +27,19 @@ async function startLyricsExtraction(
     },
   });
 
-  const client = new SQSClient({
-    region: process.env.CUSTOM_AWS_REGION_NAME!,
-    credentials: {
-      accessKeyId: process.env.CUSTOM_AWS_ACCESS_KEY!,
-      secretAccessKey: process.env.CUSTOM_AWS_SECRET_ACCESS_KEY!,
-    },
+  const handle = await tasks.trigger<typeof nfpMetadataTask>('nfp-metadata', {
+    trackId: track.id,
+    externalTrack: {},
   });
-
-  const messageBody = JSON.stringify({ track, externalTrack: {} });
-
-  const command = new SendMessageCommand({
-    MessageBody: messageBody,
-    QueueUrl: process.env.ADD_NOTES_QUEUE_URL!,
-  });
-
-  const result = await client.send(command);
-
-  const jobId = result.MessageId;
-
-  if (!jobId) {
-    return NextResponse.json(
-      { error: 'Failed to start lyrics extraction job' },
-      { status: 500 },
-    );
-  }
 
   await prisma.track.update({
     where: { id },
-    data: { jobId },
+    data: { jobId: handle.id },
   });
 
   return NextResponse.json(
     {
-      message: `Started a lyrics extraction job for track ${track.id} at ${jobId}`,
+      message: `Started a lyrics extraction job for track ${track.id} at ${handle.id}`,
     },
     { status: 200 },
   );

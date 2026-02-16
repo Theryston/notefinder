@@ -37,6 +37,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",
+    "import-in-the-middle": "^3.0.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.544.0",
     "moment": "^2.30.1",
