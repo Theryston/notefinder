@@ -12,7 +12,13 @@ import { startNfpAudioJob } from '@/lib/services/nfp-metadata/start-nfp-audio-jo
 import type { ExternalTrack } from '@/lib/services/nfp-metadata/types';
 import { updateTrack } from '@/lib/services/nfp-metadata/update-track';
 import { updateTrackStatus } from '@/lib/services/nfp-metadata/update-track-status';
-import { logger, retry, schemaTask, type RetryOptions } from '@trigger.dev/sdk';
+import {
+  logger,
+  retry,
+  schemaTask,
+  wait,
+  type RetryOptions,
+} from '@trigger.dev/sdk';
 import z from 'zod';
 
 const stepRetryConfig = {
@@ -103,6 +109,12 @@ type RunStepWithRetryInput<T> = {
   groupName: string;
   retryOptions: RetryOptions;
   run: () => Promise<T>;
+};
+
+type NfpAudioCallbackPayload = {
+  success?: boolean;
+  error?: string;
+  [key: string]: unknown;
 };
 
 async function runStepWithRetry<T>({
@@ -233,18 +245,40 @@ export const nfpMetadataTask = schemaTask({
         shouldRunStatus(track.status, TrackStatus.EXTRACTING_VOCALS) ||
         shouldRunStatus(track.status, TrackStatus.DETECTING_VOCALS_NOTES)
       ) {
+        const callbackToken = await runStepWithRetry({
+          groupName: 'creating-nfp-audio-callback-token',
+          retryOptions: stepRetryConfig.nfpAudio,
+          run: async () =>
+            wait.createToken({
+              timeout: '6h',
+              tags: ['nfp-audio', `track-${trackId}`],
+            }),
+        });
+
         await runStepWithRetry({
           groupName: 'starting-nfp-audio-job',
           retryOptions: stepRetryConfig.nfpAudio,
-          run: async () => startNfpAudioJob(trackId),
+          run: async () =>
+            startNfpAudioJob(trackId, {
+              callbackUrl: callbackToken.url,
+            }),
         });
 
-        return {
-          trackId,
-          completed: false,
-          deferredToNfpAudio: true,
-          status: track.status,
-        };
+        const callbackPayload = await logger.trace(
+          'waiting-nfp-audio-callback',
+          async () =>
+            wait.forToken<NfpAudioCallbackPayload>(callbackToken).unwrap(),
+        );
+
+        if (!callbackPayload?.id) {
+          throw new Error(
+            `[nfp-metadata] NFP audio callback returned failure for track ${trackId}: ${
+              callbackPayload.error || 'unknown_error'
+            }`,
+          );
+        }
+
+        track = await getTrackOrThrow(trackId);
       }
 
       if (shouldRunStatus(track.status, TrackStatus.EXTRACTING_LYRICS)) {

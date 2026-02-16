@@ -19,8 +19,8 @@ type YoutubeDownloadProgressResponse = {
 const YOUTUBE_DOWNLOAD_API_URL =
   'https://youtube-info-download-api.p.rapidapi.com/ajax/download.php';
 const YOUTUBE_DOWNLOAD_API_HOST = 'youtube-info-download-api.p.rapidapi.com';
-const POLL_INTERVAL_SECONDS = 5;
-const MAX_PROGRESS_POLLS = 1000;
+const POLL_INTERVAL_SECONDS = 10;
+const MAX_PROGRESS_POLLS = 180;
 
 async function getYoutubeProgressUrl(videoId: string) {
   const rapidApiKey = process.env.RAPIDAPI_API_KEY;

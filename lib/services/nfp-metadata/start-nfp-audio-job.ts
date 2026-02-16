@@ -1,4 +1,8 @@
-import { Runtime, TrackStatus, type Track } from '@/lib/generated/prisma/client';
+import {
+  Runtime,
+  TrackStatus,
+  type Track,
+} from '@/lib/generated/prisma/client';
 import { getSettings } from '@/lib/settings';
 import { SendMessageCommand, SQSClient } from '@aws-sdk/client-sqs';
 import { getTrackOrThrow } from './get-track';
@@ -8,6 +12,10 @@ const NFP_AUDIO_STATUS: TrackStatus[] = [
   TrackStatus.EXTRACTING_VOCALS,
   TrackStatus.DETECTING_VOCALS_NOTES,
 ];
+
+type StartNfpAudioJobOptions = {
+  callbackUrl?: string;
+};
 
 function requiredEnv(name: string) {
   const value = process.env[name];
@@ -19,7 +27,13 @@ function requiredEnv(name: string) {
   return value;
 }
 
-async function runpodStartNfpAudio(track: Track) {
+async function runpodStartNfpAudio({
+  track,
+  callbackUrl,
+}: {
+  track: Track;
+  callbackUrl: string;
+}) {
   const runpodServerlessId = requiredEnv('RUNPOD_SERVERLESS_ID');
   const runpodApiKey = requiredEnv('RUNPOD_API_KEY');
 
@@ -31,7 +45,12 @@ async function runpodStartNfpAudio(track: Track) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${runpodApiKey}`,
       },
-      body: JSON.stringify({ input: { track } }),
+      body: JSON.stringify({
+        input: {
+          track,
+          callback_url: callbackUrl,
+        },
+      }),
     },
   );
 
@@ -45,9 +64,11 @@ async function runpodStartNfpAudio(track: Track) {
 async function awsStartNfpAudio({
   track,
   usesGpu,
+  callbackUrl,
 }: {
   track: Track;
   usesGpu: boolean;
+  callbackUrl?: string;
 }) {
   const queueUrl = requiredEnv('NFP_AUDIO_QUEUE_URL');
   const region = requiredEnv('CUSTOM_AWS_REGION_NAME');
@@ -64,13 +85,20 @@ async function awsStartNfpAudio({
 
   await sqsClient.send(
     new SendMessageCommand({
-      MessageBody: JSON.stringify({ usesGpu, track }),
+      MessageBody: JSON.stringify({
+        usesGpu,
+        track,
+        callback_url: callbackUrl,
+      }),
       QueueUrl: queueUrl,
     }),
   );
 }
 
-export async function startNfpAudioJob(trackId: string) {
+export async function startNfpAudioJob(
+  trackId: string,
+  options: StartNfpAudioJobOptions = {},
+) {
   let track = await getTrackOrThrow(trackId);
 
   if (!NFP_AUDIO_STATUS.includes(track.status)) {
@@ -85,12 +113,25 @@ export async function startNfpAudioJob(trackId: string) {
   const settings = await getSettings();
 
   if (settings.runtime === Runtime.AWS) {
-    await awsStartNfpAudio({ track, usesGpu: settings.usesGpu });
+    await awsStartNfpAudio({
+      track,
+      usesGpu: settings.usesGpu,
+      callbackUrl: options.callbackUrl,
+    });
     return;
   }
 
   if (settings.runtime === Runtime.RUNPOD) {
-    await runpodStartNfpAudio(track);
+    if (!options.callbackUrl) {
+      throw new Error(
+        `[nfp-metadata] callbackUrl is required to start Runpod job for track ${trackId}`,
+      );
+    }
+
+    await runpodStartNfpAudio({
+      track,
+      callbackUrl: options.callbackUrl,
+    });
     return;
   }
 
