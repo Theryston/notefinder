@@ -15,6 +15,7 @@ function getUtcDayStart(date = new Date()) {
 export const sendDailyPracticeRemindersTask = schedules.task({
   id: 'send-daily-practice-reminders-daily',
   cron: '0 22 * * *',
+  machine: { preset: 'micro' },
   run: async () => {
     const today = getUtcDayStart();
     const yesterday = new Date(today.getTime() - ONE_DAY_MS);

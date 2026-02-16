@@ -158,6 +158,7 @@ export const nfpMetadataTask = schemaTask({
   retry: {
     maxAttempts: 1,
   },
+  machine: { preset: 'small-1x' },
   schema: nfpMetadataSchema,
   run: async (payload) => {
     const trackId = payload.trackId ?? payload.track?.id;

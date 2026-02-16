@@ -7,6 +7,7 @@ const STALE_TRACK_SCORE_DAYS = 7; // tracks that the score have not been updated
 export const recalculateStaleTrackScoresTask = schedules.task({
   id: 'recalculate-stale-track-scores-daily',
   cron: '0 0 * * *',
+  machine: { preset: 'micro' },
   run: async () => {
     const staleBefore = moment()
       .subtract(STALE_TRACK_SCORE_DAYS, 'days')
