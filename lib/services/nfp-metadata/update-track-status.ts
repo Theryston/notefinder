@@ -1,8 +1,6 @@
-import {
-  Track,
-  TrackStatus,
-  type Prisma,
-} from '@/lib/generated/prisma/client';
+import { CompletedEmail } from '@/emails/completed-email';
+import { ErrorEmail } from '@/emails/error-email';
+import { TrackStatus, type Prisma } from '@/lib/generated/prisma/client';
 import prisma from '@/lib/prisma';
 import { Resend } from 'resend';
 
@@ -27,40 +25,6 @@ type TrackWithRelations = Prisma.TrackGetPayload<{
   };
 }>;
 
-function buildCompletedEmailHtml(track: Track) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-  const title = track.title ?? 'musica';
-
-  return `
-    <div style="background-color:#f0f0f0;padding:20px;border-radius:10px;">
-      <h1 style="color:#333;font-size:20px;font-weight:bold;">
-        As notas da musica ${title} estao disponiveis
-      </h1>
-      <p style="color:#333;font-size:16px;">
-        Clique no link abaixo para ver as notas.
-      </p>
-      <a href="${appUrl}/tracks/${track.id}" style="color:#333;font-size:16px;text-decoration:underline;">
-        Ver notas
-      </a>
-    </div>
-  `;
-}
-
-function buildErrorEmailHtml(track: Track) {
-  const title = track.title ?? 'musica';
-
-  return `
-    <div style="background-color:#f0f0f0;padding:20px;border-radius:10px;">
-      <h1 style="color:#333;font-size:20px;font-weight:bold;">
-        Houve um erro ao processar a musica ${title}
-      </h1>
-      <p style="color:#333;font-size:16px;">
-        Entre em contato com o suporte para receber ajuda.
-      </p>
-    </div>
-  `;
-}
-
 async function sendTrackCompletedEmail(track: TrackWithRelations) {
   if (!resend) {
     console.warn('[nfp-metadata] RESEND_API_KEY is missing. Skipping email.');
@@ -70,8 +34,8 @@ async function sendTrackCompletedEmail(track: TrackWithRelations) {
   await resend.emails.send({
     from: 'Notefinder <noreply@notefinder.com.br>',
     to: track.creator.email,
-    subject: `As notas da musica ${track.title ?? 'musica'} estao disponiveis`,
-    html: buildCompletedEmailHtml(track),
+    subject: `As notas da música ${track.title ?? ''} estão disponíveis`,
+    react: CompletedEmail({ track }),
   });
 }
 
@@ -84,8 +48,8 @@ async function sendTrackErrorEmail(track: TrackWithRelations) {
   await resend.emails.send({
     from: 'Notefinder <noreply@notefinder.com.br>',
     to: track.creator.email,
-    subject: `Houve um erro ao processar a musica ${track.title ?? 'musica'}`,
-    html: buildErrorEmailHtml(track),
+    subject: `Hove um erro ao processar a música ${track.title ?? ''}`,
+    react: ErrorEmail({ track }),
   });
 }
 
