@@ -3,14 +3,7 @@ import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { apiKeyMiddleware } from '@/lib/api-key-middleware';
 import { withMiddleware } from '@/lib/with-middleware';
-
-type Note = {
-  note: string;
-  octave: number;
-  start: number;
-  end: number;
-  frequency_mean: number;
-};
+import { Note } from '@/lib/services/nfp-metadata/types';
 
 async function createNotes(
   request: Request,

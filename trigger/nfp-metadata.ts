@@ -1,4 +1,5 @@
 import { TrackStatus } from '@/lib/generated/prisma/client';
+import prisma from '@/lib/prisma';
 import { compactAudios } from '@/lib/services/nfp-metadata/compact-audios';
 import { downloadYoutubeAudio } from '@/lib/services/nfp-metadata/download-youtube-audio';
 import { extractLyrics } from '@/lib/services/nfp-metadata/extract-lyrics';
@@ -9,7 +10,7 @@ import {
 import { processThumbnails } from '@/lib/services/nfp-metadata/process-thumbnails';
 import { shouldRunStatus } from '@/lib/services/nfp-metadata/should-run-status';
 import { startNfpAudioJob } from '@/lib/services/nfp-metadata/start-nfp-audio-job';
-import type { ExternalTrack } from '@/lib/services/nfp-metadata/types';
+import type { ExternalTrack, Note } from '@/lib/services/nfp-metadata/types';
 import { updateTrack } from '@/lib/services/nfp-metadata/update-track';
 import { updateTrackStatus } from '@/lib/services/nfp-metadata/update-track-status';
 import {
@@ -112,8 +113,9 @@ type RunStepWithRetryInput<T> = {
 };
 
 type NfpAudioCallbackPayload = {
-  success?: boolean;
-  error?: string;
+  id?: string;
+  vocalsUrl?: string;
+  notes?: Note[];
   [key: string]: unknown;
 };
 
@@ -279,6 +281,45 @@ export const nfpMetadataTask = schemaTask({
         }
 
         track = await getTrackOrThrow(trackId);
+
+        if (
+          callbackPayload.vocalsUrl &&
+          callbackPayload.vocalsUrl !== track.vocalsUrl
+        ) {
+          await runStepWithRetry({
+            groupName: 'updating-vocals-url',
+            retryOptions: stepRetryConfig.statusUpdate,
+            run: async () =>
+              updateTrack(trackId, {
+                vocalsUrl: callbackPayload.vocalsUrl,
+              }),
+          });
+        }
+
+        if (callbackPayload.notes) {
+          await runStepWithRetry({
+            groupName: 'updating-notes',
+            retryOptions: stepRetryConfig.statusUpdate,
+            run: async () => {
+              if (!callbackPayload.notes) return;
+
+              await prisma.trackNote.deleteMany({
+                where: { trackId: trackId },
+              });
+
+              await prisma.trackNote.createMany({
+                data: callbackPayload.notes.map((note) => ({
+                  trackId: trackId,
+                  note: note.note,
+                  octave: note.octave,
+                  start: note.start,
+                  end: note.end,
+                  frequencyMean: note.frequency_mean,
+                })),
+              });
+            },
+          });
+        }
       }
 
       if (shouldRunStatus(track.status, TrackStatus.EXTRACTING_LYRICS)) {

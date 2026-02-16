@@ -14,3 +14,11 @@ export type TrackMediaUrls = {
   musicMp3Url: string;
   vocalsMp3Url: string;
 };
+
+export type Note = {
+  note: string;
+  octave: number;
+  start: number;
+  end: number;
+  frequency_mean: number;
+};
