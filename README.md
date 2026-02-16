@@ -1,6 +1,6 @@
 # NoteFinder
 
-**Discover the vocal notes of your favorite songs — sing in tune, every time.**
+**Discover the vocal notes of your favorite songs — sing in tune, every time!**
 
 Search a song, see which notes to sing and when, and practice with real-time pitch feedback.
 
