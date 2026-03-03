@@ -9,12 +9,13 @@ import { dbTrackToTrackItem } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import { cacheTag } from 'next/cache';
 import { MAX_STATIC_PAGES } from '@/lib/constants';
+import { Metadata } from 'next';
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
-}) {
+}): Promise<Metadata> {
   'use cache: remote';
   const { id } = await params;
   cacheTag(`artist_${id}`);

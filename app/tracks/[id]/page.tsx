@@ -10,6 +10,7 @@ import {
   MAX_STATIC_PAGES,
 } from '@/lib/constants';
 import prisma from '@/lib/prisma';
+import { Metadata } from 'next';
 
 async function getTrack(id: string) {
   'use cache: remote';
@@ -38,7 +39,7 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
-}) {
+}): Promise<Metadata> {
   const { id } = await params;
   const track = await getTrack(id);
 
@@ -50,16 +51,32 @@ export async function generateMetadata({
   return {
     title: `Veja as notas vocais da música ${track.title} de ${track.trackArtists.map((artist) => artist.artist.name).join(', ')}`,
     description: `As notas ${uniqueNotesArray.join(', ')} podem te ajudar a cantar ${track.title} de ${track.trackArtists.map((artist) => artist.artist.name).join(', ')}, confira em qual momento fazer cada nota e mude para o seu tom se for preciso!`,
-    openGraph:
-      track.thumbnails.length > 0
-        ? {
-            images: track.thumbnails.map((thumbnail) => ({
-              url: thumbnail.url,
-              width: thumbnail.width,
-              height: thumbnail.height,
-            })),
-          }
+    openGraph: {
+      type: 'music.song',
+      albums: track.album
+        ? [
+            {
+              url: `${process.env.NEXT_PUBLIC_APP_URL}/albums/${track.album.id}`,
+            },
+          ]
         : undefined,
+      images:
+        track.thumbnails.length > 0
+          ? track.thumbnails.map((thumbnail) => ({
+              url: thumbnail.url,
+              height: thumbnail.height || undefined,
+              width: thumbnail.width || undefined,
+            }))
+          : undefined,
+      duration: track.durationSeconds,
+      musicians:
+        track.trackArtists.length > 0
+          ? track.trackArtists.map(
+              (artist) =>
+                `${process.env.NEXT_PUBLIC_APP_URL}/artists/${artist.artist.id}`,
+            )
+          : undefined,
+    },
     alternates: {
       canonical: `${process.env.NEXT_PUBLIC_APP_URL}/tracks/${track.id}`,
     },

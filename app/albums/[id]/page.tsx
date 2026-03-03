@@ -7,6 +7,7 @@ import {
   GetTrackCustomWhereWithCacheConditions,
 } from '@/lib/services/track/get-track-cached';
 import { dbTrackToTrackItem } from '@/lib/utils';
+import { Metadata } from 'next';
 import { cacheTag } from 'next/cache';
 import { notFound } from 'next/navigation';
 
@@ -14,13 +15,14 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
-}) {
+}): Promise<Metadata> {
   'use cache: remote';
   const { id } = await params;
-  cacheTag(`album_${id}`);
+  cacheTag(`album_${id}_metadata`);
 
   const album = await prisma.album.findUnique({
     where: { id },
+    select: { name: true, tracks: { select: { id: true } } },
   });
 
   if (!album) notFound();
@@ -28,6 +30,16 @@ export async function generateMetadata({
   return {
     title: `Músicas do álbum ${album.name} com suas notas vocais`,
     description: `Veja as músicas do álbum ${album.name} no NoteFinder e as notas vocais de cada música para nunca desafinar ao cantar!`,
+    openGraph: {
+      type: 'music.album',
+      songs:
+        album.tracks.length > 0
+          ? album.tracks.map(
+              (track) =>
+                `${process.env.NEXT_PUBLIC_APP_URL}/tracks/${track.id}`,
+            )
+          : undefined,
+    },
     alternates: {
       canonical: `${process.env.NEXT_PUBLIC_APP_URL}/albums/${id}`,
     },

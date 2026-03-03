@@ -23,11 +23,17 @@ export async function generateMetadata({
 
   if (!user) notFound();
 
+  const firstName = user.name?.split(' ')[0];
+  const lastName = user.name?.split(' ')[1];
+
   return {
     title: user.name,
     description: `Veja o que o usuário ${user.name} anda fazendo no NoteFinder`,
     openGraph: {
+      type: 'profile',
       images: user.image ? [user.image] : undefined,
+      firstName,
+      lastName,
     },
   };
 }

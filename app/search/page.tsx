@@ -3,12 +3,13 @@ import { SearchContent } from './components/search-content';
 import { SearchInput } from '@/components/search-input';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/sheleton';
+import { Metadata } from 'next';
 
 export const generateMetadata = async ({
   searchParams,
 }: {
   searchParams: Promise<{ q: string }>;
-}) => {
+}): Promise<Metadata> => {
   const params = await searchParams;
   const q = params.q;
 
