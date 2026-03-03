@@ -3,7 +3,7 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - never
+      - main
 
 jobs:
   build-and-push:
