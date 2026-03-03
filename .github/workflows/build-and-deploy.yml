@@ -15,6 +15,7 @@ jobs:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      DIRECT_DATABASE_URL: ${{ secrets.DIRECT_DATABASE_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,7 +40,8 @@ jobs:
             --name notefinder \
             --env DATABASE_URL=${{ env.DATABASE_URL }} \
             --env NEXT_PUBLIC_APP_URL=${{ env.NEXT_PUBLIC_APP_URL }} \
-            --env RESEND_API_KEY=${{ env.RESEND_API_KEY }}
+            --env RESEND_API_KEY=${{ env.RESEND_API_KEY }} \
+            --env DIRECT_DATABASE_URL=${{ env.DIRECT_DATABASE_URL }}
 
       - name: Tag Docker image
         run: |
