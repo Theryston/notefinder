@@ -14,7 +14,7 @@ export function LyricsComponent({ lyrics }: { lyrics: Lyrics }) {
               {lyrics.segments.map((segment) => (
                 <Link
                   key={segment.id}
-                  href={`?timeline-focus=true&time=${segment.seek}`}
+                  href={`?timeline-focus=true&time=${segment.start}`}
                   className="text-xs text-muted-foreground hover:text-primary transition-colors"
                   scroll={false}
                   prefetch={false}
