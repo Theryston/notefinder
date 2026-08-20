@@ -559,6 +559,10 @@ export function TimelineClient({
     setSpeed(v);
   }, []);
 
+  const handleTransposeReset = useCallback(() => {
+    setTranspose(0);
+  }, []);
+
   const handlePlay = useCallback(() => setIsPlaying(true), []);
   const handlePause = useCallback(() => setIsPlaying(false), []);
   useEffect(() => {
@@ -1009,6 +1013,7 @@ export function TimelineClient({
                       transpose={transpose}
                       onTransposeInc={() => setTranspose((t) => t + 1)}
                       onTransposeDec={() => setTranspose((t) => t - 1)}
+                      onTransposeReset={handleTransposeReset}
                       estimatedKey={estimatedKey}
                       currentTime={currentTime}
                       duration={duration || Math.max(duration, maxEnd)}
@@ -1093,6 +1098,7 @@ export function TimelineClient({
                     transpose={transpose}
                     onTransposeInc={() => setTranspose((t) => t + 1)}
                     onTransposeDec={() => setTranspose((t) => t - 1)}
+                    onTransposeReset={handleTransposeReset}
                     estimatedKey={estimatedKey}
                     currentTime={currentTime}
                     duration={duration || Math.max(duration, maxEnd)}

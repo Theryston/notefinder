@@ -7,6 +7,7 @@ import {
   VolumeOffIcon,
   MicIcon,
   MicOffIcon,
+  RotateCcwIcon,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
@@ -22,6 +23,7 @@ type TimelineControlsProps = {
   transpose: number;
   onTransposeInc: () => void;
   onTransposeDec: () => void;
+  onTransposeReset: () => void;
   estimatedKey: {
     tonicIndex: number;
     mode: 'maior' | 'menor';
@@ -51,6 +53,7 @@ export function TimelineControls(props: TimelineControlsProps) {
     transpose,
     onTransposeInc,
     onTransposeDec,
+    onTransposeReset,
     estimatedKey,
     currentTime,
     duration,
@@ -173,27 +176,40 @@ export function TimelineControls(props: TimelineControlsProps) {
         </select>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         <button
+          type="button"
           aria-label="Transpor meio tom abaixo"
           onClick={onTransposeDec}
           className="px-3 py-1.5 rounded-full border hover:bg-accent transition"
         >
           -
         </button>
-        <div className="flex-1 text-center text-sm">
+        <div className="min-w-0 flex-1 truncate text-center text-sm">
           {estimatedKey ? `${estimatedKey.label} ` : 'N/A'}
           {transpose !== 0 && (
             <>( {transpose > 0 ? `+${transpose}` : transpose} )</>
           )}
         </div>
         <button
+          type="button"
           aria-label="Transpor meio tom acima"
           onClick={onTransposeInc}
           className="px-3 py-1.5 rounded-full border hover:bg-accent transition"
         >
           +
         </button>
+        <Button
+          type="button"
+          aria-label="Restaurar tom original"
+          title="Restaurar tom original"
+          onClick={onTransposeReset}
+          disabled={transpose === 0}
+          variant="outline"
+          size="icon-sm"
+        >
+          <RotateCcwIcon />
+        </Button>
       </div>
 
       {showVocalsOnly && (
