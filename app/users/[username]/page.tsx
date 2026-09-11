@@ -9,7 +9,6 @@ import { Suspense } from 'react';
 import { Skeleton } from '@/components/sheleton';
 import { getUserByUsername } from '@/lib/services/users/get-user';
 import { Metadata } from 'next';
-import { Loader2 } from 'lucide-react';
 
 export async function generateMetadata({
   params,
@@ -54,14 +53,6 @@ export default async function User({
 function UserPageLoading() {
   return (
     <div className="flex flex-col gap-4" role="status" aria-live="polite">
-      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-        <Loader2
-          className="size-4 animate-spin text-primary"
-          aria-hidden="true"
-        />
-        <span>Carregando perfil...</span>
-      </div>
-
       <UserOverviewLoading />
       <UserTrackSectionsLoading />
     </div>
@@ -191,13 +182,6 @@ async function Content({ params }: { params: Promise<{ username: string }> }) {
 function UserSectionsFallback() {
   return (
     <div className="flex flex-col gap-4" role="status" aria-live="polite">
-      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-        <Loader2
-          className="size-4 animate-spin text-primary"
-          aria-hidden="true"
-        />
-        <span>Carregando atividades...</span>
-      </div>
       <UserTrackSectionsLoading />
     </div>
   );

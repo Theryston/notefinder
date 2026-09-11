@@ -7,7 +7,6 @@ import { FULL_TRACK_INCLUDE, FullTrack, Lyrics } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/sheleton';
 
 async function getTrack(id: string) {
@@ -98,14 +97,6 @@ export default async function Track({
 function TrackPageLoading() {
   return (
     <div className="flex flex-col gap-4" role="status" aria-live="polite">
-      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-        <Loader2
-          className="size-4 animate-spin text-primary"
-          aria-hidden="true"
-        />
-        <span>Carregando música...</span>
-      </div>
-
       <TrackOverviewLoading />
       <TrackTimelineLoading />
     </div>

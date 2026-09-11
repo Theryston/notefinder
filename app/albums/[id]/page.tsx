@@ -10,7 +10,6 @@ import { Metadata } from 'next';
 import { cacheTag } from 'next/cache';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/sheleton';
 
 export async function generateMetadata({
@@ -69,17 +68,8 @@ export default async function AlbumPage({
 function AlbumPageLoading() {
   return (
     <div className="flex flex-col gap-4" role="status" aria-live="polite">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="h-7 w-72">
-          <Skeleton />
-        </div>
-        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-          <Loader2
-            className="size-4 animate-spin text-primary"
-            aria-hidden="true"
-          />
-          <span>Carregando músicas do álbum...</span>
-        </div>
+      <div className="h-7 w-72">
+        <Skeleton />
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
