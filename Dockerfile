@@ -70,8 +70,14 @@ ENV NODE_ENV=production
 # Uncomment to disable telemetry during build:
 # ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build Next.js application
-RUN if [ -f package-lock.json ]; then \
+# Build Next.js application. DATABASE_URL is needed because the sitemap
+# generators query Prisma while Next.js collects page data.
+# It is mounted only for this layer and is not persisted in the image.
+RUN --mount=type=secret,id=DATABASE_URL,required=true \
+    --mount=type=secret,id=RESEND_API_KEY,required=true \
+    export DATABASE_URL="$(cat /run/secrets/DATABASE_URL)" && \
+    export RESEND_API_KEY="$(cat /run/secrets/RESEND_API_KEY)" && \
+  if [ -f package-lock.json ]; then \
     npm run build; \
   elif [ -f yarn.lock ]; then \
     corepack enable yarn && yarn build; \
