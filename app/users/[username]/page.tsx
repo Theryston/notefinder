@@ -9,7 +9,7 @@ import { Suspense } from 'react';
 import { Skeleton } from '@/components/sheleton';
 import { getUserByUsername } from '@/lib/services/users/get-user';
 import { Metadata } from 'next';
-import { PageLoading } from '@/components/page-loading';
+import { Loader2 } from 'lucide-react';
 
 export async function generateMetadata({
   params,
@@ -44,10 +44,133 @@ export default async function User({
 }) {
   return (
     <Container pathname="/users/:username">
-      <Suspense fallback={<PageLoading label="Carregando perfil..." />}>
+      <Suspense fallback={<UserPageLoading />}>
         <Content params={params} />
       </Suspense>
     </Container>
+  );
+}
+
+function UserPageLoading() {
+  return (
+    <div className="flex flex-col gap-4" role="status" aria-live="polite">
+      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+        <Loader2
+          className="size-4 animate-spin text-primary"
+          aria-hidden="true"
+        />
+        <span>Carregando perfil...</span>
+      </div>
+
+      <UserOverviewLoading />
+      <UserTrackSectionsLoading />
+    </div>
+  );
+}
+
+function UserOverviewLoading() {
+  return (
+    <section className="w-full">
+      <div className="relative overflow-hidden rounded-2xl border bg-background/60 shadow-sm backdrop-blur">
+        <div className="absolute inset-0 -z-10 bg-linear-to-tr from-primary/10 via-transparent to-primary/10" />
+
+        <div className="p-6 sm:p-8">
+          <div className="grid grid-cols-[120px_1fr] items-start gap-6 sm:gap-8">
+            <div className="relative size-[120px] overflow-hidden rounded-full border">
+              <Skeleton />
+            </div>
+
+            <div className="flex min-w-0 flex-col gap-4">
+              <div className="flex flex-col gap-1 md:flex-row md:justify-between">
+                <div className="flex min-w-0 flex-col gap-2">
+                  <div className="h-8 w-3/4">
+                    <Skeleton />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="h-4 w-20">
+                      <Skeleton />
+                    </div>
+                    <div className="h-5 w-24">
+                      <Skeleton />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="hidden h-full w-full md:block">
+                <UserCardsLoading />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 h-full w-full md:hidden">
+            <UserCardsLoading />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function UserCardsLoading() {
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div key={index} className="rounded-lg border bg-card p-3">
+          <div className="h-3 w-2/3">
+            <Skeleton />
+          </div>
+          <div className="mt-2 h-4 w-1/2">
+            <Skeleton />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function UserTrackSectionsLoading() {
+  return (
+    <div className="flex flex-col gap-8">
+      <UserTrackSectionLoading />
+      <UserTrackSectionLoading />
+    </div>
+  );
+}
+
+function UserTrackSectionLoading() {
+  return (
+    <section className="flex flex-col gap-4">
+      <div className="h-7 w-56">
+        <Skeleton />
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {Array.from({ length: 3 * 4 }).map((_, index) => (
+          <UserTrackItemLoading key={index} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function UserTrackItemLoading() {
+  return (
+    <div className="flex w-full min-w-0 gap-2 rounded-md p-2">
+      <div className="size-20 shrink-0 overflow-hidden rounded-md">
+        <Skeleton />
+      </div>
+      <div className="flex min-w-0 w-full flex-col gap-1 py-1">
+        <div className="h-4 w-3/4">
+          <Skeleton />
+        </div>
+        <div className="h-3 w-1/2">
+          <Skeleton />
+        </div>
+        <div className="h-3 w-2/3">
+          <Skeleton />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -68,16 +191,14 @@ async function Content({ params }: { params: Promise<{ username: string }> }) {
 function UserSectionsFallback() {
   return (
     <div className="flex flex-col gap-4" role="status" aria-live="polite">
-      <p className="text-center text-sm text-muted-foreground">
-        Carregando atividades...
-      </p>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        {Array.from({ length: 3 * 8 }).map((_, index) => (
-          <div key={index} className="h-26 w-full">
-            <Skeleton />
-          </div>
-        ))}
+      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+        <Loader2
+          className="size-4 animate-spin text-primary"
+          aria-hidden="true"
+        />
+        <span>Carregando atividades...</span>
       </div>
+      <UserTrackSectionsLoading />
     </div>
   );
 }

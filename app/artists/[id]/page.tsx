@@ -10,7 +10,8 @@ import { notFound } from 'next/navigation';
 import { cacheTag } from 'next/cache';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { PageLoading } from '@/components/page-loading';
+import { Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/sheleton';
 
 export async function generateMetadata({
   params,
@@ -47,10 +48,56 @@ export default async function ArtistPage({
 }) {
   return (
     <Container pathname={`/artists/:id`}>
-      <Suspense fallback={<PageLoading label="Carregando artista..." />}>
+      <Suspense fallback={<ArtistPageLoading />}>
         <Content params={params} />
       </Suspense>
     </Container>
+  );
+}
+
+function ArtistPageLoading() {
+  return (
+    <div className="flex flex-col gap-4" role="status" aria-live="polite">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="h-7 w-64">
+          <Skeleton />
+        </div>
+        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <Loader2
+            className="size-4 animate-spin text-primary"
+            aria-hidden="true"
+          />
+          <span>Carregando músicas do artista...</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {Array.from({ length: 3 * 4 }).map((_, index) => (
+          <ArtistTrackItemLoading key={index} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ArtistTrackItemLoading() {
+  return (
+    <div className="flex w-full min-w-0 gap-2 rounded-md p-2">
+      <div className="size-20 shrink-0 overflow-hidden rounded-md">
+        <Skeleton />
+      </div>
+      <div className="flex min-w-0 w-full flex-col gap-1 py-1">
+        <div className="h-4 w-3/4">
+          <Skeleton />
+        </div>
+        <div className="h-3 w-1/2">
+          <Skeleton />
+        </div>
+        <div className="h-3 w-2/3">
+          <Skeleton />
+        </div>
+      </div>
+    </div>
   );
 }
 

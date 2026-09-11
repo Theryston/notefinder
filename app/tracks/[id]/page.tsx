@@ -7,7 +7,8 @@ import { FULL_TRACK_INCLUDE, FullTrack, Lyrics } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { PageLoading } from '@/components/page-loading';
+import { Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/sheleton';
 
 async function getTrack(id: string) {
   'use cache: remote';
@@ -87,10 +88,122 @@ export default async function Track({
 }) {
   return (
     <Container pathname="/tracks/:id">
-      <Suspense fallback={<PageLoading label="Carregando música..." />}>
+      <Suspense fallback={<TrackPageLoading />}>
         <Content params={params} />
       </Suspense>
     </Container>
+  );
+}
+
+function TrackPageLoading() {
+  return (
+    <div className="flex flex-col gap-4" role="status" aria-live="polite">
+      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+        <Loader2
+          className="size-4 animate-spin text-primary"
+          aria-hidden="true"
+        />
+        <span>Carregando música...</span>
+      </div>
+
+      <TrackOverviewLoading />
+      <TrackTimelineLoading />
+    </div>
+  );
+}
+
+function TrackOverviewLoading() {
+  return (
+    <section className="w-full">
+      <div className="relative overflow-hidden rounded-2xl border bg-background/60 shadow-sm backdrop-blur">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-tr from-primary/10 via-transparent to-primary/10" />
+
+        <div className="p-6 sm:p-8">
+          <div className="grid grid-cols-[150px_1fr] items-start gap-6 sm:gap-8">
+            <div className="relative size-[150px] overflow-hidden rounded-xl border">
+              <Skeleton />
+            </div>
+
+            <div className="flex min-w-0 flex-col gap-4">
+              <div className="flex flex-col gap-2 md:flex-row md:justify-between md:gap-1">
+                <div className="flex min-w-0 flex-col gap-2">
+                  <div className="h-8 w-3/4 max-w-80">
+                    <Skeleton />
+                  </div>
+                  <div className="h-5 w-2/3 max-w-56">
+                    <Skeleton />
+                  </div>
+                </div>
+
+                <div className="flex h-fit w-fit flex-wrap gap-2">
+                  <div className="size-9">
+                    <Skeleton />
+                  </div>
+                  <div className="size-9">
+                    <Skeleton />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="h-5 w-24">
+                  <Skeleton />
+                </div>
+                <div className="h-5 w-12">
+                  <Skeleton />
+                </div>
+              </div>
+
+              <div className="hidden h-full w-full md:block">
+                <TrackCardsLoading />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 h-full w-full md:hidden">
+            <TrackCardsLoading />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TrackCardsLoading() {
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <div key={index} className="rounded-lg border bg-card p-3">
+          <div className="h-3 w-2/3">
+            <Skeleton />
+          </div>
+          <div className="mt-2 h-4 w-1/2">
+            <Skeleton />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TrackTimelineLoading() {
+  return (
+    <section className="w-full">
+      <div className="relative overflow-hidden rounded-2xl border bg-background/60 shadow-sm backdrop-blur">
+        <div className="absolute inset-0 -z-10 bg-linear-to-tr from-primary/10 via-transparent to-primary/10" />
+
+        <div className="p-4 sm:p-6">
+          <div className="grid w-full grid-cols-1 items-start gap-4 md:grid-cols-[minmax(0,1fr)_260px]">
+            <div className="h-96 w-full md:h-[80vh]">
+              <Skeleton />
+            </div>
+            <div className="hidden h-96 w-full md:block">
+              <Skeleton />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
