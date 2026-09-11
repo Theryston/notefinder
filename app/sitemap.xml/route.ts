@@ -1,33 +1,36 @@
-import { generateSitemaps as generateSitemapsAlbums } from '../albums/sitemap';
-import { generateSitemaps as generateSitemapsArtists } from '../artists/sitemap';
-import { generateSitemaps as generateSitemapsTracks } from '../tracks/sitemap';
+import prisma from '@/lib/prisma';
+import { MAX_SITEMAP_SIZE } from '@/lib/constants';
+import { getAppUrl, sitemapIndexResponse } from '@/lib/sitemap-xml';
+import { connection } from 'next/server';
 
-const generateSitemapLink = (url: string) =>
-  `<sitemap><loc>${url}</loc></sitemap>`;
+const getPartIds = (total: number) =>
+  Array.from({ length: Math.ceil(total / MAX_SITEMAP_SIZE) }, (_, id) => id);
 
 export async function GET() {
-  const allAlbumsParts = await generateSitemapsAlbums();
-  const allArtistsParts = await generateSitemapsArtists();
-  const allTracksParts = await generateSitemapsTracks();
+  await connection();
+
+  const appUrl = getAppUrl();
+  const trackTotal = await prisma.track.count({
+    where: { status: 'COMPLETED' },
+  });
+  const artistTotal = await prisma.artist.count({
+    where: {
+      trackArtists: { some: { track: { status: 'COMPLETED' } } },
+    },
+  });
+  const albumTotal = await prisma.album.count({
+    where: {
+      tracks: { some: { status: 'COMPLETED' } },
+    },
+  });
 
   const allParts = [
-    ...allTracksParts.map(
-      ({ id }) => `${process.env.NEXT_PUBLIC_APP_URL}/tracks/sitemap/${id}.xml`,
+    ...getPartIds(trackTotal).map((id) => `${appUrl}/tracks/sitemap/${id}.xml`),
+    ...getPartIds(artistTotal).map(
+      (id) => `${appUrl}/artists/sitemap/${id}.xml`,
     ),
-    ...allArtistsParts.map(
-      ({ id }) =>
-        `${process.env.NEXT_PUBLIC_APP_URL}/artists/sitemap/${id}.xml`,
-    ),
-    ...allAlbumsParts.map(
-      ({ id }) => `${process.env.NEXT_PUBLIC_APP_URL}/albums/sitemap/${id}.xml`,
-    ),
+    ...getPartIds(albumTotal).map((id) => `${appUrl}/albums/sitemap/${id}.xml`),
   ];
 
-  const sitemapIndexXML = `<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${allParts
-    .map(generateSitemapLink)
-    .join('')}</sitemapindex>`;
-
-  return new Response(sitemapIndexXML, {
-    headers: { 'Content-Type': 'text/xml' },
-  });
+  return sitemapIndexResponse(allParts);
 }

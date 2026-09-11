@@ -8,16 +8,21 @@ import {
 import { dbTrackToTrackItem } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import { cacheTag } from 'next/cache';
-import { MAX_STATIC_PAGES } from '@/lib/constants';
 import { Metadata } from 'next';
+import { Suspense } from 'react';
+import { PageLoading } from '@/components/page-loading';
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  'use cache: remote';
   const { id } = await params;
+  return getArtistMetadata(id);
+}
+
+async function getArtistMetadata(id: string): Promise<Metadata> {
+  'use cache: remote';
   cacheTag(`artist_${id}`);
 
   const artist = await prisma.artist.findUnique({
@@ -35,16 +40,6 @@ export async function generateMetadata({
   };
 }
 
-export async function generateStaticParams() {
-  const artists = await prisma.artist.findMany({
-    select: { id: true },
-    where: { trackArtists: { some: { track: { status: 'COMPLETED' } } } },
-    take: MAX_STATIC_PAGES,
-  });
-
-  return artists.map((artist) => ({ id: artist.id }));
-}
-
 export default async function ArtistPage({
   params,
 }: {
@@ -52,15 +47,20 @@ export default async function ArtistPage({
 }) {
   return (
     <Container pathname={`/artists/:id`}>
-      <Content params={params} />
+      <Suspense fallback={<PageLoading label="Carregando artista..." />}>
+        <Content params={params} />
+      </Suspense>
     </Container>
   );
 }
 
 async function Content({ params }: { params: Promise<{ id: string }> }) {
-  'use cache: remote';
-
   const { id } = await params;
+  return <CachedContent id={id} />;
+}
+
+async function CachedContent({ id }: { id: string }) {
+  'use cache: remote';
   cacheTag(`artist_${id}`);
 
   const artist = await prisma.artist.findUnique({

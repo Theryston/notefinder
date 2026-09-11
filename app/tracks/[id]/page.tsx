@@ -3,14 +3,11 @@ import { notFound } from 'next/navigation';
 import { ProcessingTrack } from './components/processing-track';
 import { TrackContent } from './components/track-content';
 import { cacheTag } from 'next/cache';
-import {
-  FULL_TRACK_INCLUDE,
-  FullTrack,
-  Lyrics,
-  MAX_STATIC_PAGES,
-} from '@/lib/constants';
+import { FULL_TRACK_INCLUDE, FullTrack, Lyrics } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import { Metadata } from 'next';
+import { Suspense } from 'react';
+import { PageLoading } from '@/components/page-loading';
 
 async function getTrack(id: string) {
   'use cache: remote';
@@ -83,16 +80,6 @@ export async function generateMetadata({
   };
 }
 
-export async function generateStaticParams() {
-  const tracks = await prisma.track.findMany({
-    where: { status: 'COMPLETED' },
-    select: { id: true },
-    take: MAX_STATIC_PAGES,
-  });
-
-  return tracks.map((track) => ({ id: track.id }));
-}
-
 export default async function Track({
   params,
 }: {
@@ -100,7 +87,9 @@ export default async function Track({
 }) {
   return (
     <Container pathname="/tracks/:id">
-      <Content params={params} />
+      <Suspense fallback={<PageLoading label="Carregando música..." />}>
+        <Content params={params} />
+      </Suspense>
     </Container>
   );
 }

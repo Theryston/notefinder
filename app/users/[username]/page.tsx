@@ -6,11 +6,10 @@ import { notFound } from 'next/navigation';
 import { UserOverview } from './components/overview';
 import { ToggleView } from './components/toggle-view';
 import { Suspense } from 'react';
-import prisma from '@/lib/prisma';
-import { MAX_STATIC_PAGES } from '@/lib/constants';
 import { Skeleton } from '@/components/sheleton';
 import { getUserByUsername } from '@/lib/services/users/get-user';
 import { Metadata } from 'next';
+import { PageLoading } from '@/components/page-loading';
 
 export async function generateMetadata({
   params,
@@ -38,15 +37,6 @@ export async function generateMetadata({
   };
 }
 
-export async function generateStaticParams() {
-  const users = await prisma.user.findMany({
-    select: { username: true },
-    take: MAX_STATIC_PAGES,
-  });
-
-  return users.map((user) => ({ username: user.username }));
-}
-
 export default async function User({
   params,
 }: {
@@ -54,18 +44,22 @@ export default async function User({
 }) {
   return (
     <Container pathname="/users/:username">
-      <Content params={params} />
+      <Suspense fallback={<PageLoading label="Carregando perfil..." />}>
+        <Content params={params} />
+      </Suspense>
     </Container>
   );
 }
 
 async function Content({ params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params;
+
   return (
     <div className="flex flex-col gap-4">
-      <UserOverview params={params} />
+      <UserOverview username={username} />
 
       <Suspense fallback={<UserSectionsFallback />}>
-        <UserSections params={params} />
+        <UserSections username={username} />
       </Suspense>
     </div>
   );
@@ -73,23 +67,22 @@ async function Content({ params }: { params: Promise<{ username: string }> }) {
 
 function UserSectionsFallback() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {Array.from({ length: 3 * 8 }).map((_, index) => (
-        <div key={index} className="w-full h-26">
-          <Skeleton />
-        </div>
-      ))}
+    <div className="flex flex-col gap-4" role="status" aria-live="polite">
+      <p className="text-center text-sm text-muted-foreground">
+        Carregando atividades...
+      </p>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {Array.from({ length: 3 * 8 }).map((_, index) => (
+          <div key={index} className="h-26 w-full">
+            <Skeleton />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-async function UserSections({
-  params,
-}: {
-  params: Promise<{ username: string }>;
-}) {
-  const { username } = await params;
-
+async function UserSections({ username }: { username: string }) {
   const user = await getUserByUsername(username);
 
   if (!user) notFound();

@@ -1,6 +1,5 @@
 import { Container } from '@/components/container';
 import { TrackList } from '@/components/track-list';
-import { MAX_STATIC_PAGES } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import {
   getTrackCustomWhereWithCache,
@@ -10,14 +9,20 @@ import { dbTrackToTrackItem } from '@/lib/utils';
 import { Metadata } from 'next';
 import { cacheTag } from 'next/cache';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
+import { PageLoading } from '@/components/page-loading';
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  'use cache: remote';
   const { id } = await params;
+  return getAlbumMetadata(id);
+}
+
+async function getAlbumMetadata(id: string): Promise<Metadata> {
+  'use cache: remote';
   cacheTag(`album_${id}_metadata`);
 
   const album = await prisma.album.findUnique({
@@ -46,15 +51,6 @@ export async function generateMetadata({
   };
 }
 
-export async function generateStaticParams() {
-  const albums = await prisma.album.findMany({
-    where: { tracks: { some: { status: 'COMPLETED' } } },
-    select: { id: true },
-    take: MAX_STATIC_PAGES,
-  });
-
-  return albums.map((album) => ({ id: album.id }));
-}
 export default async function AlbumPage({
   params,
 }: {
@@ -62,15 +58,20 @@ export default async function AlbumPage({
 }) {
   return (
     <Container pathname={`/albums/:id`}>
-      <Content params={params} />
+      <Suspense fallback={<PageLoading label="Carregando álbum..." />}>
+        <Content params={params} />
+      </Suspense>
     </Container>
   );
 }
 
 async function Content({ params }: { params: Promise<{ id: string }> }) {
-  'use cache: remote';
-
   const { id } = await params;
+  return <CachedContent id={id} />;
+}
+
+async function CachedContent({ id }: { id: string }) {
+  'use cache: remote';
   cacheTag(`album_${id}`);
 
   const album = await prisma.album.findUnique({

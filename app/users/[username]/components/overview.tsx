@@ -8,13 +8,8 @@ import { getDailyPracticeStreakStatus } from '@/lib/services/streak/daily-practi
 import { FlameIcon, Heart, HeartPlus, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export async function UserOverview({
-  params,
-}: {
-  params: Promise<{ username: string }>;
-}) {
+export async function UserOverview({ username }: { username: string }) {
   'use cache: remote';
-  const { username } = await params;
   cacheTag(`user_${username}`);
 
   const user = await getUserByUsername(username);
