@@ -70,9 +70,8 @@ ENV NODE_ENV=production
 # Uncomment to disable telemetry during build:
 # ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build Next.js application. DATABASE_URL is needed because the sitemap
-# generators query Prisma while Next.js collects page data.
-# It is mounted only for this layer and is not persisted in the image.
+# Build Next.js application. The secrets are mounted only for this layer and
+# are not persisted in the image.
 RUN --mount=type=secret,id=DATABASE_URL,required=true \
     --mount=type=secret,id=RESEND_API_KEY,required=true \
     export DATABASE_URL="$(cat /run/secrets/DATABASE_URL)" && \

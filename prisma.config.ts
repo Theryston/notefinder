@@ -7,6 +7,8 @@ export default defineConfig({
     path: 'prisma/migrations',
   },
   datasource: {
-    url: process.env.DATABASE_URL!,
+    // Prisma CLI/migrations should use Neon’s direct connection. Falling back
+    // to DATABASE_URL keeps `prisma generate` working during Docker install.
+    url: process.env.DIRECT_URL || process.env.DATABASE_URL!,
   },
 });
