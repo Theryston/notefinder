@@ -3,6 +3,15 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   output: 'standalone',
   cacheComponents: true,
+  experimental: {
+    serverActions: {
+      allowedOrigins: [
+        'notefinder.com.br',
+        'zimaos.notefinder.com.br',
+        'fly.notefinder.com.br',
+      ],
+    },
+  },
   images: {
     unoptimized: true,
     // remotePatterns: [
