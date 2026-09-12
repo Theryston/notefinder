@@ -7,6 +7,8 @@ app = 'notefinder'
 primary_region = 'gru'
 
 [build]
+    image = "ghcr.io/theryston/notefinder:latest"
+
 [http_service]
   internal_port = 3000
   force_https = true
