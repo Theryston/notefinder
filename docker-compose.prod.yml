@@ -20,7 +20,7 @@ services:
       - notefinder_postgres_data_v18:/var/lib/postgresql
 
   app:
-    image: ghcr.io/theryston/notefinder@sha256:15d938757b729fc738759a338a9608276ebc40ad8289bdea3402e921f55e85be
+    image: ghcr.io/theryston/notefinder@sha256:207b9648a2a8d877b934bab1e18bfe0832a9ba7a5ab1aafc2f4ad0a36699507c
     restart: unless-stopped
     depends_on:
       postgres:
