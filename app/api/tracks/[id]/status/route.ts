@@ -2,13 +2,11 @@ import prisma from '@/lib/prisma';
 import { TrackStatus } from '@/lib/generated/prisma/client';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
 import { withMiddleware } from '@/lib/with-middleware';
 import { apiKeyMiddleware } from '@/lib/api-key-middleware';
 import { CompletedEmail } from '@/emails/completed-email';
 import { ErrorEmail } from '@/emails/error-email';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { getResendClient } from '@/lib/services/email/get-resend-client';
 
 async function updateTrackStatus(
   request: Request,
@@ -50,6 +48,8 @@ async function updateTrackStatus(
   });
 
   if (currentTrack.status !== newStatus && newStatus === 'COMPLETED') {
+    const resend = getResendClient();
+
     await resend.emails.send({
       from: 'Notefinder <noreply@notefinder.com.br>',
       to: currentTrack.creator.email,
@@ -67,6 +67,8 @@ async function updateTrackStatus(
   }
 
   if (currentTrack.status !== newStatus && newStatus === 'ERROR') {
+    const resend = getResendClient();
+
     await resend.emails.send({
       from: 'Notefinder <noreply@notefinder.com.br>',
       to: currentTrack.creator.email,

@@ -1,10 +1,9 @@
 import { DailyPracticeReminderEmail } from '@/emails/daily-practice-reminder-email';
 import prisma from '@/lib/prisma';
+import { getResendClient } from '@/lib/services/email/get-resend-client';
 import { getDailyPracticeStreakStatus } from '@/lib/services/streak/daily-practice';
 import { schedules } from '@trigger.dev/sdk';
-import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 function getUtcDayStart(date = new Date()) {
@@ -52,6 +51,7 @@ export const sendDailyPracticeRemindersTask = schedules.task({
       };
     }
 
+    const resend = getResendClient();
     let emailsSent = 0;
     let emailsFailed = 0;
 

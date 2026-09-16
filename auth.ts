@@ -6,7 +6,7 @@ import prisma from '@/lib/prisma';
 import { compare } from 'bcryptjs';
 import { User } from '@/lib/generated/prisma/client';
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const { handlers, signIn, signOut, auth } = NextAuth(async () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   adapter: PrismaAdapter(prisma as any),
   session: { strategy: 'jwt' },
@@ -82,4 +82,4 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
-});
+}));

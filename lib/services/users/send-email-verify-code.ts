@@ -1,8 +1,6 @@
 import prisma from '@/lib/prisma';
+import { getResendClient } from '@/lib/services/email/get-resend-client';
 import moment from 'moment';
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendEmailVerifyCode = async (email: string) => {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -25,6 +23,8 @@ export const sendEmailVerifyCode = async (email: string) => {
       expiresAt,
     },
   });
+
+  const resend = getResendClient();
 
   await resend.emails.send({
     from: 'Notefinder <noreply@notefinder.com.br>',

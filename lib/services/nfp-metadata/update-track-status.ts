@@ -2,11 +2,7 @@ import { CompletedEmail } from '@/emails/completed-email';
 import { ErrorEmail } from '@/emails/error-email';
 import { TrackStatus, type Prisma } from '@/lib/generated/prisma/client';
 import prisma from '@/lib/prisma';
-import { Resend } from 'resend';
-
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
+import { getOptionalResendClient } from '@/lib/services/email/get-resend-client';
 
 type UpdateTrackStatusInput = {
   trackId: string;
@@ -26,6 +22,8 @@ type TrackWithRelations = Prisma.TrackGetPayload<{
 }>;
 
 async function sendTrackCompletedEmail(track: TrackWithRelations) {
+  const resend = getOptionalResendClient();
+
   if (!resend) {
     console.warn('[nfp-metadata] RESEND_API_KEY is missing. Skipping email.');
     return;
@@ -40,6 +38,8 @@ async function sendTrackCompletedEmail(track: TrackWithRelations) {
 }
 
 async function sendTrackErrorEmail(track: TrackWithRelations) {
+  const resend = getOptionalResendClient();
+
   if (!resend) {
     console.warn('[nfp-metadata] RESEND_API_KEY is missing. Skipping email.');
     return;
