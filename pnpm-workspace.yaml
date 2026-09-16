@@ -5,3 +5,7 @@ allowBuilds:
   protobufjs: true
   sharp: true
   unrs-resolver: true
+minimumReleaseAgeExclude:
+  - '@trigger.dev/build@4.6.2'
+  - '@trigger.dev/core@4.6.2'
+  - '@trigger.dev/sdk@4.6.2'

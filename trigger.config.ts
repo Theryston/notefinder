@@ -4,7 +4,7 @@ import { ffmpeg } from '@trigger.dev/build/extensions/core';
 
 export default defineConfig({
   project: 'proj_qyslrtmomvqhjrhieogh',
-  runtime: 'node',
+  runtime: 'node-24',
   logLevel: 'log',
   maxDuration: 3600,
   retries: {

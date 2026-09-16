@@ -54,8 +54,8 @@ importers:
         specifier: ^1.3.2
         version: 1.4.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@trigger.dev/sdk':
-        specifier: 4.5.16
-        version: 4.5.16(react@19.2.3)(supports-color@7.2.0)(zod@4.1.13)
+        specifier: 4.6.2
+        version: 4.6.2(react@19.2.3)(supports-color@7.2.0)(zod@4.1.13)
       axios:
         specifier: ^1.12.2
         version: 1.13.2(debug@4.4.3(supports-color@7.2.0))
@@ -148,8 +148,8 @@ importers:
         specifier: ^4
         version: 4.1.17
       '@trigger.dev/build':
-        specifier: 4.5.16
-        version: 4.5.16(supports-color@7.2.0)(typescript@5.9.3)
+        specifier: 4.6.2
+        version: 4.6.2(supports-color@7.2.0)(typescript@5.9.3)(zod@4.1.13)
       '@types/node':
         specifier: ^20
         version: 20.19.25
@@ -893,10 +893,6 @@ packages:
     resolution: {integrity: sha512-fmEWp5kXlGEc3i/lR698Hz41DfGyN4Tbe4g7L1AxSc7fF8Xeh/FQ9Quqpa9dVA413Q1Ad43QOLzU4JoXgbFPWw==}
     engines: {node: '>=8.0.0'}
 
-  '@opentelemetry/api@1.9.0':
-    resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
-    engines: {node: '>=8.0.0'}
-
   '@opentelemetry/api@1.9.1':
     resolution: {integrity: sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q==}
     engines: {node: '>=8.0.0'}
@@ -984,10 +980,6 @@ packages:
     engines: {node: ^18.19.0 || >=20.6.0}
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.10.0'
-
-  '@opentelemetry/semantic-conventions@1.36.0':
-    resolution: {integrity: sha512-TtxJSRD8Ohxp6bKkhrm27JRHAxPczQA7idtcTOMYI+wQRRrfgqxHv1cFbCApcSnNjtXkmzFozn6jQtFrOmbjPQ==}
-    engines: {node: '>=14'}
 
   '@opentelemetry/semantic-conventions@1.41.1':
     resolution: {integrity: sha512-/UhIkaZgPutTFmQ7RnIJGgDXZmtEJ7Dvi86xNTFWcnRxVRNk/aotsqDJYeEvDP+FSMB2SdW+pQzNMcWP0rwuNA==}
@@ -1774,8 +1766,8 @@ packages:
   '@tailwindcss/postcss@4.1.17':
     resolution: {integrity: sha512-+nKl9N9mN5uJ+M7dBOOCzINw94MPstNR/GtIhz1fpZysxL/4a+No64jCBD6CPN+bIHWFx3KWuu8XJRrj/572Dw==}
 
-  '@trigger.dev/build@4.5.16':
-    resolution: {integrity: sha512-iy/KJylq3BdNlDt3++HhkncPRDHzkuNOnK1SxhkTtRc1Hj+kV5zNtaBuTxrxUCyS1hwOLLbQl7rBaSPoGzSyUg==}
+  '@trigger.dev/build@4.6.2':
+    resolution: {integrity: sha512-nvVkeDYwiRN0SLdLDCTbxAyzfGyZjBAApXtKGiVmfOqh1b4XTryeTu/BPypAZ93PH2r6fVkMS6ibgQXLOP7Pxw==}
     engines: {node: '>=18.20.0'}
     peerDependencies:
       '@typescript/typescript6': ^6.0.0
@@ -1786,18 +1778,20 @@ packages:
       typescript:
         optional: true
 
-  '@trigger.dev/core@4.5.16':
-    resolution: {integrity: sha512-7Gcv8rl+DnPxvguiWSp+KUeA7HVM9Xp46YYEeBGgViahL/Ml3WIv2hXXEiHrP8L3aM9C9YtStmmRmz5yOzW4fw==}
+  '@trigger.dev/core@4.6.2':
+    resolution: {integrity: sha512-s+bCSFPBKqYLZfUNHR3eZuDrm5JiLK6xWziygQYR8GxVoHKJW/iM1MYASFZNiSrnPX0ifREUfZD/l2CvH/ZRFA==}
     engines: {node: '>=18.20.0'}
+    peerDependencies:
+      zod: ^3.25.56 || ^4.0.0
 
-  '@trigger.dev/sdk@4.5.16':
-    resolution: {integrity: sha512-YjHz3Zv/yyLAS6tqFZMTVD2yTP6FopbPaLgtECLUqYx/pV2LQftgs7XI5o6NvtJxaDDLEz2wHqegCte1Ww2lKg==}
+  '@trigger.dev/sdk@4.6.2':
+    resolution: {integrity: sha512-x8eUpTeOpzPr+GNGJ+n8SZOuEYI2bQ4Y5MEIEiqKVj1WxLBmZ0dS9feQ+EGnFwyYzc3RJ7s3I0o2HWEqMzksdQ==}
     engines: {node: '>=18.20.0'}
     peerDependencies:
       '@ai-sdk/otel': '>=1.0.0-0 <2'
       ai: ^5.0.0 || ^6.0.0 || >=7.0.0-canary <8
       react: ^18.0 || ^19.0
-      zod: ^3.0.0 || ^4.0.0
+      zod: ^3.25.56 || ^4.0.0
     peerDependenciesMeta:
       '@ai-sdk/otel':
         optional: true
@@ -4053,20 +4047,17 @@ packages:
   zeptomatch@2.0.2:
     resolution: {integrity: sha512-H33jtSKf8Ijtb5BW6wua3G5DhnFjbFML36eFu+VdOoVY4HD9e7ggjqdM6639B+L87rjnR6Y+XeRzBXZdy52B/g==}
 
-  zod-validation-error@1.5.0:
-    resolution: {integrity: sha512-/7eFkAI4qV0tcxMBB/3+d2c1P6jzzZYdYSlBuAklzMuCrJu5bzJfHS0yVAS87dRHVlhftd6RFJDIvv03JgkSbw==}
-    engines: {node: '>=16.0.0'}
-    peerDependencies:
-      zod: ^3.18.0
-
   zod-validation-error@4.0.2:
     resolution: {integrity: sha512-Q6/nZLe6jxuU80qb/4uJ4t5v2VEZ44lzQjPDhYJNztRQ4wyWc6VF3D3Kb/fAuPetZQnhS3hnajCf9CsWesghLQ==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       zod: ^3.25.0 || ^4.0.0
 
-  zod@3.25.76:
-    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+  zod-validation-error@5.0.0:
+    resolution: {integrity: sha512-hmk+pkyKq7Q71PiWVSDUc3VfpzpvcRHZ3QPw9yEMVvmtCekaMeOHnbr3WbxfrgEnQTv6haGP4cmv0Ojmihzsxw==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      zod: ^3.25.0 || ^4.0.0
 
   zod@4.1.13:
     resolution: {integrity: sha512-AvvthqfqrAhNH9dnfmrfKzX5upOdjUVJYFqNSlkmGf64gRaTzlPwz99IHYnVs28qYAybvAlBV+H7pn0saFY4Ig==}
@@ -5081,9 +5072,7 @@ snapshots:
 
   '@opentelemetry/api-logs@0.218.0':
     dependencies:
-      '@opentelemetry/api': 1.9.0
-
-  '@opentelemetry/api@1.9.0': {}
+      '@opentelemetry/api': 1.9.1
 
   '@opentelemetry/api@1.9.1': {}
 
@@ -5094,7 +5083,7 @@ snapshots:
   '@opentelemetry/core@2.7.1(@opentelemetry/api@1.9.1)':
     dependencies:
       '@opentelemetry/api': 1.9.1
-      '@opentelemetry/semantic-conventions': 1.36.0
+      '@opentelemetry/semantic-conventions': 1.41.1
 
   '@opentelemetry/exporter-logs-otlp-http@0.218.0(@opentelemetry/api@1.9.1)':
     dependencies:
@@ -5157,7 +5146,7 @@ snapshots:
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/core': 2.7.1(@opentelemetry/api@1.9.1)
-      '@opentelemetry/semantic-conventions': 1.36.0
+      '@opentelemetry/semantic-conventions': 1.41.1
 
   '@opentelemetry/sdk-logs@0.218.0(@opentelemetry/api@1.9.1)':
     dependencies:
@@ -5165,7 +5154,7 @@ snapshots:
       '@opentelemetry/api-logs': 0.218.0
       '@opentelemetry/core': 2.7.1(@opentelemetry/api@1.9.1)
       '@opentelemetry/resources': 2.7.1(@opentelemetry/api@1.9.1)
-      '@opentelemetry/semantic-conventions': 1.36.0
+      '@opentelemetry/semantic-conventions': 1.41.1
 
   '@opentelemetry/sdk-metrics@2.7.1(@opentelemetry/api@1.9.1)':
     dependencies:
@@ -5178,7 +5167,7 @@ snapshots:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/core': 2.7.1(@opentelemetry/api@1.9.1)
       '@opentelemetry/resources': 2.7.1(@opentelemetry/api@1.9.1)
-      '@opentelemetry/semantic-conventions': 1.36.0
+      '@opentelemetry/semantic-conventions': 1.41.1
 
   '@opentelemetry/sdk-trace-node@2.7.1(@opentelemetry/api@1.9.1)':
     dependencies:
@@ -5186,8 +5175,6 @@ snapshots:
       '@opentelemetry/context-async-hooks': 2.7.1(@opentelemetry/api@1.9.1)
       '@opentelemetry/core': 2.7.1(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-base': 2.7.1(@opentelemetry/api@1.9.1)
-
-  '@opentelemetry/semantic-conventions@1.36.0': {}
 
   '@opentelemetry/semantic-conventions@1.41.1': {}
 
@@ -6072,10 +6059,10 @@ snapshots:
       postcss: 8.5.6
       tailwindcss: 4.1.17
 
-  '@trigger.dev/build@4.5.16(supports-color@7.2.0)(typescript@5.9.3)':
+  '@trigger.dev/build@4.6.2(supports-color@7.2.0)(typescript@5.9.3)(zod@4.1.13)':
     dependencies:
       '@prisma/config': 6.19.0
-      '@trigger.dev/core': 4.5.16(supports-color@7.2.0)
+      '@trigger.dev/core': 4.6.2(supports-color@7.2.0)(zod@4.1.13)
       mlly: 1.8.0
       pkg-types: 1.3.1
       tinyglobby: 0.2.15
@@ -6087,8 +6074,9 @@ snapshots:
       - magicast
       - supports-color
       - utf-8-validate
+      - zod
 
-  '@trigger.dev/core@4.5.16(supports-color@7.2.0)':
+  '@trigger.dev/core@4.6.2(supports-color@7.2.0)(zod@4.1.13)':
     dependencies:
       '@bugsnag/cuid': 3.2.1
       '@electric-sql/client': 1.0.14
@@ -6119,18 +6107,18 @@ snapshots:
       std-env: 3.10.0
       tinyexec: 0.3.2
       uncrypto: 0.1.3
-      zod: 3.25.76
-      zod-validation-error: 1.5.0(zod@3.25.76)
+      zod: 4.1.13
+      zod-validation-error: 5.0.0(zod@4.1.13)
     transitivePeerDependencies:
       - bufferutil
       - supports-color
       - utf-8-validate
 
-  '@trigger.dev/sdk@4.5.16(react@19.2.3)(supports-color@7.2.0)(zod@4.1.13)':
+  '@trigger.dev/sdk@4.6.2(react@19.2.3)(supports-color@7.2.0)(zod@4.1.13)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/semantic-conventions': 1.41.1
-      '@trigger.dev/core': 4.5.16(supports-color@7.2.0)
+      '@trigger.dev/core': 4.6.2(supports-color@7.2.0)(zod@4.1.13)
       uncrypto: 0.1.3
       zod: 4.1.13
     optionalDependencies:
@@ -7918,7 +7906,7 @@ snapshots:
 
   prom-client@15.1.3:
     dependencies:
-      '@opentelemetry/api': 1.9.0
+      '@opentelemetry/api': 1.9.1
       tdigest: 0.1.2
 
   prop-types@15.8.1:
@@ -8593,14 +8581,12 @@ snapshots:
     dependencies:
       grammex: 3.1.12
 
-  zod-validation-error@1.5.0(zod@3.25.76):
-    dependencies:
-      zod: 3.25.76
-
   zod-validation-error@4.0.2(zod@4.1.13):
     dependencies:
       zod: 4.1.13
 
-  zod@3.25.76: {}
+  zod-validation-error@5.0.0(zod@4.1.13):
+    dependencies:
+      zod: 4.1.13
 
   zod@4.1.13: {}
