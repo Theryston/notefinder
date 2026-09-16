@@ -1,6 +1,9 @@
 import { auth } from './auth';
+import type { NextFetchEvent, NextMiddleware, NextRequest } from 'next/server';
 
-export const proxy = auth((request) => {
+const authMiddleware = auth as unknown as NextMiddleware;
+
+export function proxy(request: NextRequest, event: NextFetchEvent) {
   console.log(
     JSON.stringify({
       type: 'incoming-request',
@@ -22,7 +25,9 @@ export const proxy = auth((request) => {
       timestamp: new Date().toISOString(),
     }),
   );
-});
+
+  return authMiddleware(request, event);
+}
 
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
