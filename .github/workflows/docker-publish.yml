@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - docker-compose.prod.yml
     tags:
       - 'v*'
   workflow_dispatch:
@@ -17,7 +19,7 @@ jobs:
     name: Build and push image
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
     concurrency:
       group: docker-publish-${{ github.ref }}
@@ -48,6 +50,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -61,6 +64,37 @@ jobs:
           secrets: |
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+
+      - name: Pin production Compose to pushed image
+        if: github.ref == 'refs/heads/main'
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "Unexpected image digest: $IMAGE_DIGEST" >&2
+            exit 1
+          fi
+
+          image="ghcr.io/theryston/notefinder@${IMAGE_DIGEST}"
+          sed -E -i "s|^([[:space:]]*image:[[:space:]]*)ghcr\\.io/theryston/notefinder(@sha256:[0-9a-f]+)?[[:space:]]*$|\\1${image}|" docker-compose.prod.yml
+
+          if ! grep -qF "${image}" docker-compose.prod.yml; then
+            echo "Could not update docker-compose.prod.yml" >&2
+            exit 1
+          fi
+
+          if git diff --quiet -- docker-compose.prod.yml; then
+            echo "Production Compose already points to ${image}."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docker-compose.prod.yml
+          git commit -m "chore: pin production image to ${IMAGE_DIGEST} [skip ci]"
+          git push
   deploy-fly:
     name: Deploy app to fly.io
     needs: build-and-push
