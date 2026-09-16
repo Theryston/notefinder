@@ -73,7 +73,7 @@ cd notefinder
 pnpm install
 ```
 
-Copy `.env.example` to `.env` and fill in your values (`DATABASE_URL`, `NEXTAUTH_SECRET`, `NOTEFINDER_YTMUSIC_API_URL`, S3, Resend, Trigger, etc.).
+Copy `.env.example` to `.env` and fill in your values (`DATABASE_URL`, `AUTH_SECRET`, `NOTEFINDER_YTMUSIC_API_URL`, S3, Resend, Trigger, etc.).
 
 ```bash
 pnpm db:migrate
@@ -103,6 +103,7 @@ pnpm dev
 | `pnpm build` | Production build |
 | `pnpm start` | Production server |
 | `pnpm db:migrate` | Prisma migrate dev |
+| `pnpm db:migrate:deploy` | Apply committed migrations in production |
 | `pnpm db:studio` | Prisma Studio |
 | `pnpm lint` | Lint |
 | `pnpm format` | Prettier |
