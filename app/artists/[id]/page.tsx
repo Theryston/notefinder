@@ -7,7 +7,7 @@ import {
 } from '@/lib/services/track/get-track-cached';
 import { dbTrackToTrackItem } from '@/lib/utils';
 import { notFound } from 'next/navigation';
-import { cacheTag } from 'next/cache';
+import { cacheLife, cacheTag } from 'next/cache';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/sheleton';
@@ -29,7 +29,10 @@ async function getArtistMetadata(id: string): Promise<Metadata> {
     where: { id },
   });
 
-  if (!artist) notFound();
+  if (!artist) {
+    cacheLife('seconds');
+    notFound();
+  }
 
   return {
     title: `Músicas de ${artist.name} com suas notas vocais`,
@@ -104,7 +107,10 @@ async function CachedContent({ id }: { id: string }) {
     where: { id },
   });
 
-  if (!artist) notFound();
+  if (!artist) {
+    cacheLife('seconds');
+    notFound();
+  }
 
   const conditions: GetTrackCustomWhereWithCacheConditions[] = [
     { key: 'artistId', value: id },
@@ -122,6 +128,10 @@ async function CachedContent({ id }: { id: string }) {
     page,
     cacheTags,
   });
+
+  if (tracks.length === 0 && total === 0) {
+    cacheLife('seconds');
+  }
 
   return (
     <TrackList

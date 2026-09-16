@@ -3,7 +3,7 @@ import moment from 'moment';
 import { DailyPracticeStreakStatus, FullUser } from '@/lib/constants';
 import { notFound } from 'next/navigation';
 import { getUserByUsername } from '@/lib/services/users/get-user';
-import { cacheTag } from 'next/cache';
+import { cacheLife, cacheTag } from 'next/cache';
 import { getDailyPracticeStreakStatus } from '@/lib/services/streak/daily-practice';
 import { FlameIcon, Heart, HeartPlus, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -14,7 +14,10 @@ export async function UserOverview({ username }: { username: string }) {
 
   const user = await getUserByUsername(username);
 
-  if (!user) notFound();
+  if (!user) {
+    cacheLife('seconds');
+    notFound();
+  }
 
   const dailyPracticeStreakStatus = await getDailyPracticeStreakStatus(user.id);
 

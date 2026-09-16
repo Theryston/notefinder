@@ -7,7 +7,7 @@ import {
 } from '@/lib/services/track/get-track-cached';
 import { dbTrackToTrackItem } from '@/lib/utils';
 import { Metadata } from 'next';
-import { cacheTag } from 'next/cache';
+import { cacheLife, cacheTag } from 'next/cache';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/sheleton';
@@ -30,7 +30,10 @@ async function getAlbumMetadata(id: string): Promise<Metadata> {
     select: { name: true, tracks: { select: { id: true } } },
   });
 
-  if (!album) notFound();
+  if (!album) {
+    cacheLife('seconds');
+    notFound();
+  }
 
   return {
     title: `Músicas do álbum ${album.name} com suas notas vocais`,
@@ -115,7 +118,10 @@ async function CachedContent({ id }: { id: string }) {
     where: { id },
   });
 
-  if (!album) notFound();
+  if (!album) {
+    cacheLife('seconds');
+    notFound();
+  }
 
   const conditions: GetTrackCustomWhereWithCacheConditions[] = [
     { key: 'albumId', value: id },
@@ -133,6 +139,10 @@ async function CachedContent({ id }: { id: string }) {
     page,
     cacheTags,
   });
+
+  if (tracks.length === 0 && total === 0) {
+    cacheLife('seconds');
+  }
 
   return (
     <TrackList

@@ -1,14 +1,20 @@
 import { FULL_USER_INCLUDE, FullUser } from '@/lib/constants';
 import prisma from '@/lib/prisma';
-import { cacheTag } from 'next/cache';
+import { cacheLife, cacheTag } from 'next/cache';
 
 export const getUserByIdWithCache = async (id: string) => {
   'use cache: remote';
   cacheTag(`user_${id}`);
 
-  return await prisma.user.findFirst({
+  const user = await prisma.user.findFirst({
     where: { id },
   });
+
+  if (!user) {
+    cacheLife('seconds');
+  }
+
+  return user;
 };
 
 export const getUserById = async (id: string) => {
@@ -25,6 +31,10 @@ export async function getUserByUsername(username: string) {
     where: { username },
     include: FULL_USER_INCLUDE,
   });
+
+  if (!user) {
+    cacheLife('seconds');
+  }
 
   return user as unknown as FullUser | null;
 }

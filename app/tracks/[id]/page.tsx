@@ -2,7 +2,7 @@ import { Container } from '@/components/container';
 import { notFound } from 'next/navigation';
 import { ProcessingTrack } from './components/processing-track';
 import { TrackContent } from './components/track-content';
-import { cacheTag } from 'next/cache';
+import { cacheLife, cacheTag } from 'next/cache';
 import { FULL_TRACK_INCLUDE, FullTrack, Lyrics } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import { Metadata } from 'next';
@@ -13,10 +13,16 @@ async function getTrack(id: string) {
   'use cache: remote';
   cacheTag(`track_${id}`);
 
-  return prisma.track.findUnique({
+  const track = await prisma.track.findUnique({
     where: { id },
     include: FULL_TRACK_INCLUDE,
   });
+
+  if (!track) {
+    cacheLife('seconds');
+  }
+
+  return track;
 }
 
 async function getLyrics(lyricsUrl?: string) {

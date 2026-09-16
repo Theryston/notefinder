@@ -1,7 +1,7 @@
 import { MINIMAL_TRACK_INCLUDE, MinimalTrack } from '@/lib/constants';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@/lib/generated/prisma/client';
-import { cacheTag } from 'next/cache';
+import { cacheLife, cacheTag } from 'next/cache';
 import moment from 'moment';
 
 export type GetTrackCustomWhereWithCacheConditions = {
@@ -81,6 +81,10 @@ export const getTrackCustomWhereWithCache = async ({
 
   const total = await prisma.track.count({ where });
 
+  if (tracks.length === 0 && total === 0) {
+    cacheLife('seconds');
+  }
+
   return { tracks, total };
 };
 
@@ -114,7 +118,10 @@ export const getTopViewedLast24Hours = async (
 
   const trackIds = result.map((r) => (r as { trackId: string }).trackId);
 
-  if (trackIds.length === 0) return [];
+  if (trackIds.length === 0) {
+    cacheLife('seconds');
+    return [];
+  }
 
   const tracks = await prisma.track.findMany({
     where: {
@@ -123,6 +130,10 @@ export const getTopViewedLast24Hours = async (
     },
     include: MINIMAL_TRACK_INCLUDE,
   });
+
+  if (tracks.length === 0) {
+    cacheLife('seconds');
+  }
 
   const viewsByTrackId = Object.fromEntries(
     result.map((r) => [
@@ -140,7 +151,7 @@ export const getTracksByVideoIds = async (videoIds: string[]) => {
   'use cache: remote';
   cacheTag('existing_tracks', ...videoIds.map((id) => `track_video_${id}`));
 
-  return await prisma.track.findMany({
+  const tracks = await prisma.track.findMany({
     where: {
       ytId: { in: videoIds },
     },
@@ -152,4 +163,10 @@ export const getTracksByVideoIds = async (videoIds: string[]) => {
       },
     },
   });
+
+  if (tracks.length === 0) {
+    cacheLife('seconds');
+  }
+
+  return tracks;
 };
