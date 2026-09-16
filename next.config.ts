@@ -5,11 +5,7 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   experimental: {
     serverActions: {
-      allowedOrigins: [
-        'notefinder.com.br',
-        'zimaos.notefinder.com.br',
-        'fly.notefinder.com.br',
-      ],
+      allowedOrigins: ['notefinder.com.br'],
     },
   },
   images: {

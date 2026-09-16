@@ -32,6 +32,7 @@ services:
       DATABASE_URL: 'postgresql://notefinder:${POSTGRES_PASSWORD}@postgres:5432/notefinder?schema=public'
       AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET must be set}
       AUTH_TRUST_HOST: ${AUTH_TRUST_HOST:-true}
+      NOTEFINDER_YTMUSIC_API_URL: ${NOTEFINDER_YTMUSIC_API_URL:?NOTEFINDER_YTMUSIC_API_URL must be set}
     ports:
       - '9301:3000'
 
