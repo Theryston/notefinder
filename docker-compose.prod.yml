@@ -9,15 +9,15 @@ services:
       # a strong URL-safe password for use in .env.prod.
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U notefinder -d notefinder"]
+      test: ['CMD-SHELL', 'pg_isready -U notefinder -d notefinder']
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
     ports:
-      - "5687:5432"
+      - '5687:5432'
     volumes:
-      - notefinder_postgres_data:/var/lib/postgresql/data
+      - notefinder_postgres_data_v18:/var/lib/postgresql
 
   app:
     image: ghcr.io/theryston/notefinder@sha256:cd3549b33fb577e4436f82dc3fdf3b823637e240142c324e2a7c95b109cfbb38
@@ -29,11 +29,11 @@ services:
       - path: .env.prod
         required: false
     environment:
-      DATABASE_URL: "postgresql://notefinder:${POSTGRES_PASSWORD}@postgres:5432/notefinder?schema=public"
+      DATABASE_URL: 'postgresql://notefinder:${POSTGRES_PASSWORD}@postgres:5432/notefinder?schema=public'
       AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET must be set}
       AUTH_TRUST_HOST: ${AUTH_TRUST_HOST:-true}
     ports:
-      - "9301:3000"
+      - '9301:3000'
 
 volumes:
-  notefinder_postgres_data:
+  notefinder_postgres_data_v18:
