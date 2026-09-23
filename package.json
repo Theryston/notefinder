@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Find your notes",
   "scripts": {
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
